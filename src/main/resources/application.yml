@@ -1,0 +1,16 @@
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/blog
+    username: root
+    password: root!@
+
+# Spring Boot 3(Hibernate 6 사용.) 이후로 Hibernate 방언을 선택 사항으로 사용할 수 있다. 
+# Hibernate 6은 classpath에 추가한 드라이버 의존성에 기반하여 자동으로 방언을 구성한다.
+  jpa:
+    hibernate:
+      ddl-auto: create # 테이블이 데이터베이스에 존재하지 않으면 생성한다.
+    show-sql: true
+    properties:
+      hibernate:
+        '[format_sql]': true
