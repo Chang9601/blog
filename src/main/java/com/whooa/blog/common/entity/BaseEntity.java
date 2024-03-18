@@ -30,4 +30,42 @@ public abstract class BaseEntity implements Serializable {
 	
 	@Column(name = "deleted_at")
 	private LocalDateTime deletedAt;
+
+	public Long getId() {
+		return id;
+	}
+
+	public void setId(Long id) {
+		this.id = id;
+	}
+
+	public LocalDateTime getCreatedAt() {
+		return createdAt;
+	}
+
+	public void setCreatedAt(LocalDateTime createdAt) {
+		this.createdAt = createdAt;
+	}
+
+	public LocalDateTime getUpdateddAt() {
+		return updateddAt;
+	}
+
+	public void setUpdateddAt(LocalDateTime updateddAt) {
+		this.updateddAt = updateddAt;
+	}
+
+	public LocalDateTime getDeletedAt() {
+		return deletedAt;
+	}
+
+	public void setDeletedAt(LocalDateTime deletedAt) {
+		this.deletedAt = deletedAt;
+	}
+
+	@Override
+	public String toString() {
+		return "BaseEntity [id=" + id + ", createdAt=" + createdAt + ", updateddAt=" + updateddAt + ", deletedAt="
+				+ deletedAt + "]";
+	}
 }
