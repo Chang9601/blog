@@ -22,13 +22,35 @@ public class Post extends BaseEntity {
 	
 	@Column(nullable = false)
 	private String content;
-
 	
+	public Post(final Long id, final String title, final String description, final String content) {
+		super(id);
+		this.title = title;
+		this.description = description;
+		this.content = content;
+	}
+	
+	public Post(final String title, final String description, final String content) {	
+		this(-1L, title, description, content);
+	}
+	
+	public Post() {
+		super(-1L);
+	}
+	
+	public Long getId() {
+		return super.getId();
+	}
+	
+	public void setId(final Long id) {
+		super.setId(id);
+	}
+
 	public String getTitle() {
 		return title;
 	}
 
-	public void setTitle(String title) {
+	public void setTitle(final String title) {
 		this.title = title;
 	}
 
@@ -36,7 +58,7 @@ public class Post extends BaseEntity {
 		return description;
 	}
 
-	public void setDescription(String description) {
+	public void setDescription(final String description) {
 		this.description = description;
 	}
 
@@ -44,12 +66,13 @@ public class Post extends BaseEntity {
 		return content;
 	}
 
-	public void setContent(String content) {
+	public void setContent(final String content) {
 		this.content = content;
 	}
 
 	@Override
 	public String toString() {
-		return "Post [title=" + title + ", description=" + description + ", content=" + content + "]";
+		return "Post [id=" + super.getId() + ", title=" + title + ", description=" + description + ", content=" + content
+				+ "]";
 	}
 }

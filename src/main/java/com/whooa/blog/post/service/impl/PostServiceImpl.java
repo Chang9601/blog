@@ -1,9 +1,13 @@
 package com.whooa.blog.post.service.impl;
 
+import org.mapstruct.factory.Mappers;
 import org.springframework.stereotype.Service;
 
 import com.whooa.blog.common.api.ApiResponse;
+import com.whooa.blog.common.code.Code;
 import com.whooa.blog.post.dto.PostDto;
+import com.whooa.blog.post.entity.Post;
+import com.whooa.blog.post.mapper.PostMapper;
 import com.whooa.blog.post.repository.PostRepository;
 import com.whooa.blog.post.service.PostService;
 
@@ -11,6 +15,7 @@ import com.whooa.blog.post.service.PostService;
 public class PostServiceImpl implements PostService{
 	
 	private final PostRepository postRepository;
+	//private final PostMapper postMapper = Mappers.getMapper(PostMapper.class);
 	
 	// 생성자 주입은 생성자를 사용해서 의존성을 주입한다.
 	// Spring 4.3 이전의 경우 @Autowired 어노테이션을 생성자에 추가해야 했지만 이후 버전의 경우 하나의 생성자만 존재하면 이는 선택 사항이다.
@@ -22,12 +27,17 @@ public class PostServiceImpl implements PostService{
 	public PostServiceImpl(final PostRepository postRepository) {
 		this.postRepository = postRepository;
 	}
-	
 
 	@Override
-	public ApiResponse<PostDto.Response> createPost(final PostDto.Request postDto) {
+	public ApiResponse<PostDto.Response> create(final PostDto.Request postDto) {
 		// DTO를 엔티티로 변환한다.
+		Post post = PostMapper.INSTANCE.toEntity(postDto);
 		
-		return null;
+		Post savedPost = postRepository.save(post);
+		
+		// 엔티티를 DTO로 변환한다.
+		PostDto.Response savedPostDto = PostMapper.INSTANCE.toDto(savedPost);
+				
+		return ApiResponse.handleSuccess(Code.CREATED.getCode(), Code.CREATED.getMessage(), savedPostDto, null);
 	}
 }

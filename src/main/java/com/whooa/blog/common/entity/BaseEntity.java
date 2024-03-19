@@ -30,12 +30,16 @@ public abstract class BaseEntity implements Serializable {
 	
 	@Column(name = "deleted_at")
 	private LocalDateTime deletedAt;
+	
+	public BaseEntity(final Long id) {
+		this.id = id;
+	}
 
 	public Long getId() {
 		return id;
 	}
 
-	public void setId(Long id) {
+	public void setId(final Long id) {
 		this.id = id;
 	}
 
@@ -43,7 +47,7 @@ public abstract class BaseEntity implements Serializable {
 		return createdAt;
 	}
 
-	public void setCreatedAt(LocalDateTime createdAt) {
+	public void setCreatedAt(final LocalDateTime createdAt) {
 		this.createdAt = createdAt;
 	}
 
@@ -51,7 +55,7 @@ public abstract class BaseEntity implements Serializable {
 		return updateddAt;
 	}
 
-	public void setUpdateddAt(LocalDateTime updateddAt) {
+	public void setUpdateddAt(final LocalDateTime updateddAt) {
 		this.updateddAt = updateddAt;
 	}
 
@@ -59,7 +63,7 @@ public abstract class BaseEntity implements Serializable {
 		return deletedAt;
 	}
 
-	public void setDeletedAt(LocalDateTime deletedAt) {
+	public void setDeletedAt(final LocalDateTime deletedAt) {
 		this.deletedAt = deletedAt;
 	}
 
