@@ -1,11 +1,15 @@
 package com.whooa.blog.post.service.impl;
 
-import org.mapstruct.factory.Mappers;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.springframework.stereotype.Service;
 
 import com.whooa.blog.common.api.ApiResponse;
 import com.whooa.blog.common.code.Code;
+import com.whooa.blog.common.exception.PostNotFoundException;
 import com.whooa.blog.post.dto.PostDto;
+import com.whooa.blog.post.dto.PostDto.Response;
 import com.whooa.blog.post.entity.Post;
 import com.whooa.blog.post.mapper.PostMapper;
 import com.whooa.blog.post.repository.PostRepository;
@@ -29,15 +33,57 @@ public class PostServiceImpl implements PostService{
 	}
 
 	@Override
-	public ApiResponse<PostDto.Response> create(final PostDto.Request postDto) {
-		// DTO를 엔티티로 변환한다.
-		Post post = PostMapper.INSTANCE.toEntity(postDto);
-		
-		Post savedPost = postRepository.save(post);
+	public ApiResponse<PostDto.Response> create(final Post post) {
+		Post postEntity = postRepository.save(post);
 		
 		// 엔티티를 DTO로 변환한다.
-		PostDto.Response savedPostDto = PostMapper.INSTANCE.toDto(savedPost);
+		PostDto.Response postDto = PostMapper.INSTANCE.toDto(postEntity);
 				
-		return ApiResponse.handleSuccess(Code.CREATED.getCode(), Code.CREATED.getMessage(), savedPostDto, null);
+		return ApiResponse.handleSuccess(Code.CREATED.getCode(), Code.CREATED.getMessage(), postDto, null);
+	}
+
+	@Override
+	public ApiResponse<List<PostDto.Response>> findAll() {
+		List<Post> posts = postRepository.findAll();
+		
+		List<PostDto.Response> postDtos = posts.stream().map((post) -> PostMapper.INSTANCE.toDto(post)).collect(Collectors.toList());
+		
+		return ApiResponse.handleSuccess(Code.OK.getCode(), Code.OK.getMessage(), postDtos, null);
+	}
+
+	@Override
+	public ApiResponse<PostDto.Response> findOne(Long id) {
+		String[] details = {"포스트가 존재하지 않습니다."};
+		Post post = postRepository.findById(id).orElseThrow(() -> new PostNotFoundException(Code.NOT_FOUND.getCode(), Code.NOT_FOUND.getMessage(), details));
+		
+		PostDto.Response postDto = PostMapper.INSTANCE.toDto(post);
+		
+		return ApiResponse.handleSuccess(Code.OK.getCode(), Code.OK.getMessage(), postDto, null);
+	}
+
+	@Override
+	public ApiResponse<PostDto.Response> updateOne(Post post, Long id) {
+		String[] details = {"포스트가 존재하지 않습니다."};
+		Post postEntity = postRepository.findById(id).orElseThrow(() -> new PostNotFoundException(Code.NOT_FOUND.getCode(), Code.NOT_FOUND.getMessage(), details));
+		
+		postEntity.setTitle(post.getTitle());
+		postEntity.setDescription(post.getDescription());
+		postEntity.setContent(post.getContent());
+		
+		Post updatedPost = postRepository.save(postEntity);
+		PostDto.Response updatedPostDto = PostMapper.INSTANCE.toDto(updatedPost);
+		
+		return ApiResponse.handleSuccess(Code.OK.getCode(), Code.OK.getMessage(), updatedPostDto, null);
+	}
+
+	@Override
+	public ApiResponse<Response> deleteOne(Long id) {
+		String[] failureDetails = {"포스트가 존재하지 않습니다."};
+		Post post = postRepository.findById(id).orElseThrow(() -> new PostNotFoundException(Code.NOT_FOUND.getCode(), Code.NOT_FOUND.getMessage(), failureDetails));
+		
+		postRepository.delete(post);
+		String[] successDetails = {"포스트가 삭제되었습니다."};
+		
+		return ApiResponse.handleSuccess(Code.NO_CONTENT.getCode(), Code.NO_CONTENT.getMessage(), null, successDetails);
 	}
 }
