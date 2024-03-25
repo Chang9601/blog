@@ -12,7 +12,7 @@ import jakarta.persistence.Table;
 @Entity
 // 대부분의 경우, 데이터베이스의 테이블 이름과 엔티티의 이름은 동일하지 않다. 이러한 경우에 테이블 이름을 지정할 수 있다.
 @Table(name = "post")
-public class Post extends BaseEntity {
+public class PostEntity extends BaseEntity {
 
 	@Column(nullable = false)
 	private String title;
@@ -23,18 +23,18 @@ public class Post extends BaseEntity {
 	@Column(nullable = false)
 	private String content;
 	
-	public Post(final Long id, final String title, final String description, final String content) {
+	public PostEntity(final Long id, final String title, final String description, final String content) {
 		super(id);
 		this.title = title;
 		this.description = description;
 		this.content = content;
 	}
 	
-	public Post(final String title, final String description, final String content) {	
+	public PostEntity(final String title, final String description, final String content) {	
 		this(-1L, title, description, content);
 	}
 	
-	public Post() {
+	public PostEntity() {
 		super(-1L);
 	}
 	
@@ -72,7 +72,7 @@ public class Post extends BaseEntity {
 
 	@Override
 	public String toString() {
-		return "Post [id=" + super.getId() + ", title=" + title + ", description=" + description + ", content=" + content
+		return "PostEntity [id=" + super.getId() + ", title=" + title + ", description=" + description + ", content=" + content
 				+ "]";
 	}
 }

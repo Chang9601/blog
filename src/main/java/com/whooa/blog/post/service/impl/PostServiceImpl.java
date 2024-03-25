@@ -3,14 +3,20 @@ package com.whooa.blog.post.service.impl;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import com.whooa.blog.common.api.ApiResponse;
+import com.whooa.blog.common.api.PageResponse;
 import com.whooa.blog.common.code.Code;
+import com.whooa.blog.common.dto.PageDto;
 import com.whooa.blog.common.exception.PostNotFoundException;
 import com.whooa.blog.post.dto.PostDto;
 import com.whooa.blog.post.dto.PostDto.Response;
-import com.whooa.blog.post.entity.Post;
+import com.whooa.blog.post.entity.PostEntity;
 import com.whooa.blog.post.mapper.PostMapper;
 import com.whooa.blog.post.repository.PostRepository;
 import com.whooa.blog.post.service.PostService;
@@ -33,55 +39,68 @@ public class PostServiceImpl implements PostService{
 	}
 
 	@Override
-	public ApiResponse<PostDto.Response> create(final Post post) {
-		Post postEntity = postRepository.save(post);
+	public ApiResponse<PostDto.Response> create(final PostDto.Request postDto) {		
+		PostEntity postEntity = postRepository.save(PostMapper.INSTANCE.toEntity(postDto));
+						
+		return ApiResponse.handleSuccess(Code.CREATED.getCode(), Code.CREATED.getMessage(), PostMapper.INSTANCE.toDto(postEntity), null);
+	}
+
+	@Override
+	public ApiResponse<PageResponse<PostDto.Response>> findAll(final PageDto pageDto) {
 		
-		// 엔티티를 DTO로 변환한다.
+		String sortBy = pageDto.getSortBy();		
+		Sort sort = pageDto.getSortDir().equalsIgnoreCase(Sort.Direction.ASC.name()) ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
+		
+		Pageable pageable = PageRequest.of(pageDto.getPageNo(), pageDto.getPageSize(), sort);
+		
+		Page<PostEntity> posts = postRepository.findAll(pageable);
+		
+		List<PostEntity> postEntities = posts.getContent();
+		int pageSize = posts.getSize();
+		int pageNo = posts.getNumber();
+		long totalElements = posts.getTotalElements();
+		int totalPages = posts.getTotalPages();
+		boolean isLast = posts.isLast();
+		boolean isFirst = posts.isFirst();
+		
+		List<PostDto.Response> postDtos = postEntities.stream().map((post) -> PostMapper.INSTANCE.toDto(post)).collect(Collectors.toList());
+		
+		PageResponse<PostDto.Response> postResponse = PageResponse.handleResponse(postDtos, pageSize, pageNo, totalElements, totalPages, isLast, isFirst);
+		
+		return ApiResponse.handleSuccess(Code.OK.getCode(), Code.OK.getMessage(), postResponse, null);
+	}
+
+	@Override
+	public ApiResponse<PostDto.Response> findOne(final Long id) {
+		String[] failureDetails = {"포스트가 존재하지 않습니다."};
+		PostEntity postEntity = postRepository.findById(id).orElseThrow(() -> new PostNotFoundException(Code.NOT_FOUND.getCode(), Code.NOT_FOUND.getMessage(), failureDetails));
+		
 		PostDto.Response postDto = PostMapper.INSTANCE.toDto(postEntity);
-				
-		return ApiResponse.handleSuccess(Code.CREATED.getCode(), Code.CREATED.getMessage(), postDto, null);
-	}
-
-	@Override
-	public ApiResponse<List<PostDto.Response>> findAll() {
-		List<Post> posts = postRepository.findAll();
-		
-		List<PostDto.Response> postDtos = posts.stream().map((post) -> PostMapper.INSTANCE.toDto(post)).collect(Collectors.toList());
-		
-		return ApiResponse.handleSuccess(Code.OK.getCode(), Code.OK.getMessage(), postDtos, null);
-	}
-
-	@Override
-	public ApiResponse<PostDto.Response> findOne(Long id) {
-		String[] details = {"포스트가 존재하지 않습니다."};
-		Post post = postRepository.findById(id).orElseThrow(() -> new PostNotFoundException(Code.NOT_FOUND.getCode(), Code.NOT_FOUND.getMessage(), details));
-		
-		PostDto.Response postDto = PostMapper.INSTANCE.toDto(post);
 		
 		return ApiResponse.handleSuccess(Code.OK.getCode(), Code.OK.getMessage(), postDto, null);
 	}
 
 	@Override
-	public ApiResponse<PostDto.Response> updateOne(Post post, Long id) {
-		String[] details = {"포스트가 존재하지 않습니다."};
-		Post postEntity = postRepository.findById(id).orElseThrow(() -> new PostNotFoundException(Code.NOT_FOUND.getCode(), Code.NOT_FOUND.getMessage(), details));
+	public ApiResponse<PostDto.Response> updateOne(final PostDto.Request postDto, final Long id) {
+		String[] failureDetails = {"포스트가 존재하지 않습니다."};
+		PostEntity postEntity = postRepository.findById(id).orElseThrow(() -> new PostNotFoundException(Code.NOT_FOUND.getCode(), Code.NOT_FOUND.getMessage(), failureDetails));
 		
-		postEntity.setTitle(post.getTitle());
-		postEntity.setDescription(post.getDescription());
-		postEntity.setContent(post.getContent());
+		postEntity.setTitle(postDto.getTitle());
+		postEntity.setDescription(postDto.getDescription());
+		postEntity.setContent(postDto.getContent());
 		
-		Post updatedPost = postRepository.save(postEntity);
-		PostDto.Response updatedPostDto = PostMapper.INSTANCE.toDto(updatedPost);
+		PostEntity updatedPostEntity = postRepository.save(postEntity);
+		PostDto.Response updatedPostDto = PostMapper.INSTANCE.toDto(updatedPostEntity);
 		
 		return ApiResponse.handleSuccess(Code.OK.getCode(), Code.OK.getMessage(), updatedPostDto, null);
 	}
 
 	@Override
-	public ApiResponse<Response> deleteOne(Long id) {
+	public ApiResponse<Response> deleteOne(final Long id) {
 		String[] failureDetails = {"포스트가 존재하지 않습니다."};
-		Post post = postRepository.findById(id).orElseThrow(() -> new PostNotFoundException(Code.NOT_FOUND.getCode(), Code.NOT_FOUND.getMessage(), failureDetails));
+		PostEntity postEntity = postRepository.findById(id).orElseThrow(() -> new PostNotFoundException(Code.NOT_FOUND.getCode(), Code.NOT_FOUND.getMessage(), failureDetails));
 		
-		postRepository.delete(post);
+		postRepository.delete(postEntity);
 		String[] successDetails = {"포스트가 삭제되었습니다."};
 		
 		return ApiResponse.handleSuccess(Code.NO_CONTENT.getCode(), Code.NO_CONTENT.getMessage(), null, successDetails);

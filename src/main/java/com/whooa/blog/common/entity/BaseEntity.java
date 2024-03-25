@@ -1,6 +1,5 @@
 package com.whooa.blog.common.entity;
 
-import java.io.Serializable;
 import java.time.LocalDateTime;
 
 import org.hibernate.annotations.CreationTimestamp;
@@ -8,16 +7,16 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.MappedSuperclass;
 
 // 부모 클래스는 테이블과 매핑하지 않으며 상속받는 자식 클래스에 매핑 정보를 상속한다.
 @MappedSuperclass
-public abstract class BaseEntity implements Serializable {
-    private static final long serialVersionUID = 1L;
+public abstract class BaseEntity {
 
 	@Id
-	@GeneratedValue
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 	
 	@CreationTimestamp

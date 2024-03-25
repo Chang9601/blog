@@ -1,7 +1,6 @@
 package com.whooa.blog.common.exception;
 
 public abstract class BaseException extends RuntimeException {
-    private static final long serialVersionUID = 1L;
 
 	private int code;
 	private String message;
