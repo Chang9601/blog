@@ -41,7 +41,7 @@ public class PostServiceImpl implements PostService{
 	@Override
 	public ApiResponse<PostDto.Response> create(final PostDto.Request postDto) {		
 		PostEntity postEntity = postRepository.save(PostMapper.INSTANCE.toEntity(postDto));
-						
+								
 		return ApiResponse.handleSuccess(Code.CREATED.getCode(), Code.CREATED.getMessage(), PostMapper.INSTANCE.toDto(postEntity), null);
 	}
 

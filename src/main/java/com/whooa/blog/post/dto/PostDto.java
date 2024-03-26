@@ -33,6 +33,11 @@ public class PostDto {
 		public String getContent() {
 			return content;
 		}
+
+		@Override
+		public String toString() {
+			return "Request [title=" + title + ", description=" + description + ", content=" + content + "]";
+		}
 	}
 	
 	public static class Response {

@@ -1,6 +1,7 @@
 package com.whooa.blog.repository;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
@@ -25,58 +26,97 @@ public class PostRepositoryTest {
 	@Autowired
 	private PostRepository postRepository;
 	
-	@DisplayName("포스트 레포지토리의 save() 메서드 테스트")
+	@DisplayName("포스트 레포지토리의 save() 메서드로 포스트 생성 성공 테스트")
 	@Test
-	public void givenPostObject_whenSave_thenReturnSavedPost() {
+	public void givenPost_whenSavePost_thenReturnSavedPost() {
 		// given: 설정
 		PostEntity postEntity = new PostEntity();
 		postEntity.setTitle("테스트");
-		postEntity.setDescription("테스트를 위한 포스트");
+		postEntity.setDescription("테스트 포스트");
 		postEntity.setContent("테스트를 위한 포스트");
 		
-		// when: 테스트할 행위
-		PostEntity savedPost = postRepository.save(postEntity);
+		// when: 행위
+		PostEntity savedPostEntity = postRepository.save(postEntity);
 		
 		// then: 검증
-		Assertions.assertNotNull(savedPost);
-		Assertions.assertTrue(savedPost.getId() > 0);
+		Assertions.assertNotNull(savedPostEntity);
+		Assertions.assertTrue(savedPostEntity.getId() > 0);
 	}
 	
-	@DisplayName("포스트 레포지토리의 findAll() 메서드 테스트")
+	@DisplayName("포스트 레포지토리의 findAll() 메서드로 포스트 목록 조회 성공 테스트")
 	@Test
-	public void givenPosts_whenFindAll_thenReturnAllPosts() {
+	public void givenPosts_whenFindAllPosts_thenReturnAllPosts() {
 		PostEntity postEntity1 = new PostEntity();
 		postEntity1.setTitle("테스트1");
-		postEntity1.setDescription("테스트1을 위한 포스트");
+		postEntity1.setDescription("테스트1 포스트");
 		postEntity1.setContent("테스트1을 위한 포스트");
 		
 		PostEntity postEntity2 = new PostEntity();
 		postEntity2.setTitle("테스트2");
-		postEntity2.setDescription("테스트2를 위한 포스트");
+		postEntity2.setDescription("테스트2 포스트");
 		postEntity2.setContent("테스트2를 위한 포스트");
 		
 		postRepository.save(postEntity1);
 		postRepository.save(postEntity2);
 		
-		List<PostEntity> postEntities = postRepository.findAll();
+		List<PostEntity> foundPostEntities = postRepository.findAll();
 		
-		Assertions.assertNotNull(postEntities);
-		Assertions.assertEquals(postEntities.size(), 2);			
+		Assertions.assertNotNull(foundPostEntities);
+		Assertions.assertEquals(foundPostEntities.size(), 2);			
 	}
 	
-	@DisplayName("포스트 레포지토리의 findById() 메서드 테스트")
+	@DisplayName("포스트 레포지토리의 findById() 메서드로 포스트 조회 성공 테스트")
 	@Test
-	public void givenPost_whenFindById_thenReturnPost() {
+	public void givenPost_whenFindPostById_thenReturnPost() {
 		PostEntity postEntity = new PostEntity();
-		postEntity.setTitle("테스트1");
-		postEntity.setDescription("테스트를 위한 포스트");
+		postEntity.setTitle("테스트");
+		postEntity.setDescription("테스트 포스트");
 		postEntity.setContent("테스트를 위한 포스트");
 		
-		PostEntity savedPost = postRepository.save(postEntity);
+		PostEntity savedPostEntity = postRepository.save(postEntity);
 		
-		PostEntity foundPostEntity = postRepository.findById(savedPost.getId()).get();
+		PostEntity foundPostEntity = postRepository.findById(savedPostEntity.getId()).get();
 				
 		Assertions.assertNotNull(foundPostEntity);
 		Assertions.assertEquals(foundPostEntity.getTitle(), postEntity.getTitle());			
 	}	
+
+	@DisplayName("포스트 레포지토리의 save() 메서드로 포스트 갱신 성공 테스트")
+	@Test
+	public void givenPost_whenUpdatePost_thenReturnUpdatedPost() {
+		PostEntity postEntity = new PostEntity();
+		postEntity.setTitle("테스트");
+		postEntity.setDescription("테스트 포스트");
+		postEntity.setContent("테스트를 위한 포스트");
+		
+		PostEntity savedPostEntity = postRepository.save(postEntity);
+		
+		PostEntity foundPostEntity = postRepository.findById(savedPostEntity.getId()).get();
+		foundPostEntity.setTitle("실전");
+		foundPostEntity.setDescription("실전 포스트");
+		foundPostEntity.setContent("실전을 위한 포스트");
+		
+		PostEntity updatedPostEntity = postRepository.save(foundPostEntity);
+
+		Assertions.assertEquals(updatedPostEntity.getTitle(), "실전");
+		Assertions.assertEquals(updatedPostEntity.getDescription(), "실전 포스트");
+		Assertions.assertEquals(updatedPostEntity.getContent(), "실전을 위한 포스트");
+	}
+	
+	@DisplayName("포스트 레포지토리의 delete() 메서드로 포스트 삭제 성공 테스트")
+	@Test
+	public void givenPost_whenDeletePost_thenReturnEmpty() {
+		PostEntity postEntity = new PostEntity();
+		postEntity.setTitle("테스트");
+		postEntity.setDescription("테스트 포스트");
+		postEntity.setContent("테스트를 위한 포스트");
+		
+		PostEntity savedPostEntity = postRepository.save(postEntity);
+		
+		postRepository.delete(savedPostEntity);
+		// Optional cannot be resolved to a type 오류.
+		// Optional<PostEntity> postEntityOptional = postRepository.findById(savedPostEntity.getId());
+
+		Assertions.assertEquals(postRepository.findById(savedPostEntity.getId()), Optional.empty());
+	}		
 }

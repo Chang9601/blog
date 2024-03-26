@@ -2,13 +2,14 @@ package com.whooa.blog.common.api;
 
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.util.Arrays;
 
 import com.whooa.blog.common.code.Code;
 
 public class ApiResponse<T> {
 	private final Metadata metadata;
 	private final T data;
-	
+
 	private ApiResponse(final int code, final String message, final T data, final String[] details) {
 		this.metadata = new Metadata(code, message, details);
 		this.data = data;
@@ -40,6 +41,11 @@ public class ApiResponse<T> {
 		return data;
 	}
 	
+	@Override
+	public String toString() {
+		return "ApiResponse [metadata=" + metadata + ", data=" + data + "]";
+	}
+
 	// 중첩 클래스를 사용하는 이유.
 	// 1. 논리적으로 연관된 클래스들을 하나의 패키지에 묶을 수 있다.
 	// 2. 가독성이 향상되고 유지보수가 쉬운 코드를 만들 수 있다.
@@ -52,7 +58,7 @@ public class ApiResponse<T> {
 	// 외부 클래스를 참조할 이유가 없다면 정적 중첩 클래스를 사용한다.
 	// 1. 내부 클래스는 외부 클래스의 인스턴스화 후 인스턴스화가 가능하며 두 인스턴스의 관계 정보는 내부 클래스의 인스턴스 안에 만들어져 메모리 공간을 더 차지하고 생성 시간도 더 걸린다.
 	// 2. 내부 클래스의 인스턴스가 외부 클래스의 인스턴스를 참조를 가지고 있기 때문에 가비지 컬렉터는 외부 클래스의 인스턴스를 수거 대상으로 보지 않기에 가비지 컬렉션에서 제외된다.
-	private static class Metadata {
+	public static class Metadata {
 		private final int code;
 		private final String messsage;
 		private final long timestamp;
@@ -79,6 +85,12 @@ public class ApiResponse<T> {
 
 		public String[] getDetails() {
 			return details;
+		}
+
+		@Override
+		public String toString() {
+			return "Metadata [code=" + code + ", messsage=" + messsage + ", timestamp=" + timestamp + ", details="
+					+ Arrays.toString(details) + "]";
 		}
 	}
 }
