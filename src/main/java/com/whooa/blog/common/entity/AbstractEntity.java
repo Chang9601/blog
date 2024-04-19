@@ -13,7 +13,7 @@ import jakarta.persistence.MappedSuperclass;
 
 // 부모 클래스는 테이블과 매핑하지 않으며 상속받는 자식 클래스에 매핑 정보를 상속한다.
 @MappedSuperclass
-public abstract class BaseEntity {
+public abstract class AbstractEntity {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -30,7 +30,7 @@ public abstract class BaseEntity {
 	@Column(name = "deleted_at")
 	private LocalDateTime deletedAt;
 	
-	public BaseEntity(final Long id) {
+	public AbstractEntity(final Long id) {
 		this.id = id;
 	}
 

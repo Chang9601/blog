@@ -11,6 +11,6 @@ public interface PostMapper {
 	
 	PostMapper INSTANCE = Mappers.getMapper(PostMapper.class);
 	
-	PostDto.Response toDto(PostEntity postEntity);
-	PostEntity toEntity(PostDto.Request postDto);
+	PostDto.Response toDto(final PostEntity postEntity);
+	PostEntity toEntity(final PostDto.CreateRequest postDto);
 }
