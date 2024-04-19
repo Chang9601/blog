@@ -23,6 +23,9 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	runtimeOnly 'com.mysql:mysql-connector-j'
 	
+	// Validation
+	implementation 'org.springframework.boot:spring-boot-starter-validation'
+	
 	// Test
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	

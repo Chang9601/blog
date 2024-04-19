@@ -1,12 +1,12 @@
 package com.whooa.blog.common.exception;
 
-public abstract class BaseException extends RuntimeException {
+public abstract class AbstractException extends RuntimeException {
 
 	private int code;
 	private String message;
 	private String[] details;
 	
-	public BaseException(final int code, final String message, final String[] details) {
+	public AbstractException(final int code, final String message, final String[] details) {
 		this.code = code;
 		this.message = message;
 		this.details = details;
