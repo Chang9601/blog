@@ -15,7 +15,9 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
 
-import com.whooa.blog.comment.dto.CommentDto;
+import com.whooa.blog.comment.dto.CommentDto.CommentCreateRequest;
+import com.whooa.blog.comment.dto.CommentDto.CommentUpdateRequest;
+import com.whooa.blog.comment.dto.CommentDto.CommentResponse;
 import com.whooa.blog.comment.entity.CommentEntity;
 import com.whooa.blog.comment.exception.CommentNotBelongingToPostException;
 import com.whooa.blog.comment.exception.CommentNotFoundException;
@@ -51,9 +53,9 @@ public class CommentControllerTest {
 	private SerializeDeserializeUtil serializeDeserializeUtil;
 	
 	private PostEntity postEntity;
-	private CommentDto.CreateRequest createCommentDto;
-	private CommentDto.UpdateRequest updateCommentDto;
-	private CommentDto.Response commentDto;
+	private CommentCreateRequest commentCreate;
+	private CommentUpdateRequest commentUpdate;
+	private CommentResponse comment;
 	private CommentEntity commentEntity;
 	private Long eId;
 	private Long dneId;
@@ -65,20 +67,23 @@ public class CommentControllerTest {
 		String content = "테스트를 위한 댓글";
 		String password = "1234";
 		
-		postEntity = new PostEntity(id, "테스트", "테스트를 위한 포스트");
-		createCommentDto = new CommentDto.CreateRequest(name, content, password);
-		updateCommentDto = new CommentDto.UpdateRequest("실전을 위한 댓글", "4321");
-		commentDto = new CommentDto.Response(id, name, content, postEntity);
-		commentEntity = new CommentEntity(id, name, content, password);
-		commentEntity.setPost(postEntity);
 		eId = id;
 		dneId = 1000L;
+		
+		postEntity = new PostEntity(id, "테스트", "테스트를 위한 포스트");
+		
+		commentEntity = new CommentEntity(id, name, content, password);
+		commentEntity.setPost(postEntity);
+		
+		commentCreate = new CommentCreateRequest(name, content, password);
+		commentUpdate = new CommentUpdateRequest("실전을 위한 댓글", "4321");
+		comment = new CommentResponse(id, name, content);
 	}
 	
 	@DisplayName("포스트의 댓글을 생성하는데 성공한다.")
 	@Test
-	public void givenCreateCommentDto_whenCallCreateComment_thenReturnCommentDto() throws Exception {
-		given(commentService.create(any(Long.class), any(CommentDto.CreateRequest.class))).willAnswer((invocation) -> {
+	public void givenCommentCreate_whenCallCreateComment_thenReturnComment() throws Exception {
+		given(commentService.create(any(Long.class), any(CommentCreateRequest.class))).willAnswer((invocation) -> {
 			Long postId = invocation.getArgument(0);
 			CommentEntity commentEntity =  CommentMapper.INSTANCE.toEntity(invocation.getArgument(1));
 			commentEntity.setPost(postEntity);
@@ -88,22 +93,22 @@ public class CommentControllerTest {
 		
 		ResultActions response = mockMvc.perform(post("/api/v1/posts/{post-id}/comments", eId)
 										.contentType(MediaType.APPLICATION_JSON)
-										.content(serializeDeserializeUtil.serialize(createCommentDto)));
+										.content(serializeDeserializeUtil.serialize(commentCreate)));
 
 		response.andDo(print())
 				.andExpect(status().isCreated())
-				.andExpect(jsonPath("$.data.name", is(commentDto.getName())))
-				.andExpect(jsonPath("$.data.content", is(commentDto.getContent())));
+				.andExpect(jsonPath("$.data.name", is(comment.getName())))
+				.andExpect(jsonPath("$.data.content", is(comment.getContent())));
 	}
 	
 	@DisplayName("포스트가 존재하지 않아서 포스트의 댓글을 생성하는데 실패한다.")
 	@Test
-	public void givenCreateCommentDto_whenCallCreateComment_thenThrowPostNotFoundException() throws Exception {
-		given(commentService.create(any(Long.class), any(CommentDto.CreateRequest.class))).willThrow(PostNotFoundException.class);
+	public void givenCommentCreate_whenCallCreateComment_thenThrowPostNotFoundException() throws Exception {
+		given(commentService.create(any(Long.class), any(CommentCreateRequest.class))).willThrow(PostNotFoundException.class);
 		
 		ResultActions response = mockMvc.perform(post("/api/v1/posts/{post-id}/comments", eId)
 										.contentType(MediaType.APPLICATION_JSON)
-										.content(serializeDeserializeUtil.serialize(createCommentDto)));
+										.content(serializeDeserializeUtil.serialize(commentCreate)));
 
 		response.andDo(print())
 				.andExpect(result -> assertTrue(result.getResolvedException() instanceof PostNotFoundException));
@@ -111,36 +116,36 @@ public class CommentControllerTest {
 	
 	@DisplayName("포스트의 댓글 목록을 조회하는데 성공한다.")
 	@Test
-	public void givenPostId_whenCallGetCommentsByPostId_thenReturnAllCommentDtosForPost() throws Exception {
+	public void givenPostId_whenCallGetCommentsByPostId_thenReturnAllCommentsForPost() throws Exception {
 		CommentEntity commentEntity2 = new CommentEntity(2L, "김철수", "실전을 위한 댓글", "1234");
 		commentEntity2.setPost(postEntity);
 		
-		List<CommentDto.Response> commentDtos = new ArrayList<>();
+		List<CommentResponse> comments = new ArrayList<>();
 		
-		commentDtos.add(CommentMapper.INSTANCE.toDto(commentEntity));
-		commentDtos.add(CommentMapper.INSTANCE.toDto(commentEntity2));
+		comments.add(CommentMapper.INSTANCE.toDto(commentEntity));
+		comments.add(CommentMapper.INSTANCE.toDto(commentEntity2));
 		
-		given(commentService.findAllByPostId(any(Long.class))).willReturn(commentDtos);
+		given(commentService.findAllByPostId(any(Long.class))).willReturn(comments);
 		
 		ResultActions response = mockMvc.perform(get("/api/v1/posts/{post-id}/comments", eId));
 
 		response.andDo(print())
 				.andExpect(status().isOk())
-				.andExpect(jsonPath("$.data.size()", is(commentDtos.size())));
+				.andExpect(jsonPath("$.data.size()", is(comments.size())));
 	}
 	
 	@DisplayName("포스트의 댓글이 존재하지 않아서 포스트의 댓글 목록을 조회하는데 실패한다.")
 	@Test
 	public void givenPostId_whenCallGetCommentsByPostId_thenReturnNothing() throws Exception {
-		List<CommentDto.Response> commentDtos = new ArrayList<>();
+		List<CommentResponse> comments = new ArrayList<>();
 		
-		given(commentService.findAllByPostId(any(Long.class))).willReturn(commentDtos);
+		given(commentService.findAllByPostId(any(Long.class))).willReturn(comments);
 		
 		ResultActions response = mockMvc.perform(get("/api/v1/posts/{post-id}/comments", eId));
 
 		response.andDo(print())
 				.andExpect(status().isOk())
-				.andExpect(jsonPath("$.data.size()", is(commentDtos.size())));
+				.andExpect(jsonPath("$.data.size()", is(comments.size())));
 	}
 	
 	@DisplayName("포스트가 존재하지 않아서 포스트의 댓글 목록을 조회하는데 실패한다.")
@@ -156,15 +161,15 @@ public class CommentControllerTest {
 	
 	@DisplayName("포스트의 댓글을 갱신하는데 성공한다.")
 	@Test
-	public void givenUpdateCommentDto_whenCallUpdateComment_thenReturnCommentDto() throws Exception {
-		CommentEntity updatedCommentEntity = new CommentEntity(commentEntity.getId(), commentEntity.getName(), updateCommentDto.getContent(), updateCommentDto.getPassword());
-		CommentDto.Response updatedCommentDto = new CommentDto.Response(updatedCommentEntity.getId(), updatedCommentEntity.getName(), updatedCommentEntity.getContent(), postEntity);
+	public void givenCommentUpdate_whenCallUpdateComment_thenReturnComment() throws Exception {
+		CommentEntity updatedCommentEntity = new CommentEntity(commentEntity.getId(), commentEntity.getName(), commentUpdate.getContent(), commentUpdate.getPassword());
+		CommentResponse updatedCommentDto = new CommentResponse(updatedCommentEntity.getId(), updatedCommentEntity.getName(), updatedCommentEntity.getContent());
 		
-		given(commentService.update(any(Long.class), any(Long.class), any(CommentDto.UpdateRequest.class))).willReturn(updatedCommentDto);
+		given(commentService.update(any(Long.class), any(Long.class), any(CommentUpdateRequest.class))).willReturn(updatedCommentDto);
 
 		ResultActions response = mockMvc.perform(put("/api/v1/posts/{post-id}/comments/{comment-id}", eId, eId)
 										.contentType(MediaType.APPLICATION_JSON)
-										.content(serializeDeserializeUtil.serialize(updateCommentDto)));
+										.content(serializeDeserializeUtil.serialize(commentUpdate)));
 		response.andDo(print())
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.data.name", is(updatedCommentDto.getName())))
@@ -173,36 +178,36 @@ public class CommentControllerTest {
 	
 	@DisplayName("포스트가 존재하지 않아서 포스트의 댓글을 갱신하는데 실패한다.")
 	@Test
-	public void givenUpdateCommentDto_whenCallUpdateComment_thenThrowPostNotFoundException() throws Exception {
-		given(commentService.update(any(Long.class), any(Long.class), any(CommentDto.UpdateRequest.class))).willThrow(PostNotFoundException.class);
+	public void givenCommentUpdate_whenCallUpdateComment_thenThrowPostNotFoundException() throws Exception {
+		given(commentService.update(any(Long.class), any(Long.class), any(CommentUpdateRequest.class))).willThrow(PostNotFoundException.class);
 		
 		ResultActions response = mockMvc.perform(put("/api/v1/posts/{post-id}/comments/{comment-id}", eId, eId)
 										.contentType(MediaType.APPLICATION_JSON)
-										.content(serializeDeserializeUtil.serialize(updateCommentDto)));
+										.content(serializeDeserializeUtil.serialize(commentUpdate)));
 		response.andDo(print())
 				.andExpect(result -> assertTrue(result.getResolvedException() instanceof PostNotFoundException));
 	}
 
 	@DisplayName("포스트의 댓글이 존재하지 않아서 포스트의 댓글을 갱신하는데 실패한다.")
 	@Test
-	public void givenUpdateCommentDto_whenCallUpdateComment_thenThrowCommentNotFoundException() throws Exception {
-		given(commentService.update(any(Long.class), any(Long.class), any(CommentDto.UpdateRequest.class))).willThrow(CommentNotFoundException.class);
+	public void givenCommentUpdate_whenCallUpdateComment_thenThrowCommentNotFoundException() throws Exception {
+		given(commentService.update(any(Long.class), any(Long.class), any(CommentUpdateRequest.class))).willThrow(CommentNotFoundException.class);
 
 		ResultActions response = mockMvc.perform(put("/api/v1/posts/{post-id}/comments/{comment-id}", eId, eId)
 										.contentType(MediaType.APPLICATION_JSON)
-										.content(serializeDeserializeUtil.serialize(updateCommentDto)));
+										.content(serializeDeserializeUtil.serialize(commentUpdate)));
 		response.andDo(print())
 				.andExpect(result -> assertTrue(result.getResolvedException() instanceof CommentNotFoundException));
 	}
 	
 	@DisplayName("포스트의 댓글이 포스트에 속하지 않아서 포스트의 댓글을 갱신하는데 실패한다.")
 	@Test
-	public void givenUpdateCommentDto_whenCallUpdateComment_thenThrowCommentNotBelongingToPostException() throws Exception {
-		given(commentService.update(any(Long.class), any(Long.class), any(CommentDto.UpdateRequest.class))).willThrow(CommentNotBelongingToPostException.class);
+	public void givenCommentUpdate_whenCallUpdateComment_thenThrowCommentNotBelongingToPostException() throws Exception {
+		given(commentService.update(any(Long.class), any(Long.class), any(CommentUpdateRequest.class))).willThrow(CommentNotBelongingToPostException.class);
 
 		ResultActions response = mockMvc.perform(put("/api/v1/posts/{post-id}/comments/{comment-id}", eId, eId)
 										.contentType(MediaType.APPLICATION_JSON)
-										.content(serializeDeserializeUtil.serialize(updateCommentDto)));
+										.content(serializeDeserializeUtil.serialize(commentUpdate)));
 		response.andDo(print())
 				.andExpect(result -> assertTrue(result.getResolvedException() instanceof CommentNotBelongingToPostException));
 	}

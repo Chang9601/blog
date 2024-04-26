@@ -7,13 +7,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Service
 public class SerializeDeserializeUtil {
-	private final ObjectMapper objectMapper;
+	private ObjectMapper objectMapper;
 	
-	public SerializeDeserializeUtil(final ObjectMapper objectMapper) {
+	public SerializeDeserializeUtil(ObjectMapper objectMapper) {
 		this.objectMapper = objectMapper;
 	}
 	
-	public String serialize(final Object object) {
+	public String serialize(Object object) {
 		try {
 			return objectMapper.writeValueAsString(object);
 		} catch (JsonProcessingException error) {

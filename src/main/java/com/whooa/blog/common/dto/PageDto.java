@@ -8,20 +8,20 @@ public class PageDto {
 	private String sortBy = PaginationConstants.SORT_BY;
 	private String sortDir = PaginationConstants.SORT_DIR;
 	
-	public PageDto() {}
-	
-	public PageDto(final int pageNo, final int pageSize, final String sortBy, final String sortDir) {
+	public PageDto(int pageNo, int pageSize, String sortBy, String sortDir) {
 		this.pageNo = pageNo;
 		this.pageSize = pageSize;
 		this.sortBy = sortBy;
 		this.sortDir = sortDir;
 	}
 
+	public PageDto() {}
+	
 	public int getPageNo() {
 		return pageNo;
 	}
 	
-	public void setPageNo(final int pageNo) {
+	public void setPageNo(int pageNo) {
 		this.pageNo = pageNo;
 	}
 	
@@ -29,7 +29,7 @@ public class PageDto {
 		return pageSize;
 	}
 	
-	public void setPageSize(final int pageSize) {
+	public void setPageSize(int pageSize) {
 		this.pageSize = pageSize;
 	}
 
@@ -37,7 +37,7 @@ public class PageDto {
 		return sortBy;
 	}
 
-	public void setSortBy(final String sortBy) {
+	public void setSortBy(String sortBy) {
 		this.sortBy = sortBy;
 	}
 
@@ -45,7 +45,7 @@ public class PageDto {
 		return sortDir;
 	}
 
-	public void setSortDir(final String sortDir) {
+	public void setSortDir(String sortDir) {
 		this.sortDir = sortDir;
 	}
 

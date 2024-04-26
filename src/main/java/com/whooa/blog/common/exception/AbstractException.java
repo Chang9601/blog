@@ -1,23 +1,20 @@
 package com.whooa.blog.common.exception;
 
+
+import com.whooa.blog.common.code.Code;
+
 public abstract class AbstractException extends RuntimeException {
 
-	private int code;
-	private String message;
+	private Code exception;
 	private String[] details;
 	
-	public AbstractException(final int code, final String message, final String[] details) {
-		this.code = code;
-		this.message = message;
+	public AbstractException(Code exception,  String[] details) {
+		this.exception = exception;
 		this.details = details;
 	}
 	
-	public int getCode() {
-		return this.code;
-	}
-	
-	public String getMessage() {
-		return this.message;
+	public Code getException() {
+		return exception;
 	}
 
 	public String[] getDetails() {

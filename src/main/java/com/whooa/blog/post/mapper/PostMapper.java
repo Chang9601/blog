@@ -3,14 +3,14 @@ package com.whooa.blog.post.mapper;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
 
-import com.whooa.blog.post.dto.PostDto;
+import com.whooa.blog.post.dto.PostDto.PostCreateRequest;
+import com.whooa.blog.post.dto.PostDto.PostResponse;
 import com.whooa.blog.post.entity.PostEntity;
 
 @Mapper
 public interface PostMapper {
-	
 	PostMapper INSTANCE = Mappers.getMapper(PostMapper.class);
 	
-	PostDto.Response toDto(final PostEntity postEntity);
-	PostEntity toEntity(final PostDto.CreateRequest postDto);
+	public abstract PostResponse toDto(PostEntity postEntity);
+	public abstract PostEntity toEntity(PostCreateRequest postCreate);
 }
