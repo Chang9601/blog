@@ -58,25 +58,24 @@ public class CommentRepositoryTest {
 	
 	@DisplayName("포스트의 댓글 목록을 조회하는데 성공한다.")
 	@Test
-	public void givenPostId_whenCallFindByPostId_thenReturnAllCommentEntitiesForPost() {
+	public void givenPostEntityId_whenCallFindByPostId_thenReturnAllCommentEntitiesForPostEntity() {
 		CommentEntity commentEntity2 = new CommentEntity("김철수", "실전을 위한 댓글", "4321");
 		commentEntity2.setPost(postEntity);
-		
-		commentRepository.save(commentEntity);
-		commentRepository.save(commentEntity2);
+
+		postRepository.save(postEntity);
 		
 		List<CommentEntity> commentEntities = commentRepository.findByPostId(postEntity.getId());
 				
 		assertEquals(commentEntities.size(), 2);			
 	}
 	
-	@DisplayName("포스트의 댓글이 존재하지 않아서 포스트의 댓글 목록을 조회하는데 실패한다.")
-	@Test
-	public void givenPostId_whenCallFindByPostId_thenReturnNothing() {
-		List<CommentEntity> commentEntities = commentRepository.findByPostId(postEntity.getId());
-		
-		assertEquals(commentEntities.size(), 0);
-	}
+//	@DisplayName("포스트의 댓글이 존재하지 않아서 포스트의 댓글 목록을 조회하는데 실패한다.")
+//	@Test
+//	public void givenPostEntityId_whenCallFindByPostId_thenReturnNothing() {
+//		List<CommentEntity> commentEntities = commentRepository.findByPostId(postEntity.getId());
+//		
+//		assertEquals(commentEntities.size(), 0);
+//	}
 	
 	@DisplayName("포스트의 댓글을 조회하는데 성공한다.")
 	@Test

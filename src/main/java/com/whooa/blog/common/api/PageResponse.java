@@ -3,15 +3,15 @@ package com.whooa.blog.common.api;
 import java.util.List;
 
 public class PageResponse<T> {
-	private final List<T> content;
-	private final int pageSize;
-	private final int pageNo;
-	private final long totalElements;
-	private final int totalPages;
+	private List<T> content;
+	private int pageSize;
+	private int pageNo;
+	private long totalElements;
+	private int totalPages;
 	private boolean isLast;
 	private boolean isFirst;
 	
-	private PageResponse(final List<T> content, final int pageSize, final int pageNo, final long totalElements, final int totalPages, final boolean isLast,
+	private PageResponse(List<T> content, int pageSize, int pageNo, long totalElements, int totalPages, boolean isLast,
 			boolean isFirst) {
 		this.content = content;
 		this.pageSize = pageSize;
@@ -22,8 +22,8 @@ public class PageResponse<T> {
 		this.isFirst = isFirst;
 	}
 
-	public static <T> PageResponse<T> handleResponse(final List<T> content, final int pageSize, final int pageNo, final long totalElements, final int totalPages, final boolean isLast,
-			final boolean isFirst) {
+	public static <T> PageResponse<T> handleResponse(List<T> content, int pageSize, int pageNo, long totalElements, int totalPages, boolean isLast,
+			 boolean isFirst) {
 		return new PageResponse<>(content, pageSize, pageNo, totalElements, totalPages, isLast, isFirst);
 	}
 	
@@ -60,5 +60,4 @@ public class PageResponse<T> {
 		return "PageResponse [content=" + content + ", pageSize=" + pageSize + ", pageNo=" + pageNo + ", totalElements="
 				+ totalElements + ", totalPages=" + totalPages + ", isLast=" + isLast + ", isFirst=" + isFirst + "]";
 	}
-	
 }

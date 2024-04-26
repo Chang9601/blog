@@ -18,7 +18,9 @@ import org.springframework.data.domain.Pageable;
 
 import com.whooa.blog.common.api.PageResponse;
 import com.whooa.blog.common.dto.PageDto;
-import com.whooa.blog.post.dto.PostDto;
+import com.whooa.blog.post.dto.PostDto.PostCreateRequest;
+import com.whooa.blog.post.dto.PostDto.PostUpdateRequest;
+import com.whooa.blog.post.dto.PostDto.PostResponse;
 import com.whooa.blog.post.entity.PostEntity;
 import com.whooa.blog.post.exception.PostNotFoundException;
 import com.whooa.blog.post.repository.PostRepository;
@@ -45,10 +47,10 @@ public class PostServiceTest {
 	@InjectMocks
 	private PostServiceImpl postService;
 
-	private PostDto.CreateRequest createPostDto;
-	private PostDto.UpdateRequest updatePostDto;
+	private PostCreateRequest postCreate;
+	private PostUpdateRequest postUpdate;
 	private PostEntity postEntity;
-	private PageDto pageDto;
+	private PageDto page;
 	private Long eId;
 	private Long dneId;
 	
@@ -65,17 +67,17 @@ public class PostServiceTest {
 		String title = "테스트";
 		String content = "테스트를 위한 포스트";
 		
-		createPostDto = new PostDto.CreateRequest(title, content);
-		updatePostDto = new PostDto.UpdateRequest("실전", "실전을 위한 포스트");
+		postCreate = new PostCreateRequest(title, content);
+		postUpdate = new PostUpdateRequest("실전", "실전을 위한 포스트");
 		postEntity = new PostEntity(id, title, content);
-		pageDto = new PageDto();
+		page = new PageDto();
 		eId = id;
 		dneId = 1000L;
 	}
 	
 	@DisplayName("포스트를 생성하는데 성공한다.")
 	@Test
-	public void givenCreatePostDto_whenCallCreate_thenReturnPostDto() {
+	public void givenPostCreate_whenCallCreate_thenReturnPost() {
 		/*
 		  org.mockito.exceptions.misusing.PotentialStubbingProblem 오류.
 		  Mockito 2.20부터 lenient() 메서드로 Mockito의 기본 행동인 strict stub을 변경한다.
@@ -84,10 +86,10 @@ public class PostServiceTest {
 		*/
 		given(postRepository.save(any(PostEntity.class))).willReturn(postEntity);
 		
-		PostDto.Response postDto = postService.create(createPostDto);
+		PostResponse post = postService.create(postCreate, null);
 		
-		assertNotNull(postDto);
-		assertEquals(postDto.getId(), postEntity.getId());
+		assertNotNull(post);
+		assertEquals(post.getId(), postEntity.getId());
 		
 		then(postRepository).should(times(1)).save(any(PostEntity.class));
 	}
@@ -98,7 +100,7 @@ public class PostServiceTest {
 		given(postRepository.save(any())).willThrow(IllegalArgumentException.class);
 		
 		assertThrows(IllegalArgumentException.class, () -> {
-			postService.create(null);	
+			postService.create(null, null);	
 		});
 		
 		then(postRepository).should(times(1)).save(any());
@@ -106,15 +108,15 @@ public class PostServiceTest {
 	
 	@DisplayName("포스트 목록을 조회하는데 성공한다.")
 	@Test
-	public void givenPageDto_whenCallFindAll_thenReturnAllPostDtos() {
+	public void givenPage_whenCallFindAll_thenReturnAllPosts() {
 		PostEntity postEntity2 = new PostEntity(2L, "실전", "실전을 위한 포스트");
 		
-		Pageable pageable = PageRequest.of(pageDto.getPageNo(), pageDto.getPageSize());
+		Pageable pageable = PageRequest.of(page.getPageNo(), page.getPageSize());
 		Page<PostEntity> postEntities = new PageImpl<>(List.of(postEntity, postEntity2), pageable, 2);
 		
 		given(postRepository.findAll(any(Pageable.class))).willReturn(postEntities);
 		
-		PageResponse<PostDto.Response> response = postService.findAll(pageDto);
+		PageResponse<PostResponse> response = postService.findAll(page);
 					
 		assertNotNull(response.getContent());
 		assertEquals(response.getTotalElements(), 2);
@@ -124,13 +126,13 @@ public class PostServiceTest {
 
 	@DisplayName("포스트가 존재하지 않아서 포스트 목록을 조회하는데 실패한다.")
 	@Test
-	public void givenPageDto_whenCallFindAll_thenReturnNothing() {
-		Pageable pageable = PageRequest.of(pageDto.getPageNo(), pageDto.getPageSize());
+	public void givenPage_whenCallFindAll_thenReturnNothing() {
+		Pageable pageable = PageRequest.of(page.getPageNo(), page.getPageSize());
 		Page<PostEntity> postEntities = new PageImpl<>(List.of(), pageable, 0);
 		
 		given(postRepository.findAll(any(Pageable.class))).willReturn(postEntities);
 
-		PageResponse<PostDto.Response> response = postService.findAll(pageDto);
+		PageResponse<PostResponse> response = postService.findAll(page);
 
 		assertEquals(response.getContent(), Collections.emptyList());
 		assertEquals(response.getTotalElements(), 0);
@@ -140,13 +142,13 @@ public class PostServiceTest {
 		
 	@DisplayName("포스트를 조회하는데 성공한다.")
 	@Test
-	public void givenId_whenCallFind_thenReturnPostDto() {
+	public void givenId_whenCallFind_thenReturnPost() {
 		given(postRepository.findById(any(Long.class))).willReturn(Optional.of(postEntity));
 
-		PostDto.Response postDto = postService.find(eId);
+		PostResponse post = postService.find(eId);
 		
-		assertNotNull(postDto);
-		assertEquals(postDto.getId(), postEntity.getId());
+		assertNotNull(post);
+		assertEquals(post.getId(), postEntity.getId());
 		
 		then(postRepository).should(times(1)).findById(any(Long.class));
 	}
@@ -163,15 +165,15 @@ public class PostServiceTest {
 	
 	@DisplayName("포스트를 갱신하는데 성공한다.")
 	@Test
-	public void givenUpdatePostDto_whenCallUpdate_thenReturnPostDto() {
+	public void givenPostUpdate_whenCallUpdate_thenReturnPost() {
 		given(postRepository.findById(any(Long.class))).willReturn(Optional.of(postEntity));
 		given(postRepository.save(any(PostEntity.class))).willReturn(postEntity);
 		
-		PostDto.Response postDto = postService.update(updatePostDto, eId);
+		PostResponse post = postService.update(postUpdate, eId);
 		
-		assertNotNull(postDto);
-		assertEquals(postDto.getTitle(), updatePostDto.getTitle());
-		assertEquals(postDto.getContent(), updatePostDto.getContent());
+		assertNotNull(post);
+		assertEquals(post.getTitle(), postUpdate.getTitle());
+		assertEquals(post.getContent(), postUpdate.getContent());
 
 		then(postRepository).should(times(1)).findById(any(Long.class));
 		then(postRepository).should(times(1)).save(any(PostEntity.class));
@@ -179,11 +181,11 @@ public class PostServiceTest {
 	
 	@DisplayName("포스트가 존재하지 않아서 포스트를 갱신하는데 실패한다.")
 	@Test
-	public void givenUpdatePostDto_whenCallUpdate_thenThrowPostNotFoundException() {
+	public void givenPostUpdate_whenCallUpdate_thenThrowPostNotFoundException() {
 		given(postRepository.findById(any(Long.class))).willReturn(Optional.empty());
 
 		assertThrows(PostNotFoundException.class, () -> {
-			postService.update(updatePostDto, dneId);
+			postService.update(postUpdate, dneId);
 		});
 		
 		/*

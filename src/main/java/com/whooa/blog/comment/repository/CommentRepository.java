@@ -7,5 +7,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import com.whooa.blog.comment.entity.CommentEntity;
 
 public interface CommentRepository extends JpaRepository<CommentEntity, Long> {
-	public abstract List<CommentEntity> findByPostId(final Long postId);
+	public abstract List<CommentEntity> findByPostId(Long postId);
 }

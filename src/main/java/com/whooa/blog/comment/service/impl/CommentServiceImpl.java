@@ -5,9 +5,9 @@ import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
-import com.whooa.blog.comment.dto.CommentDto;
-import com.whooa.blog.comment.dto.CommentDto.CreateRequest;
-import com.whooa.blog.comment.dto.CommentDto.Response;
+import com.whooa.blog.comment.dto.CommentDto.CommentUpdateRequest;
+import com.whooa.blog.comment.dto.CommentDto.CommentCreateRequest;
+import com.whooa.blog.comment.dto.CommentDto.CommentResponse;
 import com.whooa.blog.comment.entity.CommentEntity;
 import com.whooa.blog.comment.exception.CommentNotBelongingToPostException;
 import com.whooa.blog.comment.exception.CommentNotFoundException;
@@ -22,27 +22,29 @@ import com.whooa.blog.utils.NotNullNotEmptyChecker;
 
 @Service
 public class CommentServiceImpl implements CommentService {
-	private final CommentRepository commentRepository;
-	private final PostRepository postRepository;
+	private CommentRepository commentRepository;
+	private PostRepository postRepository;
 
-	public CommentServiceImpl(final CommentRepository commentRepository, final PostRepository postRepository) {
+	public CommentServiceImpl(CommentRepository commentRepository, PostRepository postRepository) {
 		this.commentRepository = commentRepository;
 		this.postRepository = postRepository;
 	}
 	
 	@Override
-	public CommentDto.Response create(final Long postId, final CommentDto.CreateRequest commentDto) {
-		PostEntity postEntity = postRepository.findById(postId).orElseThrow(() -> new PostNotFoundException(Code.NOT_FOUND.getCode(), Code.NOT_FOUND.getMessage(),  new String[] {"포스트가 존재하지 않습니다."}));
+	public CommentResponse create(Long postId, CommentCreateRequest commentCreate) {
+		PostEntity postEntity = postRepository.findById(postId).orElseThrow(() -> new PostNotFoundException(Code.NOT_FOUND, new String[] {"포스트가 존재하지 않습니다."}));
 		
-		CommentEntity commentEntity = CommentMapper.INSTANCE.toEntity(commentDto);
+		CommentEntity commentEntity = CommentMapper.INSTANCE.toEntity(commentCreate);
 		commentEntity.setPost(postEntity);
-						
-		return CommentMapper.INSTANCE.toDto(commentRepository.save(commentEntity));
+		
+		postRepository.save(postEntity);
+		// TODO: 아이디가 -1로 반한된다.
+		return CommentMapper.INSTANCE.toDto(commentEntity);
 	}
 
 	@Override
-	public List<CommentDto.Response> findAllByPostId(final Long postId) {
-		postRepository.findById(postId).orElseThrow(() -> new PostNotFoundException(Code.NOT_FOUND.getCode(), Code.NOT_FOUND.getMessage(),  new String[] {"포스트가 존재하지 않습니다."}));
+	public List<CommentResponse> findAllByPostId(Long postId) {
+		postRepository.findById(postId).orElseThrow(() -> new PostNotFoundException(Code.NOT_FOUND, new String[] {"포스트가 존재하지 않습니다."}));
 
 		List<CommentEntity> commentEntities = commentRepository.findByPostId(postId);
 		
@@ -50,48 +52,50 @@ public class CommentServiceImpl implements CommentService {
 	}
 
 	@Override
-	public CommentDto.Response update(final Long postId, final Long commentId, final CommentDto.UpdateRequest commentDto) {
-		PostEntity postEntity = postRepository.findById(postId).orElseThrow(() -> new PostNotFoundException(Code.NOT_FOUND.getCode(), Code.NOT_FOUND.getMessage(),  new String[] {"포스트가 존재하지 않습니다."}));
-		CommentEntity commentEntity = commentRepository.findById(commentId).orElseThrow(() -> new CommentNotFoundException(Code.NOT_FOUND.getCode(), Code.NOT_FOUND.getMessage(),  new String[] {"댓글이 존재하지 않습니다."}));
+	public CommentResponse update(Long postId, Long commentId, CommentUpdateRequest commentUpdate) {
+		PostEntity postEntity = postRepository.findById(postId).orElseThrow(() -> new PostNotFoundException(Code.NOT_FOUND, new String[] {"포스트가 존재하지 않습니다."}));
+		CommentEntity commentEntity = commentRepository.findById(commentId).orElseThrow(() -> new CommentNotFoundException(Code.NOT_FOUND, new String[] {"댓글이 존재하지 않습니다."}));
 		
 		if (!commentEntity.getPost().getId().equals(postEntity.getId())) {
-			throw new CommentNotBelongingToPostException(Code.COMMENT_NOT_IN_POST.getCode(), Code.COMMENT_NOT_IN_POST.getMessage(), new String[] {"댓글이 포스트에 속하지 않습니다."});
+			throw new CommentNotBelongingToPostException(Code.COMMENT_NOT_IN_POST, new String[] {"댓글이 포스트에 속하지 않습니다."});
 		}
 		
-		String content = commentDto.getContent();
+		String content = commentUpdate.getContent();
 		
 		if (NotNullNotEmptyChecker.check(content)) {
 			commentEntity.setContent(content);
 		}
 		
-		return  CommentMapper.INSTANCE.toDto(commentRepository.save(commentEntity));
+		return CommentMapper.INSTANCE.toDto(commentRepository.save(commentEntity));
 	}
 
 	@Override
 	public void delete(Long postId, Long commentId) {
-		PostEntity postEntity = postRepository.findById(postId).orElseThrow(() -> new PostNotFoundException(Code.NOT_FOUND.getCode(), Code.NOT_FOUND.getMessage(),  new String[] {"포스트가 존재하지 않습니다."}));
-		CommentEntity commentEntity = commentRepository.findById(commentId).orElseThrow(() -> new CommentNotFoundException(Code.NOT_FOUND.getCode(), Code.NOT_FOUND.getMessage(),  new String[] {"댓글이 존재하지 않습니다."}));
+		PostEntity postEntity = postRepository.findById(postId).orElseThrow(() -> new PostNotFoundException(Code.NOT_FOUND, new String[] {"포스트가 존재하지 않습니다."}));
+		CommentEntity commentEntity = commentRepository.findById(commentId).orElseThrow(() -> new CommentNotFoundException(Code.NOT_FOUND, new String[] {"댓글이 존재하지 않습니다."}));
 		
 		if (!commentEntity.getPost().getId().equals(postEntity.getId())) {
-			throw new CommentNotBelongingToPostException(Code.COMMENT_NOT_IN_POST.getCode(), Code.COMMENT_NOT_IN_POST.getMessage(), new String[] {"댓글이 포스트에 속하지 않습니다."});
+			throw new CommentNotBelongingToPostException(Code.COMMENT_NOT_IN_POST, new String[] {"댓글이 포스트에 속하지 않습니다."});
 		}
 		
 		commentRepository.delete(commentEntity);
 	}
 
 	@Override
-	public Response reply(Long postId, Long commentId, CreateRequest commentDto) {
-		PostEntity postEntity = postRepository.findById(postId).orElseThrow(() -> new PostNotFoundException(Code.NOT_FOUND.getCode(), Code.NOT_FOUND.getMessage(),  new String[] {"포스트가 존재하지 않습니다."}));
-		CommentEntity parentCommentEntity = commentRepository.findById(commentId).orElseThrow(() -> new CommentNotFoundException(Code.NOT_FOUND.getCode(), Code.NOT_FOUND.getMessage(),  new String[] {"댓글이 존재하지 않습니다."}));
+	public CommentResponse reply(Long postId, Long commentId, CommentCreateRequest commentCreate) {
+		PostEntity postEntity = postRepository.findById(postId).orElseThrow(() -> new PostNotFoundException(Code.NOT_FOUND, new String[] {"포스트가 존재하지 않습니다."}));
+		CommentEntity parentCommentEntity = commentRepository.findById(commentId).orElseThrow(() -> new CommentNotFoundException(Code.NOT_FOUND, new String[] {"댓글이 존재하지 않습니다."}));
 		
 		if (!parentCommentEntity.getPost().getId().equals(postEntity.getId())) {
-			throw new CommentNotBelongingToPostException(Code.COMMENT_NOT_IN_POST.getCode(), Code.COMMENT_NOT_IN_POST.getMessage(), new String[] {"댓글이 포스트에 속하지 않습니다."});
+			throw new CommentNotBelongingToPostException(Code.COMMENT_NOT_IN_POST, new String[] {"댓글이 포스트에 속하지 않습니다."});
 		}
 		
-		CommentEntity commentEntity = CommentMapper.INSTANCE.toEntity(commentDto);
+		CommentEntity commentEntity = CommentMapper.INSTANCE.toEntity(commentCreate);
 		commentEntity.setParentId(parentCommentEntity.getId());
 		commentEntity.setPost(postEntity);
 		
-		return CommentMapper.INSTANCE.toDto(commentRepository.save(commentEntity));
+		postRepository.save(postEntity);
+		
+		return CommentMapper.INSTANCE.toDto(commentEntity);
 	}
 }
