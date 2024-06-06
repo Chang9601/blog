@@ -6,10 +6,9 @@ import java.util.function.Function;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
 
 import com.whooa.blog.common.type.JwtToken;
 
@@ -22,7 +21,6 @@ import io.jsonwebtoken.UnsupportedJwtException;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import io.jsonwebtoken.security.SignatureException;
-import jakarta.servlet.http.HttpServletRequest;
 
 @Component
 public class JwtUtil {
@@ -43,39 +41,42 @@ public class JwtUtil {
 			return null;
 		}
 		
-		public boolean verify(String token) {
+		// TODO: 오류 던져야 하나?
+		public boolean verify(String jwt) {
 			try {
-				Jwts.parserBuilder().setSigningKey(key()).build().parse(token);
+				Jwts.parserBuilder().setSigningKey(key()).build().parse(jwt);
 				
 				return true;
 			} catch (MalformedJwtException exception) {
 				logger.error("JwtUtil.validate(): 잘못된 형식의 JWT입니다.");
-		  } catch (ExpiredJwtException exception) {
-		  	logger.error("JwtUtil.validate(): 만료된 JWT입니다.");
-		  } catch (UnsupportedJwtException exception) {
-		  	logger.error("JwtUtil.validate(): 지원되지 않는 JWT입니다.");
-		  } catch (SignatureException exception) {
-	      logger.error("JwtUtil.validate(): 잘못된 서명입니다.");
-	    } catch (IllegalArgumentException exception) {
-	    	logger.error("JwtUtil.validate(): 잘못된 인자입니다.");
-		  }
+			} catch (ExpiredJwtException exception) {
+				logger.error("JwtUtil.validate(): 만료된 JWT입니다.");
+			} catch (UnsupportedJwtException exception) {
+				logger.error("JwtUtil.validate(): 지원되지 않는 JWT입니다.");
+			} catch (SignatureException exception) {
+				logger.error("JwtUtil.validate(): 잘못된 서명입니다.");
+			} catch (IllegalArgumentException exception) {
+				logger.error("JwtUtil.validate(): 잘못된 인자입니다.");
+			}
 			
 			return false;
 		}
 		
-		public String parseEmail(String token) {
-			return parseClaim(token, Claims::getSubject);
+		public String parseEmail(String jwt) {
+			return parseClaim(jwt, Claims::getSubject);
 		}
 		
-		public String parseRequest(HttpServletRequest request) {
-			String bearer = request.getHeader(HttpHeaders.AUTHORIZATION);
-			
-			if (StringUtils.hasText(bearer) && bearer.startsWith("Bearer " )) {
-				return bearer.substring(7);
-			}
-			
-			return null;
-		}
+	    /*  Authorinzation 헤더의 Beaer 토큰을 사용하는 경우. */
+	    //
+		// public String parseHttpServletRequest(HttpServletRequest httpServletRequest) {
+		//	 String bearer = httpServletRequest.getHeader(HttpHeaders.AUTHORIZATION);
+		//	
+		//	 if (StringUtils.hasText(bearer) && bearer.startsWith("Bearer " )) {
+		//		return bearer.substring(7);
+		//	 }
+		//	
+		//	 return null;
+		//  }
 		
 		private String build(String email, long expiration) {
 			Claims claims = Jwts.claims().setSubject(email);
@@ -94,19 +95,19 @@ public class JwtUtil {
 			return Keys.hmacShaKeyFor(Decoders.BASE64.decode(JWT_SECRET));
 		}
 		
-		private <T> T parseClaim(String token, Function<Claims, T> claimResolver) {
-			Claims claims = parseAllClaims(token);
+		private <T> T parseClaim(String jwt, Function<Claims, T> claimResolver) {
+			Claims claims = parseAllClaims(jwt);
 			
 			return claimResolver.apply(claims);
 		}
 		
-		private Claims parseAllClaims(String token) {
-			return Jwts.parserBuilder().setSigningKey(key()).build().parseClaimsJws(token).getBody();
+		private Claims parseAllClaims(String jwt) {
+			return Jwts.parserBuilder().setSigningKey(key()).build().parseClaimsJws(jwt).getBody();
 		}
 		
 		private enum JwtExpiration {
 			ACCESS_TOKEN_EXPIRATION(1000L * 60 * 60),
-			REFRESH_TOKEN_EXPIRATION(1000L * 60 * 60 * 24 * 15);
+			REFRESH_TOKEN_EXPIRATION(1000L * 60 * 60 * 24 * 30);
 			
 			private JwtExpiration(long expiration) {
 				this.expiration = expiration;

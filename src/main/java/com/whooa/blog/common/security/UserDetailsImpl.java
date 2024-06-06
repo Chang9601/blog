@@ -11,19 +11,28 @@ import com.whooa.blog.user.entity.UserEntity;
 import com.whooa.blog.user.type.UserRole;
 
 /* 
- * UserDetailsService 인터페이스를 구현한 UserDetailService 클래스가 반환하는 클래스이다.
- * Spring Security는 인증 및 권한을 위해 UserDetail 클래스에 저장된 정보를 사용한다. 
+ * UserDetails는 UserDetailsService가 반환한다. 
+ * DaoAuthenticationProvider는 UserDetails를 검증한 후 구성된 UserDetailsService가 반환한 UserDetails를 주체(principal)로 하는 Authentication을 반환한다. 
  */
 public class UserDetailsImpl implements UserDetails {
+	private static final long serialVersionUID = 1L;
+	
 	private UserEntity userEntity;
 	
 	public UserDetailsImpl(UserEntity userEntity) {
 		this.userEntity = userEntity;
 	}
 
+	/*
+	 * Spring Security는 GrantedAuthority 인터페이스의 구현체인 SimpleGrantedAuthority를 포함한다. 
+	 * SimpleGrantedAuthority는 사용자가 지정한 문자열을 GrantedAuthority로 변환한다.
+	 * 보안 아키텍처에 포함된 모든 AuthenticationProvider 인스턴스는 Authentication 객체를 채우기 위해 SimpleGrantedAuthority를 사용힌다.
+	 * 기본적으로 역할 기반 권한 부여 규칙은 ROLE_이라는 접두사를 포함한다. 
+	 * 권한 부여 규칙이 "USER" 역할을 요구하는 경우 Spring Security가 기본적으로 "ROLE_USER"를 반환하는 GrantedAuthority#getAuthority를 찾는다는 것을 의미한다. 
+	 */
 	@Override
 	public Collection<? extends GrantedAuthority> getAuthorities() {
-		return Arrays.asList(new SimpleGrantedAuthority("USER"));
+		return Arrays.asList(new SimpleGrantedAuthority(userEntity.getUserRole().getRole()));
 	}
 	
 	public Long getId() {

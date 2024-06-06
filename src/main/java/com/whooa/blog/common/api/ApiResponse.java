@@ -10,24 +10,24 @@ public class ApiResponse<T> {
 	private Metadata metadata;
 	private T data;
 
-	private ApiResponse(int code, String message, T data, String[] details) {
-		this.metadata = new Metadata(code, message, details);
+	private ApiResponse(int code, String message, T data, String[] detail) {
+		this.metadata = new Metadata(code, message, detail);
 		this.data = data;
 	}
 
-	public static <T> ApiResponse<T> handleSuccess(int code, String message, T data, String[] details) {
+	public static <T> ApiResponse<T> handleSuccess(int code, String message, T data, String[] detail) {
 		int successCode = code != -1 ? code : Code.OK.getCode();
 		String successMessage = message != null ? message : Code.OK.getMessage();
 		
-		return new ApiResponse<T>(successCode, successMessage, data, details);
+		return new ApiResponse<T>(successCode, successMessage, data, detail);
 	}
 	
-	public static <T> ApiResponse<T> handleFailure(int code, String message, T data, String[] details) {
+	public static <T> ApiResponse<T> handleFailure(int code, String message, T data, String[] detail) {
 		int failureCode = code != -1 ? code : Code.INTERNAL_SERVER_ERROR.getCode();
 		String failureMessage = message != null ? message : Code.INTERNAL_SERVER_ERROR.getMessage();
-		String[] failureDetails = details != null ? details : new String[] {"내부 오류가 발생했습니다."};
+		String[] failureDetail = detail != null ? detail : new String[] {"내부 오류가 발생했습니다."};
 
-		return new ApiResponse<T>(failureCode, failureMessage, data, failureDetails);		
+		return new ApiResponse<T>(failureCode, failureMessage, data, failureDetail);		
 	}
 	
 	/*
@@ -67,13 +67,13 @@ public class ApiResponse<T> {
 		private int code;
 		private String messsage;
 		private long timestamp;
-		private String[] details;
+		private String[] detail;
 		
-		private Metadata(int code, String message, String[] details) {
+		private Metadata(int code, String message, String[] detail) {
 			this.code = code;
 			this.messsage = message;
-			this.details = details;
 			this.timestamp = LocalDateTime.now().toEpochSecond(ZoneOffset.UTC);
+			this.detail = detail;
 		}
 
 		public int getCode() {
@@ -88,14 +88,14 @@ public class ApiResponse<T> {
 			return timestamp;
 		}
 
-		public String[] getDetails() {
-			return details;
+		public String[] getdetail() {
+			return detail;
 		}
 
 		@Override
 		public String toString() {
-			return "Metadata [code=" + code + ", messsage=" + messsage + ", timestamp=" + timestamp + ", details="
-					+ Arrays.toString(details) + "]";
+			return "Metadata [code=" + code + ", messsage=" + messsage + ", timestamp=" + timestamp + ", detail="
+					+ Arrays.toString(detail) + "]";
 		}
 	}
 }

@@ -5,17 +5,18 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.whooa.blog.category.entity.CategoryEntity;
+import com.whooa.blog.category.exception.CategoryNotFoundException;
+import com.whooa.blog.category.repository.CategoryRepository;
 import com.whooa.blog.common.api.PageResponse;
 import com.whooa.blog.common.code.Code;
-import com.whooa.blog.common.dto.PageDto;
-import com.whooa.blog.file.dto.FileDto;
+import com.whooa.blog.common.security.UserDetailsImpl;
 import com.whooa.blog.file.service.FileService;
+import com.whooa.blog.file.value.File;
 import com.whooa.blog.post.dto.PostDto.PostCreateRequest;
 import com.whooa.blog.post.dto.PostDto.PostUpdateRequest;
 import com.whooa.blog.post.dto.PostDto.PostResponse;
@@ -24,13 +25,19 @@ import com.whooa.blog.post.exception.PostNotFoundException;
 import com.whooa.blog.post.mapper.PostMapper;
 import com.whooa.blog.post.repository.PostRepository;
 import com.whooa.blog.post.service.PostService;
-import com.whooa.blog.utils.NotNullNotEmptyChecker;
+import com.whooa.blog.user.entity.UserEntity;
+import com.whooa.blog.user.exception.UserNotFoundException;
+import com.whooa.blog.user.exception.UserNotMatchedException;
+import com.whooa.blog.user.repository.UserRepository;
+import com.whooa.blog.util.NotNullNotEmptyChecker;
+import com.whooa.blog.util.PaginationUtil;
 
 @Service
 public class PostServiceImpl implements PostService {
-	private FileService fileService;
+	private CategoryRepository categoryRepository;
 	private PostRepository postRepository;
-	// private PostMapper postMapper = Mappers.getMapper(PostMapper.class);
+	private UserRepository userRepository;
+	private FileService fileService;
 	
 	/*
 	 * 생성자 주입은 생성자를 사용해서 의존성을 주입한다.
@@ -41,50 +48,58 @@ public class PostServiceImpl implements PostService {
 	 * 2. 불변성을 보장하고 NullPointerException 예외를 방지한다.
 	 * 3. 테스트에서 오류를 방지한다.
 	 */
-	public PostServiceImpl(FileService fileService, PostRepository postRepository) {
-		this.fileService = fileService;
+	public PostServiceImpl(CategoryRepository categoryRepository, PostRepository postRepository, UserRepository userRepository, FileService fileService) {
+		this.categoryRepository = categoryRepository;
 		this.postRepository = postRepository;
+		this.userRepository = userRepository;
+		this.fileService = fileService;
 	}
 
 	@Override
-	public PostResponse create(PostCreateRequest postCreate, MultipartFile[] uploadFiles) {
-		  PostEntity postEntity = postRepository.save(PostMapper.INSTANCE.toEntity(postCreate));
-		  PostResponse post = PostMapper.INSTANCE.toDto(postEntity);
-		  
-		  if (uploadFiles != null && uploadFiles.length > 0) {
-		    List<FileDto> files = Arrays.stream(uploadFiles)
-		                  .map(uploadFile -> fileService.upload(uploadFile, postEntity))
-		                  .collect(Collectors.toList());
-		    post.setFiles(files);
-		    post = PostMapper.INSTANCE.toDto(postRepository.save(postEntity));
-		  }
-		  
-		  return post;
-	}
-
-	@Override
-	public PageResponse<PostResponse> findAll(PageDto pageDto) {
-		// TODO: 페이지 관련 코드 간소화.
-		String sortBy = pageDto.getSortBy();		
-		Sort sort = pageDto.getSortDir().equalsIgnoreCase(Sort.Direction.ASC.name()) ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
-		
-		Pageable pageable = PageRequest.of(pageDto.getPageNo(), pageDto.getPageSize(), sort);
-		
-		Page<PostEntity> posts = postRepository.findAll(pageable);
-		
-		List<PostEntity> postEntities = posts.getContent();
-		int pageSize = posts.getSize();
-		int pageNo = posts.getNumber();
-		long totalElements = posts.getTotalElements();
-		int totalPages = posts.getTotalPages();
-		boolean isLast = posts.isLast();
-		boolean isFirst = posts.isFirst();
+	public PostResponse create(PostCreateRequest postCreate, MultipartFile[] uploadFiles, UserDetailsImpl userDetailsImpl) {
+		List<File> files = null;
 				
-		List<PostResponse> postResponse = postEntities.stream().map((postEntity) -> PostMapper.INSTANCE.toDto(postEntity)).collect(Collectors.toList());
+		String title = postCreate.getTitle();
+		String content = postCreate.getContent();
+		String categoryName = postCreate.getCategoryName();
 		
-		return PageResponse.handleResponse(postResponse, pageSize, pageNo, totalElements, totalPages, isLast, isFirst);
+		CategoryEntity categoryEntity = categoryRepository.findByName(categoryName).orElseThrow(() -> new CategoryNotFoundException(Code.NOT_FOUND, new String[] {"카테고리가 존재하지 않습니다."}));
+		UserEntity userEntity = userRepository.findById(userDetailsImpl.getId()).orElseThrow(() -> new UserNotFoundException(Code.NOT_FOUND, new String[] {"아이디에 해당하는 사용자가 존재하지 않습니다."}));
+		PostEntity postEntity = new PostEntity()
+				.content(content)
+				.title(title)
+				.category(categoryEntity)
+				.user(userEntity);
+	
+		// TODO: Mapper에서 연관관계 정리.
+		// PostEntity postEntity = postRepository.save(PostMapper.INSTANCE.toEntity(postCreate));
+						
+		if (uploadFiles != null && uploadFiles.length > 0) {
+			files = Arrays.stream(uploadFiles)
+					.map(uploadFile -> fileService.upload(postEntity, uploadFile))
+					.collect(Collectors.toList());
+		}
+	
+		PostResponse post = PostMapper.INSTANCE.toDto(postRepository.save(postEntity));
+		post.setFiles(files);
+
+		return post;
 	}
 
+	@Override
+	public void delete(Long id, UserDetailsImpl userDetailsImpl) {		
+		PostEntity postEntity = postRepository.findById(id).orElseThrow(() -> new PostNotFoundException(Code.NOT_FOUND, new String[] {"포스트가 존재하지 않습니다."}));
+		UserEntity userEntity = userRepository.findById(userDetailsImpl.getId()).orElseThrow(() -> new UserNotFoundException(Code.NOT_FOUND, new String[] {"아이디에 해당하는 사용자가 존재하지 않습니다."}));
+		
+		Long userId = userEntity.getId();
+		
+		if (!postEntity.getUser().getId().equals(userId)) {
+			throw new UserNotMatchedException(Code.USER_NOT_MATCHED, new String[] {"로그인한 사용자와 포스트를 생성한 사용자가 일치하지 않습니다."});
+		}
+		
+		postRepository.delete(postEntity);
+	}
+	
 	@Override
 	public PostResponse find(Long id) {
 		PostEntity postEntity = postRepository.findById(id).orElseThrow(() -> new PostNotFoundException(Code.NOT_FOUND, new String[] {"포스트가 존재하지 않습니다."}));
@@ -93,27 +108,80 @@ public class PostServiceImpl implements PostService {
 	}
 
 	@Override
-	public PostResponse update(PostUpdateRequest postDto, Long id) {
-		PostEntity postEntity = postRepository.findById(id).orElseThrow(() -> new PostNotFoundException(Code.NOT_FOUND, new String[] {"포스트가 존재하지 않습니다."}));
+	public PageResponse<PostResponse> findAll(PaginationUtil pagination) {
+		Pageable pageable = pagination.makePageable();
 		
-		String title = postDto.getTitle();
-		String content = postDto.getContent();
+		Page<PostEntity> page = postRepository.findAll(pageable);
 		
-		if (NotNullNotEmptyChecker.check(title)) {
-			postEntity.setTitle(postDto.getTitle());
-		}
+		List<PostEntity> postEntities = page.getContent();
+		int pageSize = page.getSize();
+		int pageNo = page.getNumber();
+		long totalElements = page.getTotalElements();
+		int totalPages = page.getTotalPages();
+		boolean isLast = page.isLast();
+		boolean isFirst = page.isFirst();
 				
-		if (NotNullNotEmptyChecker.check(content)) {
-			postEntity.setContent(postDto.getContent());
-		}
-				
-		return PostMapper.INSTANCE.toDto(postRepository.save(postEntity));
+		List<PostResponse> postResponse = postEntities.stream().map((postEntity) -> PostMapper.INSTANCE.toDto(postEntity)).collect(Collectors.toList());
+		
+		return PageResponse.handleResponse(postResponse, pageSize, pageNo, totalElements, totalPages, isLast, isFirst);
+	}
+	
+	@Override
+	public PageResponse<PostResponse> findAllByCategoryId(Long categoryId, PaginationUtil pagination) {
+		//categoryRepository.findById(categoryId).orElseThrow(() -> new CategoryNotFoundException(Code.NOT_FOUND, new String[] {"카테고리가 존재하지 않습니다."}));
+
+		Pageable pageable = pagination.makePageable();
+		
+		Page<PostEntity> page = postRepository.findByCategoryId(categoryId, pageable);
+		
+		List<PostEntity> postEntities = page.getContent();
+		int pageSize = page.getSize();
+		int pageNo = page.getNumber();
+		long totalElements = page.getTotalElements();
+		int totalPages = page.getTotalPages();
+		boolean isLast = page.isLast();
+		boolean isFirst = page.isFirst();
+		
+		List<PostResponse> postResponse = postEntities.stream().map((postEntity) -> PostMapper.INSTANCE.toDto(postEntity)).collect(Collectors.toList());
+		
+		return PageResponse.handleResponse(postResponse, pageSize, pageNo, totalElements, totalPages, isLast, isFirst);
 	}
 
 	@Override
-	public void delete(Long id) {
+	public PostResponse update(Long id, PostUpdateRequest postUpdate, MultipartFile[] uploadFiles, UserDetailsImpl userDetailsImpl) {
+		List<File> files = null;
+
 		PostEntity postEntity = postRepository.findById(id).orElseThrow(() -> new PostNotFoundException(Code.NOT_FOUND, new String[] {"포스트가 존재하지 않습니다."}));
+		CategoryEntity categoryEntity = categoryRepository.findByName(postUpdate.getCategoryName()).orElseThrow(() -> new CategoryNotFoundException(Code.NOT_FOUND, new String[] {"카테고리가 존재하지 않습니다."}));
+		UserEntity userEntity = userRepository.findById(userDetailsImpl.getId()).orElseThrow(() -> new UserNotFoundException(Code.NOT_FOUND, new String[] {"아이디에 해당하는 사용자가 존재하지 않습니다."}));
+
+		Long userId = userEntity.getId();
+				
+		if (!postEntity.getUser().getId().equals(userId)) {
+			throw new UserNotMatchedException(Code.USER_NOT_MATCHED, new String[] {"로그인한 사용자와 포스트를 생성한 사용자가 일치하지 않습니다."});
+		}
 		
-		postRepository.delete(postEntity);
+		if (NotNullNotEmptyChecker.check(postUpdate.getTitle())) {
+			postEntity.title(postUpdate.getTitle());
+		}
+				
+		if (NotNullNotEmptyChecker.check(postUpdate.getContent())) {
+			postEntity.content(postUpdate.getContent());
+		}
+		
+		if (NotNullNotEmptyChecker.check(postUpdate.getCategoryName())) {
+			postEntity.category(categoryEntity);
+		}
+		
+		if (uploadFiles != null && uploadFiles.length > 0) {
+			files = Arrays.stream(uploadFiles)
+					.map(uploadFile -> fileService.upload(postEntity, uploadFile))
+					.collect(Collectors.toList());
+		}
+		
+		PostResponse post = PostMapper.INSTANCE.toDto(postRepository.save(postEntity));
+		post.setFiles(files);
+		
+		return post;
 	}
 }
