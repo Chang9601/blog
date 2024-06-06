@@ -1,5 +1,7 @@
 package com.whooa.blog.post.repository;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import com.whooa.blog.post.entity.PostEntity;
@@ -12,5 +14,5 @@ import com.whooa.blog.post.entity.PostEntity;
  * SimpleJpaRepository 클래스가 내부적으로 @Transactional 어노테이션을 사용하기 때문에 @Transactional 어노테이션을 사용할 필요가 없다.
  */
 public interface PostRepository extends JpaRepository<PostEntity, Long> {
-
+	public abstract Page<PostEntity> findByCategoryId(Long categoryId, Pageable pageable);
 }

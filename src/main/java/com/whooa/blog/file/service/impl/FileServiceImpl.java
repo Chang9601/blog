@@ -14,18 +14,15 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.whooa.blog.common.code.Code;
-import com.whooa.blog.file.dto.FileDto;
-import com.whooa.blog.file.entity.FileEntity;
 import com.whooa.blog.file.exception.DirectoryNotCreatedException;
 import com.whooa.blog.file.exception.FileNotDownloadedException;
 import com.whooa.blog.file.exception.FileNotFoundException;
-import com.whooa.blog.file.exception.FileNotStoredException;
+import com.whooa.blog.file.exception.FileNotSavedException;
 import com.whooa.blog.file.exception.InvalidFilePathException;
-import com.whooa.blog.file.mapper.FileMapper;
 import com.whooa.blog.file.property.FileProperty;
 import com.whooa.blog.file.service.FileService;
+import com.whooa.blog.file.value.File;
 import com.whooa.blog.post.entity.PostEntity;
-import com.whooa.blog.utils.FileExtensionGetter;
 
 import jakarta.annotation.PostConstruct;
 
@@ -61,9 +58,9 @@ public class FileServiceImpl implements FileService {
 	}
 
 	@Override
-	public FileDto upload(MultipartFile file, PostEntity postEntity) {
+	public File upload(PostEntity postEntity, MultipartFile uploadFile) {
 		/* 정규화된 경로를 생성하여 "path/.."과 내부 단순 점과 같은 시퀀스를 제거한다. */	
-		String originalFilename = StringUtils.cleanPath(file.getOriginalFilename());
+		String originalFilename = StringUtils.cleanPath(uploadFile.getOriginalFilename());
 		
 		try {
 			
@@ -81,20 +78,20 @@ public class FileServiceImpl implements FileService {
 			 * 기본적으로 대상 파일이 이미 존재하거나 심볼릭 링크인 경우 복사가 실패하지만 REPLACE_EXISTING 옵션이 지정된 경우 대상 파일이 이미 존재하면 그 파일이 비어있는 디렉터리가 아닌 경우에만 대상 파일이 교체된다. 
 			 * 대상 파일이 이미 존재하고 심볼릭 링크인 경우 심볼릭 링크가 교체된다.
 			 */
-			Files.copy(file.getInputStream(), uploadPath, StandardCopyOption.REPLACE_EXISTING);
+			Files.copy(uploadFile.getInputStream(), uploadPath, StandardCopyOption.REPLACE_EXISTING);
 			
 			String filename = uploadPath.getFileName().toString();
 			String filePath = uploadPath.toString();
-			Long fileSize = file.getSize();
-			String fileExtension = FileExtensionGetter.get(filename);
-			String mimeType = file.getContentType();
+			Long fileSize = uploadFile.getSize();
+			String fileExtension = getExtension(filename);
+			String mimeType = uploadFile.getContentType();
 			
-			FileEntity fileEntity = new FileEntity(filename, filePath, fileSize, fileExtension, mimeType);
-			fileEntity.setPost(postEntity);
+			File file =  new File(fileExtension, mimeType, filename, filePath, fileSize);
+			postEntity.getFiles().add(file);
 						
-			return FileMapper.INSTANCE.toDto(fileEntity);
+			return file;
 		} catch (IOException exception) {
-			throw new FileNotStoredException(Code.FILE_NOT_STORED, new String[] {"파일 " + originalFilename + "을 저장할 수 없습니다."});
+			throw new FileNotSavedException(Code.FILE_NOT_SAVED, new String[] {"파일 " + originalFilename + "을 저장할 수 없습니다."});
 		}
 	}
 
@@ -112,5 +109,16 @@ public class FileServiceImpl implements FileService {
 		} catch (MalformedURLException exception) {
 			throw new FileNotDownloadedException(Code.FILE_NOT_DOWNLOADED, new String[] {"파일 " + filename + "을 다운로드할 수 없습니다."});
 		}
+	}
+	
+	private String getExtension(String filename) {
+		/*
+		 * 먼저 주어진 파일 이름이 비어 있는지 확인하고 파일 이름이 비어 있지 않으면 주어진 파일 이름을 추상 경로 이름으로 변환하여 File 인스턴스를 생성하고, File의 getName() 메서드를 호출한다.
+		 * 추상 경로 이름이 나타내는 파일의 이름을 반환하거나 주어진 파일 이름이 비어 있으면 빈 문자열을 반환한다. 
+		 * 반환 값에 따라 String 클래스의 내장 메서드인 lastIndexOf(char)를 사용하여 '.'의 마지막 발생 인덱스를 가져온니다.
+		 * 1. 확장자가 없는 경우 빈 문자열을 반환한다.
+		 * 2. 확장자만 있는 경우 점 뒤의 문자열을 반환한다(e.g., .gitignore).
+		 */
+		return com.google.common.io.Files.getFileExtension(filename);
 	}
 }

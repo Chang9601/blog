@@ -1,35 +1,31 @@
 package com.whooa.blog.comment.dto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 
 public class CommentDto {
-	
+
+	@Schema(
+		description = "댓글 생성 DTO"
+	)
 	public static class CommentCreateRequest {
-		@NotBlank(message = "이름을 입력하세요.")
-		private String name;
-		
+		@Schema(
+			description = "댓글 내용"
+		)
 		@NotBlank(message = "내용을 입력하세요.")
 		private String content;
-		
-		@NotBlank(message = "비밀번호를 입력하세오.")
-		private String password;
-		
-		public CommentCreateRequest(String name, String content, String password) {
-			this.name = name;
+
+		public CommentCreateRequest(String content) {
 			this.content = content;
-			this.password = password;
 		}
-		
+
 		public CommentCreateRequest() {}
 		
-		public String getName() {
-			return name;
+		public CommentCreateRequest content(String content) {
+			this.content = content;
+			return this;
 		}
-
-		public void setName(String name) {
-			this.name = name;
-		}
-
+		
 		public String getContent() {
 			return content;
 		}
@@ -38,33 +34,33 @@ public class CommentDto {
 			this.content = content;
 		}
 
-		public String getPassword() {
-			return password;
-		}
-
-		public void setPassword(String password) {
-			this.password = password;
-		}
-
 		@Override
 		public String toString() {
-			return "CommentCreateRequest [name=" + name + ", content=" + content + ", password=" + password + "]";
+			return "CommentCreateRequest [content=" + content + "]";
 		}
 	}
 	
+	@Schema(
+		description = "댓글 수정 DTO"
+	)	
 	public static class CommentUpdateRequest {
+		@Schema(
+			description = "댓글 내용"
+		)
+		@NotBlank(message = "내용을 입력하세요.")
 		private String content;
 		
-		@NotBlank(message = "비밀번호를 입력하세오.")
-		private String password;
-		
-		public CommentUpdateRequest(String content, String password) {
+		public CommentUpdateRequest(String content) {
 			this.content = content;
-			this.password = password;
 		}
 		
 		public CommentUpdateRequest() {}
 		
+		public CommentUpdateRequest content(String content) {
+			this.content = content;
+			return this;
+		}
+		
 		public String getContent() {
 			return content;
 		}
@@ -72,39 +68,50 @@ public class CommentDto {
 		public void setContent(String content) {
 			this.content = content;
 		}
-		
-		public String getPassword() {
-			return password;
-		}
-
-		public void setPassword(String password) {
-			this.password = password;
-		}
 
 		@Override
 		public String toString() {
-			return "CommentUpdateRequest [content=" + content + ", password=" + password + "]";
+			return "CommentUpdateRequest [content=" + content + "]";
 		}
 	}
 
+	@Schema(
+		description = "댓글 응답 DTO"
+	)	
 	public static class CommentResponse {
+		@Schema(
+			description = "댓글 아이디"
+		)		
 		private Long id;
-		private String name;
+		
+		@Schema(
+			description = "댓글 내용"
+		)		
+		@NotBlank(message = "내용을 입력하세요.")
 		private String content;
+		
+		@Schema(
+			description = "대댓글 아이디"
+		)		
 		private Long parentId;
-			
-		public CommentResponse(Long id, String name, String content, Long parentId) {
+
+		public CommentResponse(Long id, String content, Long parentId) {
 			this.id = id;
-			this.name = name;
 			this.content = content;
 			this.parentId = parentId;
 		}
+
+		public CommentResponse() {}
 		
-		public CommentResponse(Long id, String name, String content) {
-			this(id, name, content, -1L);
+		public CommentResponse content(String content) {
+			this.content = content;
+			return this;
 		}
 		
-		public CommentResponse() {}
+		public CommentResponse parentId(Long parentId) {
+			this.parentId = parentId;
+			return this;
+		}
 		
 		public Long getId() {
 			return id;
@@ -113,15 +120,7 @@ public class CommentDto {
 		public void setId(Long id) {
 			this.id = id;
 		}
-
-		public String getName() {
-			return name;
-		}
-
-		public void setName(String name) {
-			this.name = name;
-		}
-
+		
 		public String getContent() {
 			return content;
 		}
@@ -130,16 +129,6 @@ public class CommentDto {
 			this.content = content;
 		}
 		
-		/* 
-		 * 순환 참조 오류(즉, 무한 재귀) 해결책.
-		 * 1. PostResponse를 호출 -> PostResponse는 List<CommentDto> 소유 -> 모든 CommentDto는 다시 PostDto를 호출, 따라서 게터 제거하기.
-		 * 2. 1번 객체는 @JsonManagedReferece 어노테이션, 2번 객체는 @JsonBackReference
-		 * 	 문제는 2번 참조되는 객체를 얻을 수 없다.
-		 * 3. 한 쌍의 DTO를 생성하고 엔티티에서 수동으로 채우기.
-		 * public PostResponse getPost() {
-		 *	 return post;
-		 * }
-		 */
 		public Long getParentId() {
 			return parentId;
 		}
@@ -150,7 +139,18 @@ public class CommentDto {
 
 		@Override
 		public String toString() {
-			return "CommentResponse [id=" + id + ", name=" + name + ", content=" + content + ", parentId=" + parentId + "]";
+			return "CommentResponse [id=" + id + ", content=" + content + ", parentId=" + parentId + "]";
 		}
+
+		/* 
+		 * 순환 참조 오류(즉, 무한 재귀) 해결책.
+		 * 1. PostResponse를 호출 -> PostResponse는 List<CommentDto> 소유 -> 모든 CommentDto는 다시 PostDto를 호출, 따라서 게터 제거하기.
+		 * 2. 1번 객체는 @JsonManagedReferece 어노테이션, 2번 객체는 @JsonBackReference
+		 * 	 문제는 2번 참조되는 객체를 얻을 수 없다.
+		 * 3. 한 쌍의 DTO를 생성하고 엔티티에서 수동으로 채우기.
+		 * public PostResponse getPost() {
+		 *	 return post;
+		 * }
+		 */
 	}
 }

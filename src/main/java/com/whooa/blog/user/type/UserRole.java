@@ -1,15 +1,14 @@
 package com.whooa.blog.user.type;
 
 public enum UserRole {
-	
 	USER(ROLE.USER, "사용자"),
 	MANAGER(ROLE.MANAGER, "매니저"),
 	ADMIN(ROLE.ADMIN, "관리자");
 	
 	public static class ROLE {
-		public static String USER = "USER";
-		public static String MANAGER = "MANAGER";
-		public static String ADMIN = "ADMIN";
+		public static final String USER = "USER";
+		public static final String MANAGER = "MANAGER";
+		public static final String ADMIN = "ADMIN";
 	}
 	
 	private String role;

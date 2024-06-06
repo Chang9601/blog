@@ -1,8 +1,17 @@
 package com.whooa.blog.config;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.access.expression.method.DefaultMethodSecurityExpressionHandler;
+import org.springframework.security.access.expression.method.MethodSecurityExpressionHandler;
+import org.springframework.security.access.hierarchicalroles.RoleHierarchy;
+import org.springframework.security.access.hierarchicalroles.RoleHierarchyImpl;
+import org.springframework.security.access.hierarchicalroles.RoleHierarchyUtils;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -11,23 +20,27 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.whooa.blog.common.security.jwt.JsonUsernamePasswordAuthFilter;
+import com.whooa.blog.common.security.UserDetailsServiceImpl;
+import com.whooa.blog.common.security.jwt.JsonUsernamePasswordAuthenticationFilter;
 import com.whooa.blog.common.security.jwt.JwtAccessDeniedHandler;
-import com.whooa.blog.common.security.jwt.JwtAuthEntryPoint;
-import com.whooa.blog.common.security.jwt.JwtAuthFailureHandler;
-import com.whooa.blog.common.security.jwt.JwtAuthFilter;
-import com.whooa.blog.common.security.jwt.JwtAuthSuccessHandler;
+import com.whooa.blog.common.security.jwt.JwtAuthenticationEntryPoint;
+import com.whooa.blog.common.security.jwt.JwtAuthenticationFailureHandler;
+import com.whooa.blog.common.security.jwt.JwtAuthenticationFilter;
+import com.whooa.blog.common.security.jwt.JwtAuthenticationSuccessHandler;
+import com.whooa.blog.common.security.jwt.JwtLogoutHandler;
+import com.whooa.blog.common.security.jwt.JwtLogoutSuccessHandler;
+
+import com.whooa.blog.user.type.UserRole;
+
+import jakarta.servlet.DispatcherType;
 
 /* @Configuration 어노테이션은 클래스를 Java 기반 설정 클래스로 설정하며 @Bean 어노테이션으로 Spring 빈을 설정할 수 있다. */
 @Configuration
-/* @EnableWebSecurity 어노테이션은 웹 보안을 활성화한다. */
+/* @EnableWebSecurity 어노테이션은 요청 수준 보안을 활성화한다. */
 @EnableWebSecurity
 /* @EnableMethodSecurity 어노테이션은 어노테이션을 기반으로 메서드 수준 보안을 활성화한다. */
 @EnableMethodSecurity(
@@ -40,86 +53,147 @@ public class SecurityConfig {
 	 * 엔드포인트 권한 부여 또는 인증 매니저 구성과 같은 기능에 대한 HTTP 보안을 사용자 정의할 수 있도록 WebSecurityConfigurerAdapter 클래스를 확장하는 방법을 제공했다.
 	 * 그러나 최근 버전에서는 이 접근 방식을 폐기하고 컴포넌트 기반 보안 구성을 권장한다.
 	 */
-	
-	private UserDetailsService userDetailsService;
-	private ObjectMapper objectMapper;
-	private JwtAuthEntryPoint jwtAuthEntryPoint;
 	private JwtAccessDeniedHandler jwtAccessDeniedHandler;
-	private JwtAuthSuccessHandler jwtAuthSuccessHandler;
-	private JwtAuthFailureHandler jwtAuthFailureHandler;
-	private JwtAuthFilter jwtAuthFilter;
-	
-	public SecurityConfig(UserDetailsService userDetailsService, 
-						  ObjectMapper objectMapper, 
-						  JwtAccessDeniedHandler jwtAccessDeniedHandler, 
-						  JwtAuthEntryPoint jwtAuthEntryPoint, 
-						  JwtAuthSuccessHandler jwtAuthSuccessHandler, 
-						  JwtAuthFailureHandler jwtAuthFailureHandler, 
-						  JwtAuthFilter jwtAuthFilter) {
-		this.userDetailsService = userDetailsService;
-		this.objectMapper = objectMapper;
-		this.jwtAuthEntryPoint = jwtAuthEntryPoint;
+	private JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
+	private JwtAuthenticationFailureHandler jwtAuthenticationFailureHandler;
+	private JwtAuthenticationFilter jwtAuthenticationFilter;
+	private JwtAuthenticationSuccessHandler jwtAuthenticationSuccessHandler;
+	private JwtLogoutHandler jwtLogoutHandler;
+	private JwtLogoutSuccessHandler jwtLogoutSuccessHandler;
+	private UserDetailsServiceImpl userDetailsServiceImpl;
+
+	public SecurityConfig(JwtAccessDeniedHandler jwtAccessDeniedHandler, JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint,
+			JwtAuthenticationFailureHandler jwtAuthenticationFailureHandler, JwtAuthenticationFilter jwtAuthenticationFilter,
+			JwtAuthenticationSuccessHandler jwtAuthenticationSuccessHandler, JwtLogoutHandler jwtLogoutHandler,
+			JwtLogoutSuccessHandler jwtLogoutSuccessHandler, UserDetailsServiceImpl userDetailsServiceImpl) {
 		this.jwtAccessDeniedHandler = jwtAccessDeniedHandler;
-		this.jwtAuthSuccessHandler = jwtAuthSuccessHandler;
-		this.jwtAuthFailureHandler = jwtAuthFailureHandler;
-		this.jwtAuthFilter = jwtAuthFilter;
-	}
-	
-	@Bean
-	 public BCryptPasswordEncoder passwordEncoder() {
-		return new BCryptPasswordEncoder();
+		this.jwtAuthenticationEntryPoint = jwtAuthenticationEntryPoint;
+		this.jwtAuthenticationFailureHandler = jwtAuthenticationFailureHandler;
+		this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+		this.jwtAuthenticationSuccessHandler = jwtAuthenticationSuccessHandler;
+		this.jwtLogoutHandler = jwtLogoutHandler;
+		this.jwtLogoutSuccessHandler = jwtLogoutSuccessHandler;
+		this.userDetailsServiceImpl = userDetailsServiceImpl;
 	}
 	
 	/*
-	 * AuthenticationManager 클래스는 UserDetailsService 클래스를 사용해서 데이터베이스에서 사용자를 가져온다.
-	 * AuthenticationManager 클래스는 또한 PasswordEncoder 클래스를 사용해서 비밀번호를 암호화/복호화한다
-	 * AuthenticationManager 클래스의 실제 구현체는 ProviderManager 클래스로 여러 AuthenticationProvider 클래스를 가진다.
-	 * ProviderManager 클래스는 상황에 맞는 AuthenticationProvider 클래스에 인증을 위임한다.
+	 * Spring Security의 서블릿 지원에는 PasswordEncoder와 통합하여 비밀번호를 안전하게 저장하는 기능이 포함된다. 
+	 * PasswordEncoder 빈을 노출하여 Spring Security에서 사용하는 PasswordEncoder 구현을 사용자 정의할 수 있다. 
+	 */
+	@Bean
+	public BCryptPasswordEncoder bCryptPasswordEncoder() {
+		return new BCryptPasswordEncoder();
+	}
+
+	/*
+	 * AuthenticationManager는 Spring Security의 필터들이 인증을 수행하는 방식을 정의하는 API이다. 
+	 * AuthenticationManager가 반환하는 Authentication 객체는 이를 호출한 컨트롤러(즉, Spring Security의 필터 인스턴스들)에 의해 SecurityContextHolder에 설정됩된다. 
+	 * Spring Security의 필터 인스턴스와 통합하지 않는 경우 직접 SecurityContextHolder를 설정할 수 있으며, AuthenticationManager를 사용할 필요가 없다.
+	 * AuthenticationManager의 구현체는 다양한 형태일 수 있지만 가장 일반적인 구현체는 ProviderManager이다.
 	 * 
-	 * 이전에는 UserDetailsService 클래스와 PasswordEncoder 클래스를 명시적으로 전달했다.
+	 * AuthenticationProvider는 ProviderManager에 의해 특정 유형의 인증을 수행하는 데 사용된다.
+	 * ProviderManager에 여러 AuthenticationProvider 인스턴스를 주입할 수 있다. 각 AuthenticationProvider는 특정 유형의 인증을 수행한다. 
+	 * 예를 들어, DaoAuthenticationProvider는 사용자 이름/비밀번호 기반 인증을 지원하고 JwtAuthenticationProvider는 JWT 토큰 인증을 지원한다.
+	 *  
 	 * Spring 5.2 또는 5.2 이상의 Spring Security에서는 자동으로 UserDetailsService 클래스와 PasswordEncoder 클래스를 AuthenticationManager 클래스에 제공한다.
+	 * 이전에는 UserDetailsService 클래스와 PasswordEncoder 클래스를 명시적으로 전달했다.
 	 */
 	@Bean
 	public AuthenticationManager authenticationManager() throws Exception {
-		
-		/* DaoAuthenticationProvider은 DAO에서 계정 정보를 꺼내오고 비밀번호 일치 여부를 검사하고 인증 여부를 넘긴다. */
+		/*
+		 * DaoAuthenticationProvider는 UserDetailsService와 PasswordEncoder를 사용하여 사용자 이름과 비밀번호를 인증하는 AuthenticationProvider 구현이다. 
+		 *
+		 * 작동과정
+		 * 1. 인증 필터는 UsernamePasswordAuthenticationToken을 AuthenticationManager(ProviderManager에 의해 구현)로 전달한다.
+		 * 2. ProviderManager는 DaoAuthenticationProvider 유형의 AuthenticationProvider를 사용하도록 구성된다.
+		 * 3. DaoAuthenticationProvider는 UserDetailsService에서 UserDetails를 조회한다.
+		 * 4. DaoAuthenticationProvider는 이전 단계에서 반환된 UserDetails의 비밀번호를 PasswordEncoder를 사용하여 검증한다.
+		 * 5. 인증이 성공하면 반환된 Authentication은 UsernamePasswordAuthenticationToken 유형이며 주체(principal)는 구성된 UserDetailsService가 반환한 UserDetails이다. 
+		 *    최종적으로 반환된 UsernamePasswordAuthenticationToken은 인증 필터에 의해 SecurityContextHolder에 설정된다.
+		 */
 		DaoAuthenticationProvider daoAuthenticationProvider = new DaoAuthenticationProvider();
 		
-		daoAuthenticationProvider.setUserDetailsService(userDetailsService);
-		daoAuthenticationProvider.setPasswordEncoder(passwordEncoder());
+		daoAuthenticationProvider.setUserDetailsService(userDetailsServiceImpl);
+		daoAuthenticationProvider.setPasswordEncoder(bCryptPasswordEncoder());
 		
 		return new ProviderManager(daoAuthenticationProvider);
 	}
 	
 	@Bean
-	public AbstractAuthenticationProcessingFilter jsonUsernamePasswordAuthFilter() throws Exception {
-		JsonUsernamePasswordAuthFilter jsonUsernamePasswordAuthFilter = new JsonUsernamePasswordAuthFilter(objectMapper);
+	public JsonUsernamePasswordAuthenticationFilter jsonUsernamePasswordAuthFilter() throws Exception {
+		JsonUsernamePasswordAuthenticationFilter jsonUsernamePasswordAuthFilter = new JsonUsernamePasswordAuthenticationFilter();
 		
 		jsonUsernamePasswordAuthFilter.setAuthenticationManager(authenticationManager());
-		jsonUsernamePasswordAuthFilter.setAuthenticationSuccessHandler(jwtAuthSuccessHandler);
-		jsonUsernamePasswordAuthFilter.setAuthenticationFailureHandler(jwtAuthFailureHandler);
+		jsonUsernamePasswordAuthFilter.setAuthenticationSuccessHandler(jwtAuthenticationSuccessHandler);
+		jsonUsernamePasswordAuthFilter.setAuthenticationFailureHandler(jwtAuthenticationFailureHandler);
 		
 		return jsonUsernamePasswordAuthFilter;
 	}
 	
 	/*
+	 * Spring 빈으로 등록되면 자동으로 AuAuthorityAuthorizationManager에게 전파된다.
+	 */
+	 @Bean
+	 public static RoleHierarchy roleHierarchy() {
+	    RoleHierarchyImpl roleHierarchyImpl = new RoleHierarchyImpl();
+	    Map<String, List<String>> roleHierarchyMap = new HashMap<>();
+	    
+	    roleHierarchyMap.put("ADMIN", List.of("USER"));
+	    
+	    String roleHierarchyFromMap = RoleHierarchyUtils.roleHierarchyFromMap(roleHierarchyMap);
+	    roleHierarchyImpl.setHierarchy(roleHierarchyFromMap);
+	    
+	    return roleHierarchyImpl;
+	}
+	 
+	 @Bean
+	 public static MethodSecurityExpressionHandler methodSecurityExpressionHandler(RoleHierarchy roleHierarchy) {
+	 	DefaultMethodSecurityExpressionHandler expressionHandler = new DefaultMethodSecurityExpressionHandler();
+	 	expressionHandler.setRoleHierarchy(roleHierarchy);
+	 	
+	 	return expressionHandler;
+	 }
+	
+	/*
 	 * @Bean 어노테이션은 Spring 컨테이너가 관리하는 빈을 생성하는 메소드를 나타낸다. 
 	 * 일반적으로 구성 클래스에서 선언되어 Spring 빈 정의를 생성한다.
-	 * 
-	 * SecurityFilterChain 빈으로 HTTP 보안을 구성한다.
 	 */
 	@Bean
-	public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
+	public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {		
 		return httpSecurity
 			.csrf((csrf) -> csrf.disable())
 			.httpBasic((http) -> http.disable())
 			.formLogin((form) -> form.disable())
 			.sessionManagement((session) -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+			// TODO: 로그인과 로그아웃 URL은 예외로 작동한다. 따로 필터를 만들어야 하나?
+			.logout((logout) -> logout.logoutUrl("/api/v1/auth/sign-out").addLogoutHandler(jwtLogoutHandler).logoutSuccessHandler(jwtLogoutSuccessHandler))
 			.authorizeHttpRequests((authorize) -> 
-				authorize.requestMatchers(HttpMethod.GET, "/api/v1/**").permitAll()
-						 .requestMatchers("/api/v1/auth/**").permitAll()
-						 .requestMatchers("/api/v1/users/**").permitAll()
-						 .anyRequest().authenticated())
+				authorize
+						.dispatcherTypeMatchers(DispatcherType.FORWARD, DispatcherType.ERROR).permitAll()
+						 /*
+						  * permitAll() 메서드의 의미.
+						  * 모든 필터 체인을 거쳤는데 인증 객체를 담는 SecurityContext 클래스에 인증 객체가 존재하지 않으면 해당 요청이 인증되지 않았음을 의미한다.
+						  * 그러나, 만약 해당 API에 permitAll()을 적용하면 SecurityContext 클래스에 인증 객체가 존재 여부와 상관없이 API 호출이 이루어진다.
+						  * 즉, permitAll() 메서드 적용 시 필터 체인 동작 과정에서 인증/인가 예외가 발생해도 ExceptionTranslationFilter 클래스를 거치지 않는다. 
+						  * 인증 객체 존재 여부와 상관없이 정상적으로 API 호출이 이루어진다.
+						  */
+					     // TODO: 로그아웃 URL은 인증/인가가 적용이 안된다. 
+						 .requestMatchers("/api/v1/auth/sign-out").hasAuthority(UserRole.USER.getRole())
+						 .requestMatchers(HttpMethod.POST, "/api/v1/users/**").permitAll()
+			             .requestMatchers("/api/v1/users/**").hasAuthority(UserRole.USER.getRole())//.authenticated()
+						 .requestMatchers(HttpMethod.GET, "/api/v1/categories/**").permitAll()
+						 .requestMatchers("/api/v1/categories/**").hasAuthority(UserRole.ADMIN.getRole())
+						 /* 
+						  * hasRole() 메서드는 hasAuthority() 메서드와 동일하지만 차이점은 다음과 같다. 
+						  * hasRole('ADMIN') -> 열거형은 ROLE_ADMIN.
+						  * hasAuthority('ADMIN') -> 열거형은 ADMIN.
+						  */
+						 .requestMatchers(HttpMethod.POST, "/api/v1/**").authenticated()
+						 .requestMatchers(HttpMethod.PUT, "/api/v1/**").authenticated()
+						 .requestMatchers(HttpMethod.PATCH, "/api/v1/**").authenticated()
+						 .requestMatchers(HttpMethod.DELETE, "/api/v1/**").authenticated()						 
+						 .anyRequest().permitAll())
+
 			/*
 			 * 요청-응답
 			 * 요청 -> 필터 -> 디스패처서블렛 -> 컨트롤러 -> 서비스 -> 레포지토리 -> 서비스 -> 컨트롤러 -> 디스패처서블렛 -> 필터 -> 응답
@@ -129,42 +203,19 @@ public class SecurityConfig {
 			 * 즉, 인증 중에 발생하는 AuthenticationException의 하위 클래스(e.g., UsernameNotFoundException)을 컨트롤러어드바이스가 처리할 수 없다.
 			 * 따라서 Spring Security 관련 핸들러 인터페이스를 직접 구현한 다음 추가한다.
 			 */
-			.exceptionHandling((exception) -> exception.accessDeniedHandler(jwtAccessDeniedHandler))
-			.exceptionHandling((exception) -> exception.authenticationEntryPoint(jwtAuthEntryPoint))
+			.exceptionHandling((exception) -> exception.authenticationEntryPoint(jwtAuthenticationEntryPoint).accessDeniedHandler(jwtAccessDeniedHandler))
 			/* 
 			 * STATELESS는 인증 관련 세션 기능을 사용하지 않도록 하는 설정이다. 
 			 * 하지만 인증 외 세션을 사용할 경우 인증 외에 세션에 관련된 필터(e.g., SessionManagementFilter, DisableEncodeUrlFilter)는 계속 필터 체인에 존재한다. 
 			 * disable로 설정하면 세션 관련 설정을 아얘 하지 않기에 세션 관련 필터도 설정되지 않는다. 
 			 */
-			/* form 로그인 필터인 UsernamePasswordAuthenticationFilter 클래스에 JSON 로그인 필터를 추가한다. */
 			.addFilterAt(jsonUsernamePasswordAuthFilter(), UsernamePasswordAuthenticationFilter.class)
-			/* JSON 로그인 필터 앞에 JWT 필터를 추가한다. */
-			.addFilterBefore(jwtAuthFilter, JsonUsernamePasswordAuthFilter.class)
-			.build(); /* build() 메서드가 반환하는 DefaultSecurityFilterChain 클래스는 SecurityFilterChain 인터페이스의 구현 클래스이다. */
+			.addFilterBefore(jwtAuthenticationFilter, JsonUsernamePasswordAuthenticationFilter.class)
+			.build();
 	}
 	
 	@Bean
 	public WebSecurityCustomizer webSecurityCustomizer() {
 		return web -> web.debug(false);
 	}
-
-	/* 인-메모리 인증 */
-//	@Bean
-//	public UserDetailsService userDetailsService() {
-//		UserDetails wow = User
-//							.builder()
-//							.username("wow")
-//							.password(passwordEncoder().encode("wow"))
-//							.roles("USER")
-//							.build();
-//		
-//		UserDetails admin = User
-//				.builder()
-//				.username("admin")
-//				.password(passwordEncoder().encode("admin"))
-//				.roles("ADMIN")
-//				.build();
-//		
-//		return new InMemoryUserDetailsManager(wow, admin);
-//	}
 }

@@ -6,7 +6,6 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 
 import com.whooa.blog.file.property.FileProperty;
 
-
 /*
  * @SpringBootApplication 어노테이션은 다음 3개의 어노테이션을 활성화한다.
  * 1. @EnableAutoConfiguration
