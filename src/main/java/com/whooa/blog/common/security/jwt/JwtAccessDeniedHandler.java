@@ -31,7 +31,7 @@ public class JwtAccessDeniedHandler implements AccessDeniedHandler {
 	}
 
 	@Override
-	public void handle(HttpServletRequest request,  HttpServletResponse response,
+	public void handle(HttpServletRequest request, HttpServletResponse response,
 			 AccessDeniedException accessDeniedException) throws IOException, ServletException {
 		logger.error("JwtAccessDeniedHandler: 필요한 권한이 없는 사용자입니다.");
 		

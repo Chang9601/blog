@@ -3,7 +3,6 @@ package com.whooa.blog.utils;
 import com.google.common.io.Files;
 
 public class FileExtensionGetter {
-
 	public static String get(String fileName) {
 		/*
 		 * 먼저 주어진 파일 이름이 비어 있는지 확인하고 파일 이름이 비어 있지 않으면 주어진 파일 이름을 추상 경로 이름으로 변환하여 File 인스턴스를 생성하고, File의 getName() 메서드를 호출한다.

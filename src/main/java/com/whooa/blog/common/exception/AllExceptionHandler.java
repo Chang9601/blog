@@ -73,11 +73,14 @@ public class AllExceptionHandler {
 		return ApiResponse.handleFailure(exception.getException().getCode(), exception.getException().getMessage(), null, exception.getDetails());
 	}
 	
+	// WHY: 필터에서 발생하는 오류라서 맞춤 필터 처리 클래스를 만들었는데 어느 경우는 ControllerAdvice 클래스에서 작동한다. 왜?!
 	@ExceptionHandler(AccessDeniedException.class)
-    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    @ResponseStatus(HttpStatus.FORBIDDEN)
 	public ApiResponse<AccessDeniedException> handleException(AccessDeniedException exception) {
 		logger.error("AccessDeniedException: {}", exception.getMessage());
-		return ApiResponse.handleFailure(Code.UNAUTHORIZED.getCode(), Code.UNAUTHORIZED.getMessage(), null, new String[] {"인증되어 있지 않습니다."});
+		
+		/* 필터 오류 처리기에서 처리하기 위해 오류를 다시 던진다. */
+		throw exception;
 	}
 	
 	/* DTO 검증 메서드. */

@@ -1,0 +1,35 @@
+package com.whooa.blog.category.controller;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.whooa.blog.category.dto.CategoryDto.CategoryCreateRequest;
+import com.whooa.blog.category.dto.CategoryDto.CategoryResponse;
+import com.whooa.blog.category.service.CategoryService;
+
+import com.whooa.blog.common.api.ApiResponse;
+import com.whooa.blog.common.code.Code;
+
+import jakarta.validation.Valid;
+
+@RestController
+@RequestMapping("/api/v1/categories")
+public class CategoryController {
+	private CategoryService categoryService;
+
+	public CategoryController(CategoryService categoryService) {
+		this.categoryService = categoryService;
+	}
+	
+	@ResponseStatus(value = HttpStatus.CREATED)
+	//@PreAuthorize("hasRole('ADMIN')")
+	@PostMapping
+	public ApiResponse<CategoryResponse> createCategory(@Valid @RequestBody CategoryCreateRequest categoryCreate) {		
+		return ApiResponse.handleSuccess(Code.CREATED.getCode(), Code.CREATED.getMessage(), categoryService.create(categoryCreate), new String[] {"카테고리를 생성했습니다."});
+	}
+}

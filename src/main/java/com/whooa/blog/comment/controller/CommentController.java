@@ -34,7 +34,7 @@ public class CommentController {
 	@ResponseStatus(value = HttpStatus.CREATED)
 	@PostMapping("/posts/{post-id}/comments")
 	public ApiResponse<CommentResponse> createComment(@PathVariable("post-id") Long postId, @Valid @RequestBody CommentCreateRequest commentCreate) {		
-		return ApiResponse.handleSuccess(Code.CREATED.getCode(), Code.CREATED.getMessage(), commentService.create(postId, commentCreate), new String[] {"댓글 생성했습니다."});
+		return ApiResponse.handleSuccess(Code.CREATED.getCode(), Code.CREATED.getMessage(), commentService.create(postId, commentCreate), new String[] {"댓글을 생성했습니다."});
 	}
 	
 	@ResponseStatus(value = HttpStatus.OK)

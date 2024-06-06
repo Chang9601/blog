@@ -23,7 +23,7 @@ public class FileEntity extends AbstractEntity {
 	private Long size;
 	
 	@Column(nullable = false)
-	private String ext;
+	private String extension;
 	
 	@Column(name = "mime_type", nullable = false)
 	private String mimeType;
@@ -33,23 +33,23 @@ public class FileEntity extends AbstractEntity {
 	private PostEntity post;	
 	
 	// TODO: 생성자 수정.
-	public FileEntity(Long id, String name, String path, Long size, String ext, String mimeType, PostEntity post) {
+	public FileEntity(Long id, String name, String path, Long size, String extension, String mimeType, PostEntity post) {
 		super(id);
 		
 		this.name = name;
 		this.path = path;
 		this.size = size;
-		this.ext = ext;
+		this.extension = extension;
 		this.mimeType = mimeType;
 		this.post = post;
 	}
 	
-	public FileEntity(String name, String path, Long size, String ext, String mimeType, PostEntity post) {
-		this(-1L, name, path, size, ext, mimeType, post);
+	public FileEntity(String name, String path, Long size, String extension, String mimeType, PostEntity post) {
+		this(-1L, name, path, size, extension, mimeType, post);
 	}	
 	
-	public FileEntity(String name, String path, Long size, String ext, String mimeType) {
-		this(name, path, size, ext, mimeType, null);
+	public FileEntity(String name, String path, Long size, String extension, String mimeType) {
+		this(name, path, size, extension, mimeType, null);
 	}	
 		
 	public FileEntity() {
@@ -81,11 +81,11 @@ public class FileEntity extends AbstractEntity {
 	}
 
 	public String getExt() {
-		return ext;
+		return extension;
 	}
 
-	public void setExt(String ext) {
-		this.ext = ext;
+	public void setExt(String extension) {
+		this.extension = extension;
 	}
 
 	public String getMimeType() {
@@ -113,7 +113,7 @@ public class FileEntity extends AbstractEntity {
 
 	@Override
 	public String toString() {
-		return "FileEntity [name=" + name + ", path=" + path + ", size=" + size + ", ext=" + ext + ", mimeType="
+		return "FileEntity [name=" + name + ", path=" + path + ", size=" + size + ", extension=" + extension + ", mimeType="
 				+ mimeType + ", post=" + post + "]";
 	}
 }

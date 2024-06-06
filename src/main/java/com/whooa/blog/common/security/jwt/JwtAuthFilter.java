@@ -10,6 +10,8 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+import com.whooa.blog.user.service.UserService;
+
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
@@ -29,7 +31,8 @@ import jakarta.servlet.http.HttpServletResponse;
 public class JwtAuthFilter extends OncePerRequestFilter {
 	
 	private JwtUtil jwtUtil;
-	// private UserService userService;
+	// ERROR: 순환 오류 발생.
+	//private UserService userService;
 	private UserDetailsService userDetailsService;
 	
 	public JwtAuthFilter(JwtUtil jwtUtil, UserDetailsService userDetailsService) {
@@ -67,8 +70,8 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 				 * 데이터베이스에서 사용자의 정보를 로드하는 것이 유용할 수 있다. 
 				 * 예를 들어, 사용자의 역할이 변경되었거나 사용자가 JWT를 생성한 후에 비밀번호를 갱신했다면 JWT로 로그인을 금지할 수 있다.
 				 */
-				// UserResponse user = userService.findByEmail(email);		
-				
+				// UserResponse user = userService.findByEmail(email);
+				 
 				UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
 				authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 				

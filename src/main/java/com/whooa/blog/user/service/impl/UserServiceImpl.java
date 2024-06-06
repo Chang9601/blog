@@ -13,6 +13,7 @@ import com.whooa.blog.user.mapper.UserMapper;
 import com.whooa.blog.user.repository.UserRepository;
 import com.whooa.blog.user.service.UserService;
 import com.whooa.blog.user.type.UserRole;
+import com.whooa.blog.utils.UserRoleMapper;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -30,13 +31,16 @@ public class UserServiceImpl implements UserService {
 			throw new DuplicateUserException(Code.CONFLICT, new String[] {"이메일을 사용하는 사용자가 존재합니다."});
 		}
 		
+		String userRole = userCreate.getUserRole();
 		UserEntity userEntity = UserMapper.INSTANCE.toEntity(userCreate);
 		
-		String password = userEntity.getPassword();
-		String encodedPassword = passwordEncoder.encode(password);
+		System.out.println(userRole);
 		
-		userEntity.setPassword(encodedPassword);
-		userEntity.setUserRole(UserRole.USER);
+		String plainPassword = userEntity.getPassword();
+		String hashedPassword = passwordEncoder.encode(plainPassword);
+		
+		userEntity.setPassword(hashedPassword);
+		userEntity.setUserRole(UserRoleMapper.map(userRole));
 		
 		return UserMapper.INSTANCE.toDto(userRepository.save(userEntity));
 	}

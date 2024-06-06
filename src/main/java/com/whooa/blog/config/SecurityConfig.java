@@ -24,6 +24,7 @@ import com.whooa.blog.common.security.jwt.JwtAuthEntryPoint;
 import com.whooa.blog.common.security.jwt.JwtAuthFailureHandler;
 import com.whooa.blog.common.security.jwt.JwtAuthFilter;
 import com.whooa.blog.common.security.jwt.JwtAuthSuccessHandler;
+import com.whooa.blog.user.type.UserRole;
 
 /* @Configuration 어노테이션은 클래스를 Java 기반 설정 클래스로 설정하며 @Bean 어노테이션으로 Spring 빈을 설정할 수 있다. */
 @Configuration
@@ -66,7 +67,7 @@ public class SecurityConfig {
 	}
 	
 	@Bean
-	 public BCryptPasswordEncoder passwordEncoder() {
+	 public BCryptPasswordEncoder bCryptPasswordEncoder() {
 		return new BCryptPasswordEncoder();
 	}
 	
@@ -86,7 +87,7 @@ public class SecurityConfig {
 		DaoAuthenticationProvider daoAuthenticationProvider = new DaoAuthenticationProvider();
 		
 		daoAuthenticationProvider.setUserDetailsService(userDetailsService);
-		daoAuthenticationProvider.setPasswordEncoder(passwordEncoder());
+		daoAuthenticationProvider.setPasswordEncoder(bCryptPasswordEncoder());
 		
 		return new ProviderManager(daoAuthenticationProvider);
 	}
@@ -117,8 +118,22 @@ public class SecurityConfig {
 			.sessionManagement((session) -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 			.authorizeHttpRequests((authorize) -> 
 				authorize.requestMatchers(HttpMethod.GET, "/api/v1/**").permitAll()
+						 /*
+						  * TODO: permitAll() 메서드 문제 해결.
+						  * permitAll() 메서드의 의미.
+						  * 모든 필터 체인을 거쳤는데 인증 객체를 담는 SecurityContext 클래스에 인증 객체가 존재하지 않으면 해당 요청이 인증되지 않았음을 의미한다.
+						  * 그러나, 만약 해당 API에 permitAll()을 적용하면 SecurityContext 클래스에 인증 객체가 존재 여부와 상관 없이 API 호출이 이루어진다.
+						  * 즉, permitAll() 메서드 적용 시 필터 체인 동작 과정에서 인증/인가 예외가 발생해도 ExceptionTranslationFilter 클래스를 거치지 않는다. 
+						  * 인증 객체 존재 여부와 상관없이 정상적으로 API 호출이 이루어진다.
+						  */
 						 .requestMatchers("/api/v1/auth/**").permitAll()
 						 .requestMatchers("/api/v1/users/**").permitAll()
+						 /* 
+						  * hasRole() 메서드는 hasAuthority()와 동일하지만 차이점은 다음과 같다. 
+						  * hasRole('ADMIN') -> 열거형은 ROLE_ADMIN.
+						  * hasAuthority('ADMIN') -> 열거형은 ADMIN.
+						  */
+						 .requestMatchers("/api/v1/categories/**").hasAuthority(UserRole.ADMIN.getRole())
 						 .anyRequest().authenticated())
 			/*
 			 * 요청-응답

@@ -16,41 +16,53 @@ public class UserDto {
 		@NotBlank(message = "비밀번호를 입력하세요.")
 		private String password;
 		
-		public UserCreateRequest(final String name, final String email, final String password) {
+		private String userRole;
+		
+		public UserCreateRequest(String name, String email, String password, String userRole) {
 			this.name = name;
 			this.email = email;
 			this.password = password;
+			this.userRole = userRole;
 		}
 		
 		public UserCreateRequest() {}
 
-		public final String getName() {
+		public String getName() {
 			return name;
 		}
 
-		public void setName(final String name) {
+		public void setName(String name) {
 			this.name = name;
 		}
 
-		public final String getEmail() {
+		public String getEmail() {
 			return email;
 		}
 
-		public void setEmail(final String email) {
+		public void setEmail(String email) {
 			this.email = email;
 		}
 
-		public final String getPassword() {
+		public String getPassword() {
 			return password;
 		}
 
-		public void setPassword(final String password) {
+		public void setPassword(String password) {
 			this.password = password;
+		}
+
+		public String getUserRole() {
+			return userRole;
+		}
+
+		public void setUserRole(String userRole) {
+			this.userRole = userRole;
 		}
 
 		@Override
 		public String toString() {
-			return "UserCreateRequest [name=" + name + ", email=" + email + ", password=" + password + "]";
+			return "UserCreateRequest [name=" + name + ", email=" + email + ", password=" + password + ", userRole="
+					+ userRole + "]";
 		}
 	}
 	
@@ -61,26 +73,26 @@ public class UserDto {
 		@NotBlank(message = "비밀번호를 입력하세요.")
 		private String password;
 
-		public UserSignInRequest(final String email, final String password) {
+		public UserSignInRequest(String email, String password) {
 			this.email = email;
 			this.password = password;
 		}
 		
 		public UserSignInRequest() {}
 		
-		public final String getEmail() {
+		public String getEmail() {
 			return email;
 		}
 
-		public void setEmail(final String email) {
+		public void setEmail(String email) {
 			this.email = email;
 		}
 
-		public final String getPassword() {
+		public String getPassword() {
 			return password;
 		}
 
-		public void setPassword(final String password) {
+		public void setPassword(String password) {
 			this.password = password;
 		}
 
@@ -95,7 +107,7 @@ public class UserDto {
 		private String email;
 		private UserRole userRole;
 		
-		public UserResponse(final Long id, final String email, final UserRole userRole) {
+		public UserResponse(Long id, String email, UserRole userRole) {
 			this.id = id;
 			this.email = email;
 			this.userRole = userRole;
@@ -103,27 +115,27 @@ public class UserDto {
 
 		public UserResponse() {}
 
-		public final Long getId() {
+		public Long getId() {
 			return id;
 		}
 
-		public void setId(final Long id) {
+		public void setId(Long id) {
 			this.id = id;
 		}
 
-		public final String getEmail() {
+		public String getEmail() {
 			return email;
 		}
 
-		public void setEmail(final String email) {
+		public void setEmail(String email) {
 			this.email = email;
 		}
 		
-		public final UserRole getUserRole() {
+		public UserRole getUserRole() {
 			return userRole;
 		}
 
-		public void setUserRole(final UserRole userRole) {
+		public void setUserRole(UserRole userRole) {
 			this.userRole = userRole;
 		}
 

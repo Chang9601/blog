@@ -20,11 +20,7 @@ public class UserEntity extends AbstractEntity {
 	
 	@Column(length = 500, nullable = false)
 	private String password;
-	/*
-	 * Java의 enum 타입 매핑 시 사용하는 어노테이션
-	 * EnumType.ORDINAL은 enum에 정의된 순서대로 데이터베이스에 저장된다.
-	 * EnumType.STRING은 enum 이름 그래도 데이터베이스에 저장된다.
-	 */
+
 	@Enumerated(EnumType.STRING)
 	@Column(name = "user_role", nullable = false)
 	private UserRole userRole = UserRole.USER;
@@ -72,5 +68,11 @@ public class UserEntity extends AbstractEntity {
 
 	public void setUserRole(UserRole userRole) {
 		this.userRole = userRole;
-	}	
+	}
+	
+	@Override
+	public String toString() {
+		return "UserEntity [id=" + super.getId()  + ", name=" + name + ", email=" + email + ", password=" + password + ", userRole=" + userRole
+				+ "]";
+	}
 }

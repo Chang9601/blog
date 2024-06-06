@@ -1,0 +1,49 @@
+package com.whooa.blog.category.entity;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import com.whooa.blog.common.entity.AbstractEntity;
+import com.whooa.blog.post.entity.PostEntity;
+
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
+
+@Entity
+@Table(name = "category")
+public class CategoryEntity extends AbstractEntity {
+	@Column(length = 300, nullable = false)
+	private String name;
+	
+	@OneToMany(mappedBy = "category", cascade = CascadeType.ALL, orphanRemoval = true)
+	private List<PostEntity> posts = new ArrayList<PostEntity>();
+	
+	public CategoryEntity(Long id, String name) {
+		super(id);
+		
+		this.name = name;
+	}
+
+	public CategoryEntity() {
+		super(-1L);
+	}
+	
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public List<PostEntity> getPosts() {
+		return posts;
+	}
+
+	public void setPosts(List<PostEntity> posts) {
+		this.posts = posts;
+	}
+}
