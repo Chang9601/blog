@@ -7,7 +7,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
 
@@ -19,7 +18,7 @@ import com.whooa.blog.common.type.JwtToken;
 import com.whooa.blog.common.type.JwtType;
 import com.whooa.blog.user.dto.UserDto.UserResponse;
 import com.whooa.blog.user.type.UserRole;
-import com.whooa.blog.utils.CookieBuilder;
+import com.whooa.blog.utils.CookieUtil;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -53,11 +52,11 @@ public class JwtAuthSuccessHandler implements AuthenticationSuccessHandler {
 		
 		UserResponse userResponse = new UserResponse(id, email, userRole);
 				
-		ApiResponse<UserResponse> success = ApiResponse.handleSuccess(Code.OK.getCode(), Code.OK.getMessage(), userResponse, new String[] {"로그인 되었습니다."});
+		ApiResponse<UserResponse> success = ApiResponse.handleSuccess(Code.OK.getCode(), Code.OK.getMessage(), userResponse, new String[] {"로그인 했습니다."});
 		String serializedSuccess = objectMapper.writeValueAsString(success);
 
-		response.addCookie(CookieBuilder.build(JwtType.ACCESS_TOKEN.getType(), jwt.getAccessToken(), true, 60*60, "Strict", "/"));
-		response.addCookie(CookieBuilder.build(JwtType.REFRESH_TOKEN.getType(), jwt.getRefreshToken(), true, 60*60*24*30, "Strict", "/"));
+		response.addCookie(CookieUtil.set(JwtType.ACCESS_TOKEN.getType(), jwt.getAccessToken(), true, 60 * 60, "Strict", "/"));
+		response.addCookie(CookieUtil.set(JwtType.REFRESH_TOKEN.getType(), jwt.getRefreshToken(), true, 60 * 60 * 24 * 30, "Strict", "/"));
 
 		response.setStatus(HttpServletResponse.SC_OK);
 		response.setContentType(MediaType.APPLICATION_JSON_VALUE);

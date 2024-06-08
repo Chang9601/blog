@@ -2,8 +2,8 @@ package com.whooa.blog.utils;
 
 import jakarta.servlet.http.Cookie;
 
-public class CookieBuilder {
-	public static Cookie build(String key, String value, boolean httpOnly, int expiration, String sameSite, String path) {
+public class CookieUtil {
+	public static Cookie set(String key, String value, boolean httpOnly, int expiration, String sameSite, String path) {
 		Cookie cookie = new Cookie(key, value);
 		
 		cookie.setHttpOnly(httpOnly);
@@ -12,5 +12,10 @@ public class CookieBuilder {
 		cookie.setPath(path);
 		
 		return cookie;
+	}
+	
+	public static void clear(Cookie cookie, String path) {
+		cookie.setMaxAge(0);
+		cookie.setPath(path);
 	}
 }

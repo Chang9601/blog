@@ -5,5 +5,7 @@ import com.whooa.blog.user.dto.UserDto.UserResponse;
 
 public interface UserService {
 	public abstract UserResponse create(UserCreateRequest userCreate);
+	//public abstract UserResponse update(UserCreateRequest userCreate);
+	//public abstract UserResponse delete(UserCreateRequest userCreate);
 	public abstract UserResponse findByEmail(String email);
 }

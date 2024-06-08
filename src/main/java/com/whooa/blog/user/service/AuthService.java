@@ -1,8 +1,7 @@
 package com.whooa.blog.user.service;
 
-import com.whooa.blog.common.type.JwtToken;
-import com.whooa.blog.user.dto.UserDto.UserSignInRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 public interface AuthService {
-	public abstract JwtToken signIn(UserSignInRequest userSignIn);
+	public abstract void signOut(HttpServletRequest request);
 }

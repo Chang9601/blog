@@ -30,10 +30,9 @@ import jakarta.servlet.http.HttpServletResponse;
  * JsonUsernamePasswordAuthFilter 클래스는 JSON(application/json) 로그인을 지원한다.
  */
 public class JsonUsernamePasswordAuthFilter extends AbstractAuthenticationProcessingFilter {
-	
-	public static String DEFAULT_JSON_USERNAME_KEY = "email";
-	public static String DEFAULT_JSON_PASSWORD_KEY = "password";
-	private static AntPathRequestMatcher DEFAULT_ANT_PATH_REQUEST_MATCHER = new AntPathRequestMatcher("/api/v1/auth/sign-in", "POST");
+	public static final String DEFAULT_JSON_USERNAME_KEY = "email";
+	public static final String DEFAULT_JSON_PASSWORD_KEY = "password";
+	private static final AntPathRequestMatcher DEFAULT_ANT_PATH_REQUEST_MATCHER = new AntPathRequestMatcher("/api/v1/auth/sign-in", "POST");
 
 	private String usernameKey = DEFAULT_JSON_USERNAME_KEY;
 	private String passwordKey = DEFAULT_JSON_PASSWORD_KEY;

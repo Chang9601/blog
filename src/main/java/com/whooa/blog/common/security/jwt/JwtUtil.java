@@ -106,7 +106,7 @@ public class JwtUtil {
 		
 		private enum JwtExpiration {
 			ACCESS_TOKEN_EXPIRATION(1000L * 60 * 60),
-			REFRESH_TOKEN_EXPIRATION(1000L * 60 * 60 * 24 * 15);
+			REFRESH_TOKEN_EXPIRATION(1000L * 60 * 60 * 24 * 30);
 			
 			private JwtExpiration(long expiration) {
 				this.expiration = expiration;

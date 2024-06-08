@@ -11,6 +11,9 @@ import com.whooa.blog.common.type.JwtToken;
 import com.whooa.blog.user.dto.UserDto.UserSignInRequest;
 import com.whooa.blog.user.service.AuthService;
 
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
+
 @Service
 public class AuthServiceImpl implements AuthService {
 	private AuthenticationManager authenticationManager;
@@ -22,19 +25,23 @@ public class AuthServiceImpl implements AuthService {
 	}
 
 	@Override
-	public JwtToken signIn(UserSignInRequest userSignIn) {
-		String email = userSignIn.getEmail();
-		String password = userSignIn.getPassword();
+	public void signOut(HttpServletRequest request) {
+		Cookie[] cookies = request.getCookies();
 		
-		System.out.println("이메일: " + email);
-		System.out.println("비밀번호:" + password);
-		
-		Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(email, password));
-		
-		SecurityContextHolder.getContext().setAuthentication(authentication);
-		
-		JwtToken token = jwtUtil.issue(email);
-		
-		return token;
+		if (cookies != null) {
+			for (Cookie cookie: request.getCookies()) {
+				String name = cookie.getName();
+				
+				System.out.println(name);
+				
+				if (name.equals("AccessToken")) {
+					cookie.setMaxAge(0);
+				}
+				
+				if (name.equals("RefreshToken")) {
+					cookie.setMaxAge(0);
+				}
+			}
+		}		
 	}
 }

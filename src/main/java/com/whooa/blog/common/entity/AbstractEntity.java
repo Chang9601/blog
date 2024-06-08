@@ -28,10 +28,24 @@ public abstract class AbstractEntity {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 	
+	/*
+	 * @CreationTimestamp 어노테이션과 @UpdateTimestamp 어노테이션은 Hibernate가 제공한다.
+	 * @CreatedDate 어노테이션과 @LastModifiedDate 어노테이션은 Spring이 제공한다.
+	 * 추세는 Hibernate 어노테이션을 점점 사용하지 않는다.
+	 */
 	@CreatedDate
 	@Column(name = "created_at", nullable = false, updatable = false)
 	private LocalDateTime createdAt;
 	
+	/* 
+	 * Java 1.8이상부터 Date 클래스와 Calander 클래스를 사용하지 않고 LocalDate 클래스와 LocalDateTime 클래스를 사용한다. 
+	 * 이전 방식들의 문제점.
+	 * 1. 그레고리력 유리우스력을 적용하여 발생한 오차날짜 생략.
+	 * 2. 시간 관리(시간대 데이터베이스에서 관리, OS와 별도로 관리.)
+	 * 3. 불변하지 못한 객체.
+	 * 4. 상수 필드 남용.
+	 * 5. 날짜 생성은 Date 클래스, 연산은 Calendar 클래스, 결과는 Date 클래스를 사용.
+	 */
 	@LastModifiedDate
 	@Column(name = "updated_at", nullable = false)
 	private LocalDateTime updateddAt;
