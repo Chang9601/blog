@@ -20,7 +20,7 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.whooa.blog.common.api.PageResponse;
-import com.whooa.blog.common.dto.PageDto;
+import com.whooa.blog.common.dto.PageQueryString;
 import com.whooa.blog.post.dto.PostDto.PostCreateRequest;
 import com.whooa.blog.post.dto.PostDto.PostUpdateRequest;
 import com.whooa.blog.post.dto.PostDto.PostResponse;
@@ -63,7 +63,7 @@ public class PostControllerTest {
 	private PostUpdateRequest postUpdate;
 	private PostResponse post;
 	private PostEntity postEntity;
-	private PageDto page;
+	private PageQueryString page;
 	private Long eId;
 	private Long dneId;
 
@@ -77,7 +77,7 @@ public class PostControllerTest {
 		postUpdate = new PostUpdateRequest("실전", "실전을 위한 포스트");
 		post = new PostResponse(id, title, content);
 		postEntity = new PostEntity(id, title, content);
-		page = new PageDto();
+		page = new PageQueryString();
 		eId = id;
 		dneId = 10000L;
 	}
@@ -129,7 +129,7 @@ public class PostControllerTest {
 				
 		PageResponse<PostResponse> pagePostResponse = PageResponse.handleResponse(posts, PaginationConstants.PAGE_SIZE, PaginationConstants.PAGE_NO, posts.size(), 1, false, true);
 
-		given(postService.findAll(any(PageDto.class))).willReturn(pagePostResponse);
+		given(postService.findAll(any(PageQueryString.class))).willReturn(pagePostResponse);
 		
 		MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
 		params.add("pageNo", String.valueOf(page.getPageNo()));
@@ -151,7 +151,7 @@ public class PostControllerTest {
 				
 		PageResponse<PostResponse> pagePostResponse = PageResponse.handleResponse(posts, PaginationConstants.PAGE_SIZE, PaginationConstants.PAGE_NO, posts.size(), 1, false, true);
 
-		given(postService.findAll(any(PageDto.class))).willReturn(pagePostResponse);
+		given(postService.findAll(any(PageQueryString.class))).willReturn(pagePostResponse);
 		
 		MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
 		params.add("pageNo", String.valueOf(page.getPageNo()));

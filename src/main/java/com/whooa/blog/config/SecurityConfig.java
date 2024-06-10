@@ -1,12 +1,8 @@
 package com.whooa.blog.config;
 
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.MediaType;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -15,34 +11,25 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.security.web.authentication.logout.LogoutHandler;
-import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.whooa.blog.common.api.ApiResponse;
-import com.whooa.blog.common.code.Code;
+
 import com.whooa.blog.common.security.jwt.JsonUsernamePasswordAuthFilter;
 import com.whooa.blog.common.security.jwt.JwtAccessDeniedHandler;
 import com.whooa.blog.common.security.jwt.JwtAuthEntryPoint;
 import com.whooa.blog.common.security.jwt.JwtAuthFailureHandler;
 import com.whooa.blog.common.security.jwt.JwtAuthFilter;
 import com.whooa.blog.common.security.jwt.JwtAuthSuccessHandler;
-import com.whooa.blog.common.type.JwtType;
-import com.whooa.blog.user.dto.UserDto.UserResponse;
-import com.whooa.blog.user.type.UserRole;
-import com.whooa.blog.utils.CookieUtil;
+import com.whooa.blog.common.security.jwt.JwtLogoutHandler;
+import com.whooa.blog.common.security.jwt.JwtLogoutSuccessHandler;
 
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.Cookie;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
+import com.whooa.blog.user.type.UserRole;
+
 
 /* @Configuration 어노테이션은 클래스를 Java 기반 설정 클래스로 설정하며 @Bean 어노테이션으로 Spring 빈을 설정할 수 있다. */
 @Configuration
@@ -67,6 +54,8 @@ public class SecurityConfig {
 	private JwtAuthSuccessHandler jwtAuthSuccessHandler;
 	private JwtAuthFailureHandler jwtAuthFailureHandler;
 	private JwtAuthFilter jwtAuthFilter;
+	private JwtLogoutHandler jwtLogoutHandler;
+	private JwtLogoutSuccessHandler jwtLogoutSuccessHandler;
 	
 	public SecurityConfig(UserDetailsService userDetailsService, 
 						  ObjectMapper objectMapper, 
@@ -74,7 +63,9 @@ public class SecurityConfig {
 						  JwtAuthEntryPoint jwtAuthEntryPoint, 
 						  JwtAuthSuccessHandler jwtAuthSuccessHandler, 
 						  JwtAuthFailureHandler jwtAuthFailureHandler, 
-						  JwtAuthFilter jwtAuthFilter) {
+						  JwtAuthFilter jwtAuthFilter,
+						  JwtLogoutHandler jwtLogoutHandler,
+						  JwtLogoutSuccessHandler jwtLogoutSuccessHandler) {
 		this.userDetailsService = userDetailsService;
 		this.objectMapper = objectMapper;
 		this.jwtAuthEntryPoint = jwtAuthEntryPoint;
@@ -82,6 +73,8 @@ public class SecurityConfig {
 		this.jwtAuthSuccessHandler = jwtAuthSuccessHandler;
 		this.jwtAuthFailureHandler = jwtAuthFailureHandler;
 		this.jwtAuthFilter = jwtAuthFilter;
+		this.jwtLogoutHandler = jwtLogoutHandler;
+		this.jwtLogoutSuccessHandler = jwtLogoutSuccessHandler;
 	}
 	
 	@Bean
@@ -133,29 +126,9 @@ public class SecurityConfig {
 			.csrf((csrf) -> csrf.disable())
 			.httpBasic((http) -> http.disable())
 			.formLogin((form) -> form.disable())
-			.logout((logout) -> logout.logoutUrl("/api/v1/auth/sign-out").addLogoutHandler((request, response, authentication) -> {
-				// TODO: 블랙 리스트.
-				Cookie[] cookies = request.getCookies();
-				
-				if (cookies != null) {
-					for (Cookie cookie: request.getCookies()) {
-						String name = cookie.getName();
-						
-						if (name.equals(JwtType.ACCESS_TOKEN.getType())) {
-							CookieUtil.clear(cookie, "/");
-							response.addCookie(cookie);
-						}
-						
-						if (name.equals(JwtType.REFRESH_TOKEN.getType())) {
-							CookieUtil.clear(cookie, "/");
-							response.addCookie(cookie);
-						}
-					}
-				}
-			}))
 			.sessionManagement((session) -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 			.authorizeHttpRequests((authorize) -> 
-				authorize.requestMatchers(HttpMethod.GET, "/api/v1/**").permitAll()
+				authorize
 						 /*
 						  * TODO: permitAll() 메서드 문제 해결.
 						  * permitAll() 메서드의 의미.
@@ -164,24 +137,21 @@ public class SecurityConfig {
 						  * 즉, permitAll() 메서드 적용 시 필터 체인 동작 과정에서 인증/인가 예외가 발생해도 ExceptionTranslationFilter 클래스를 거치지 않는다. 
 						  * 인증 객체 존재 여부와 상관없이 정상적으로 API 호출이 이루어진다.
 						  */
-						 .requestMatchers("/api/v1/auth/**").permitAll()
-						 .requestMatchers("/api/v1/users/**").permitAll()
+						 .requestMatchers("/api/v1/users/sign-in").permitAll()
+			             .requestMatchers("/api/v1/user/**").authenticated()
 						 /* 
 						  * hasRole() 메서드는 hasAuthority()와 동일하지만 차이점은 다음과 같다. 
 						  * hasRole('ADMIN') -> 열거형은 ROLE_ADMIN.
 						  * hasAuthority('ADMIN') -> 열거형은 ADMIN.
 						  */
 						 .requestMatchers("/api/v1/categories/**").hasAuthority(UserRole.ADMIN.getRole())
-						 .anyRequest().authenticated())
-			.logout((logout) -> logout.logoutSuccessHandler((request, response, authentication) -> {
-				ApiResponse<UserResponse> success = ApiResponse.handleSuccess(Code.OK.getCode(), Code.OK.getMessage(), null, new String[] {"로그아웃 했습니다."});
-				String serializedSuccess = objectMapper.writeValueAsString(success);
-
-				response.setStatus(HttpServletResponse.SC_OK);
-				response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-				response.setCharacterEncoding(StandardCharsets.UTF_8.name());
-				response.getWriter().write(serializedSuccess);
-			}))
+						 .requestMatchers(HttpMethod.POST, "/api/v1/**").authenticated()
+						 .requestMatchers(HttpMethod.PUT, "/api/v1/**").authenticated()
+						 .requestMatchers(HttpMethod.PATCH, "/api/v1/**").authenticated()
+						 .requestMatchers(HttpMethod.DELETE, "/api/v1/**").authenticated()						 
+						 .anyRequest().permitAll())
+			// TODO: 로그인과 로그아웃 URL은 예외로 작동한다. 따로 필터를 만들어야 하나?
+			.logout((logout) -> logout.logoutUrl("/api/v1/auth/sign-out").addLogoutHandler(jwtLogoutHandler).logoutSuccessHandler(jwtLogoutSuccessHandler))
 			/*
 			 * 요청-응답
 			 * 요청 -> 필터 -> 디스패처서블렛 -> 컨트롤러 -> 서비스 -> 레포지토리 -> 서비스 -> 컨트롤러 -> 디스패처서블렛 -> 필터 -> 응답

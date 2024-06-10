@@ -18,7 +18,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.whooa.blog.common.api.ApiResponse;
 import com.whooa.blog.common.api.PageResponse;
 import com.whooa.blog.common.code.Code;
-import com.whooa.blog.common.dto.PageDto;
+import com.whooa.blog.common.dto.PageQueryString;
 import com.whooa.blog.post.dto.PostDto.PostResponse;
 import com.whooa.blog.post.dto.PostDto.PostCreateRequest;
 import com.whooa.blog.post.dto.PostDto.PostUpdateRequest;
@@ -63,7 +63,7 @@ public class PostController {
 	
 	@ResponseStatus(value = HttpStatus.OK)
 	@GetMapping
-	public ApiResponse<PageResponse<PostResponse>> getPosts(PageDto pageDto) {		
+	public ApiResponse<PageResponse<PostResponse>> getPosts(PageQueryString pageDto) {		
 		return ApiResponse.handleSuccess(Code.OK.getCode(), Code.OK.getMessage(), postService.findAll(pageDto), new String[] {"포스트를 조회했습니다."});
 	}
 	

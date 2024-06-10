@@ -13,7 +13,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.whooa.blog.common.api.PageResponse;
 import com.whooa.blog.common.code.Code;
-import com.whooa.blog.common.dto.PageDto;
+import com.whooa.blog.common.dto.PageQueryString;
 import com.whooa.blog.file.dto.FileDto;
 import com.whooa.blog.file.service.FileService;
 import com.whooa.blog.post.dto.PostDto.PostCreateRequest;
@@ -63,7 +63,7 @@ public class PostServiceImpl implements PostService {
 	}
 
 	@Override
-	public PageResponse<PostResponse> findAll(PageDto pageDto) {
+	public PageResponse<PostResponse> findAll(PageQueryString pageDto) {
 		// TODO: 페이지 관련 코드 간소화.
 		String sortBy = pageDto.getSortBy();		
 		Sort sort = pageDto.getSortDir().equalsIgnoreCase(Sort.Direction.ASC.name()) ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();

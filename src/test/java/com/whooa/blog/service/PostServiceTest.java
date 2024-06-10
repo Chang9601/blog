@@ -17,7 +17,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
 import com.whooa.blog.common.api.PageResponse;
-import com.whooa.blog.common.dto.PageDto;
+import com.whooa.blog.common.dto.PageQueryString;
 import com.whooa.blog.post.dto.PostDto.PostCreateRequest;
 import com.whooa.blog.post.dto.PostDto.PostUpdateRequest;
 import com.whooa.blog.post.dto.PostDto.PostResponse;
@@ -50,7 +50,7 @@ public class PostServiceTest {
 	private PostCreateRequest postCreate;
 	private PostUpdateRequest postUpdate;
 	private PostEntity postEntity;
-	private PageDto page;
+	private PageQueryString page;
 	private Long eId;
 	private Long dneId;
 	
@@ -70,7 +70,7 @@ public class PostServiceTest {
 		postCreate = new PostCreateRequest(title, content);
 		postUpdate = new PostUpdateRequest("실전", "실전을 위한 포스트");
 		postEntity = new PostEntity(id, title, content);
-		page = new PageDto();
+		page = new PageQueryString();
 		eId = id;
 		dneId = 1000L;
 	}

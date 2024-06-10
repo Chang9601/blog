@@ -10,8 +10,6 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import com.whooa.blog.user.service.UserService;
-
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
@@ -29,7 +27,6 @@ import jakarta.servlet.http.HttpServletResponse;
  */
 @Component
 public class JwtAuthFilter extends OncePerRequestFilter {
-	
 	private JwtUtil jwtUtil;
 	// ERROR: 순환 오류 발생.
 	//private UserService userService;
