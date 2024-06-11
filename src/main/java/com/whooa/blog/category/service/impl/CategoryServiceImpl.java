@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 
 import com.whooa.blog.category.dto.CategoryDto.CategoryCreateRequest;
 import com.whooa.blog.category.dto.CategoryDto.CategoryResponse;
+import com.whooa.blog.category.dto.CategoryDto.CategoryUpdateRequest;
 import com.whooa.blog.category.entity.CategoryEntity;
 import com.whooa.blog.category.exception.CategoryNotFoundException;
 import com.whooa.blog.category.mapper.CategoryMapper;
@@ -19,6 +20,7 @@ import com.whooa.blog.category.service.CategoryService;
 import com.whooa.blog.common.api.PageResponse;
 import com.whooa.blog.common.code.Code;
 import com.whooa.blog.common.dto.PageQueryString;
+import com.whooa.blog.utils.NotNullNotEmptyChecker;
 
 @Service
 public class CategoryServiceImpl implements CategoryService {
@@ -65,12 +67,22 @@ public class CategoryServiceImpl implements CategoryService {
 	}
 
 	@Override
-	public CategoryResponse update(Long id) {
-		return null;
+	public CategoryResponse update(CategoryUpdateRequest categoryUpdate, Long id) {
+		CategoryEntity categoryEntity = categoryRepository.findById(id).orElseThrow(() -> new CategoryNotFoundException(Code.NOT_FOUND, new String[] {"카테고리가 존재하지 않습니다."}));
+		
+		String name = categoryUpdate.getName();
+		
+		if (NotNullNotEmptyChecker.check(name)) {
+			categoryEntity.setName(name);
+		}
+		
+		return CategoryMapper.INSTANCE.toDto(categoryRepository.save(categoryEntity));
 	}
 
 	@Override
-	public CategoryResponse delete(Long id) {
-		return null;
+	public void delete(Long id) {
+		CategoryEntity categoryEntity = categoryRepository.findById(id).orElseThrow(() -> new CategoryNotFoundException(Code.NOT_FOUND, new String[] {"카테고리가 존재하지 않습니다."}));
+
+		categoryRepository.delete(categoryEntity);		
 	}
 }

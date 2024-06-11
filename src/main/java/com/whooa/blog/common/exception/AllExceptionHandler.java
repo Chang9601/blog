@@ -7,13 +7,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-
+import com.whooa.blog.category.exception.CategoryNotFoundException;
 import com.whooa.blog.comment.exception.CommentNotBelongingToPostException;
 import com.whooa.blog.comment.exception.CommentNotFoundException;
 import com.whooa.blog.common.api.ApiResponse;
@@ -29,7 +30,7 @@ import com.whooa.blog.user.exception.UserNotFoundException;
  */
 @RestControllerAdvice
 public class AllExceptionHandler {
-	private static  Logger logger = LoggerFactory.getLogger(AllExceptionHandler.class);
+	private static Logger logger = LoggerFactory.getLogger(AllExceptionHandler.class);
 
 	@ExceptionHandler(PostNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
@@ -73,7 +74,14 @@ public class AllExceptionHandler {
 		return ApiResponse.handleFailure(exception.getException().getCode(), exception.getException().getMessage(), null, exception.getDetails());
 	}
 	
-	// WHY: 필터에서 발생하는 오류라서 맞춤 필터 처리 클래스를 만들었는데 어느 경우는 ControllerAdvice 클래스에서 작동한다. 왜?!
+	@ExceptionHandler(CategoryNotFoundException.class)
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+	public ApiResponse<UnauthenticatedUserException> handleException(CategoryNotFoundException exception) {
+		logger.error("CategoryNotFoundException: {}", exception.getException().getMessage());
+		return ApiResponse.handleFailure(exception.getException().getCode(), exception.getException().getMessage(), null, exception.getDetails());
+	}
+	
+	// TODO: 필터에서 발생하는 오류라서 맞춤 필터 처리 클래스를 만들었는데 어느 경우는 ControllerAdvice 클래스에서 작동한다. 왜?!
 	@ExceptionHandler(AccessDeniedException.class)
     @ResponseStatus(HttpStatus.FORBIDDEN)
 	public ApiResponse<AccessDeniedException> handleException(AccessDeniedException exception) {

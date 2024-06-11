@@ -24,7 +24,7 @@ public class UserController {
 	}
 	
 	@ResponseStatus(value = HttpStatus.CREATED)
-	@PostMapping("/sign-in")
+	@PostMapping
 	public ApiResponse<UserResponse> createUser(@RequestBody UserCreateRequest userCreate) {
 		return ApiResponse.handleSuccess(Code.CREATED.getCode(), Code.CREATED.getMessage(), userService.create(userCreate), new String[] {"사용자가 생성되었습니다."});
 	}

@@ -1,8 +1,9 @@
 package com.whooa.blog.category.controller;
 
 import org.springframework.http.HttpStatus;
-import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.whooa.blog.category.dto.CategoryDto.CategoryCreateRequest;
 import com.whooa.blog.category.dto.CategoryDto.CategoryResponse;
+import com.whooa.blog.category.dto.CategoryDto.CategoryUpdateRequest;
 import com.whooa.blog.category.service.CategoryService;
 
 import com.whooa.blog.common.api.ApiResponse;
@@ -48,4 +50,18 @@ public class CategoryController {
 	public ApiResponse<PageResponse<CategoryResponse>> getCategories(PageQueryString pageDto) {
 		return ApiResponse.handleSuccess(Code.OK.getCode(), Code.OK.getMessage(), categoryService.findAll(pageDto), new String[] {"카테고리 목록을 조회했습니다."});
 	}
+	
+	@ResponseStatus(value = HttpStatus.OK)
+	@PatchMapping("/{id}")
+	public ApiResponse<CategoryResponse> updateCategory(@Valid @RequestBody CategoryUpdateRequest categoryUpdate, @PathVariable Long id) {		
+		return ApiResponse.handleSuccess(Code.OK.getCode(), Code.OK.getMessage(), categoryService.update(categoryUpdate, id), new String[] {"카테고리을 수정했습니다."});
+	}
+	
+	@ResponseStatus(value = HttpStatus.OK)
+	@DeleteMapping("/{id}")
+	public ApiResponse<CategoryResponse> deleteCategory(@PathVariable Long id) {
+		categoryService.delete(id);
+				
+		return ApiResponse.handleSuccess(Code.NO_CONTENT.getCode(), Code.NO_CONTENT.getMessage(), null, new String[] {"카테고리가 삭제되었습니다."});
+	}	
 }

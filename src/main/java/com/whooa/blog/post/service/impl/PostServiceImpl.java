@@ -11,6 +11,9 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.whooa.blog.category.entity.CategoryEntity;
+import com.whooa.blog.category.exception.CategoryNotFoundException;
+import com.whooa.blog.category.repository.CategoryRepository;
 import com.whooa.blog.common.api.PageResponse;
 import com.whooa.blog.common.code.Code;
 import com.whooa.blog.common.dto.PageQueryString;
@@ -30,6 +33,7 @@ import com.whooa.blog.utils.NotNullNotEmptyChecker;
 public class PostServiceImpl implements PostService {
 	private FileService fileService;
 	private PostRepository postRepository;
+	private CategoryRepository categoryRepository;
 	// private PostMapper postMapper = Mappers.getMapper(PostMapper.class);
 	
 	/*
@@ -41,25 +45,40 @@ public class PostServiceImpl implements PostService {
 	 * 2. 불변성을 보장하고 NullPointerException 예외를 방지한다.
 	 * 3. 테스트에서 오류를 방지한다.
 	 */
-	public PostServiceImpl(FileService fileService, PostRepository postRepository) {
+	public PostServiceImpl(FileService fileService, PostRepository postRepository, CategoryRepository categoryRepository) {
 		this.fileService = fileService;
 		this.postRepository = postRepository;
+		this.categoryRepository = categoryRepository;
 	}
 
 	@Override
 	public PostResponse create(PostCreateRequest postCreate, MultipartFile[] uploadFiles) {
-		  PostEntity postEntity = postRepository.save(PostMapper.INSTANCE.toEntity(postCreate));
-		  PostResponse post = PostMapper.INSTANCE.toDto(postEntity);
-		  
-		  if (uploadFiles != null && uploadFiles.length > 0) {
-		    List<FileDto> files = Arrays.stream(uploadFiles)
-		                  .map(uploadFile -> fileService.upload(uploadFile, postEntity))
-		                  .collect(Collectors.toList());
-		    post.setFiles(files);
-		    post = PostMapper.INSTANCE.toDto(postRepository.save(postEntity));
+		String title = postCreate.getTitle();
+		String content = postCreate.getContent();
+		String categoryName = postCreate.getCategoryName();
+		
+		CategoryEntity categoryEntity = categoryRepository.findByName(categoryName).orElseThrow(() -> new CategoryNotFoundException(Code.NOT_FOUND, new String[] {"카테고리가 존재하지 않습니다."}));
+		PostEntity postEntity = new PostEntity(title, content);
+		postEntity.setCategory(categoryEntity);
+	
+		// TODO: Mapper에서 연관관계 정리.
+		// PostEntity postEntity = postRepository.save(PostMapper.INSTANCE.toEntity(postCreate));
+						
+		PostResponse post = PostMapper.INSTANCE.toDto(postEntity);
+		
+		if (uploadFiles != null && uploadFiles.length > 0) {
+			List<FileDto> files = Arrays.stream(uploadFiles)
+					.map(uploadFile -> fileService.upload(uploadFile, postEntity))
+					.collect(Collectors.toList());
+		    
+			post.setFiles(files);
+		    post = PostMapper.INSTANCE.toDto(postEntity);
 		  }
-		  
-		  return post;
+		
+		categoryRepository.save(categoryEntity);
+		
+		// TODO: 아이디가 -1
+		return post;
 	}
 
 	@Override
@@ -100,11 +119,11 @@ public class PostServiceImpl implements PostService {
 		String content = postDto.getContent();
 		
 		if (NotNullNotEmptyChecker.check(title)) {
-			postEntity.setTitle(postDto.getTitle());
+			postEntity.setTitle(title);
 		}
 				
 		if (NotNullNotEmptyChecker.check(content)) {
-			postEntity.setContent(postDto.getContent());
+			postEntity.setContent(content);
 		}
 				
 		return PostMapper.INSTANCE.toDto(postRepository.save(postEntity));

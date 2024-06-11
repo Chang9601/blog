@@ -46,7 +46,6 @@ public class SecurityConfig {
 	 * 엔드포인트 권한 부여 또는 인증 매니저 구성과 같은 기능에 대한 HTTP 보안을 사용자 정의할 수 있도록 WebSecurityConfigurerAdapter 클래스를 확장하는 방법을 제공했다.
 	 * 그러나 최근 버전에서는 이 접근 방식을 폐기하고 컴포넌트 기반 보안 구성을 권장한다.
 	 */
-	
 	private UserDetailsService userDetailsService;
 	private ObjectMapper objectMapper;
 	private JwtAuthEntryPoint jwtAuthEntryPoint;
@@ -127,31 +126,31 @@ public class SecurityConfig {
 			.httpBasic((http) -> http.disable())
 			.formLogin((form) -> form.disable())
 			.sessionManagement((session) -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+			// TODO: 로그인과 로그아웃 URL은 예외로 작동한다. 따로 필터를 만들어야 하나?
+			.logout((logout) -> logout.logoutUrl("/api/v1/auth/sign-out").addLogoutHandler(jwtLogoutHandler).logoutSuccessHandler(jwtLogoutSuccessHandler))
 			.authorizeHttpRequests((authorize) -> 
 				authorize
 						 /*
-						  * TODO: permitAll() 메서드 문제 해결.
 						  * permitAll() 메서드의 의미.
 						  * 모든 필터 체인을 거쳤는데 인증 객체를 담는 SecurityContext 클래스에 인증 객체가 존재하지 않으면 해당 요청이 인증되지 않았음을 의미한다.
-						  * 그러나, 만약 해당 API에 permitAll()을 적용하면 SecurityContext 클래스에 인증 객체가 존재 여부와 상관 없이 API 호출이 이루어진다.
+						  * 그러나, 만약 해당 API에 permitAll()을 적용하면 SecurityContext 클래스에 인증 객체가 존재 여부와 상관없이 API 호출이 이루어진다.
 						  * 즉, permitAll() 메서드 적용 시 필터 체인 동작 과정에서 인증/인가 예외가 발생해도 ExceptionTranslationFilter 클래스를 거치지 않는다. 
 						  * 인증 객체 존재 여부와 상관없이 정상적으로 API 호출이 이루어진다.
 						  */
-						 .requestMatchers("/api/v1/users/sign-in").permitAll()
+						 .requestMatchers(HttpMethod.POST, "/api/v1/users/**").permitAll()
 			             .requestMatchers("/api/v1/user/**").authenticated()
+						 .requestMatchers(HttpMethod.GET, "/api/v1/categories/**").permitAll()
+						 .requestMatchers("/api/v1/categories/**").hasAuthority(UserRole.ADMIN.getRole())
 						 /* 
 						  * hasRole() 메서드는 hasAuthority()와 동일하지만 차이점은 다음과 같다. 
 						  * hasRole('ADMIN') -> 열거형은 ROLE_ADMIN.
 						  * hasAuthority('ADMIN') -> 열거형은 ADMIN.
 						  */
-						 .requestMatchers("/api/v1/categories/**").hasAuthority(UserRole.ADMIN.getRole())
 						 .requestMatchers(HttpMethod.POST, "/api/v1/**").authenticated()
 						 .requestMatchers(HttpMethod.PUT, "/api/v1/**").authenticated()
 						 .requestMatchers(HttpMethod.PATCH, "/api/v1/**").authenticated()
 						 .requestMatchers(HttpMethod.DELETE, "/api/v1/**").authenticated()						 
 						 .anyRequest().permitAll())
-			// TODO: 로그인과 로그아웃 URL은 예외로 작동한다. 따로 필터를 만들어야 하나?
-			.logout((logout) -> logout.logoutUrl("/api/v1/auth/sign-out").addLogoutHandler(jwtLogoutHandler).logoutSuccessHandler(jwtLogoutSuccessHandler))
 			/*
 			 * 요청-응답
 			 * 요청 -> 필터 -> 디스패처서블렛 -> 컨트롤러 -> 서비스 -> 레포지토리 -> 서비스 -> 컨트롤러 -> 디스패처서블렛 -> 필터 -> 응답

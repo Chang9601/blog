@@ -55,7 +55,6 @@ public class PostController {
 	 * consumes 속성은 해당 엔드포인트에서 수신되는 요청의 미디어 타입을 지정하는데 사용된다. 즉, 클라이언트가 요청 본문에 담아 보내는 데이터의 형식을 나타낸다.
 	 */
 	@ResponseStatus(value = HttpStatus.CREATED)
-	//@PreAuthorize("hasRole('ADMIN')")
 	@PostMapping(consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
 	public ApiResponse<PostResponse> createPost(@Valid @RequestPart(name = "post") PostCreateRequest postCreate, @RequestPart(name = "files", required = false) MultipartFile[] uploadFiles) {		
 		return ApiResponse.handleSuccess(Code.CREATED.getCode(), Code.CREATED.getMessage(), postService.create(postCreate, uploadFiles), new String[] {"포스트를 생성했습니다."});
@@ -75,14 +74,12 @@ public class PostController {
 	}
 	
 	/* @RequestBody 어노테이션은 내부적으로 Spring이 제공하는 HttpMessageConverter를 사용하여 JSON을 Java 객체로 변환한다. */
-	@PreAuthorize("hasRole('ADMIN')")
 	@ResponseStatus(value = HttpStatus.OK)
 	@PutMapping("/{id}")
 	public ApiResponse<PostResponse> updatePost(@Valid @RequestBody PostUpdateRequest postUpdate, @PathVariable Long id) {		
 		return ApiResponse.handleSuccess(Code.OK.getCode(), Code.OK.getMessage(), postService.update(postUpdate, id), new String[] {"포스트를 수정했습니다."});
 	}
 	
-	@PreAuthorize("hasRole('ADMIN')")
 	@ResponseStatus(value = HttpStatus.OK)
 	@DeleteMapping("/{id}")
 	public ApiResponse<PostResponse> deletePost(@PathVariable Long id) {

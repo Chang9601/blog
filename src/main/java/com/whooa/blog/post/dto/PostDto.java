@@ -2,6 +2,7 @@ package com.whooa.blog.post.dto;
 
 import java.util.List;
 
+import com.whooa.blog.category.dto.CategoryDto.CategoryResponse;
 import com.whooa.blog.comment.dto.CommentDto.CommentResponse;
 import com.whooa.blog.file.dto.FileDto;
 
@@ -24,10 +25,14 @@ public class PostDto {
 
 		@NotBlank(message = "내용을 입력하세요.")
 		private String content;
-	
-		public PostCreateRequest(String title, String content) {
+		
+		@NotBlank(message = "카테고리를 입력하세요.")
+		private String categoryName;
+		
+		public PostCreateRequest(String title, String content, String categoryName) {
 			this.title = title;
 			this.content = content;
+			this.categoryName = categoryName;
 		}
 		
 		public PostCreateRequest() {}
@@ -47,10 +52,19 @@ public class PostDto {
 		public void setContent(String content) {
 			this.content = content;
 		}
+		
+		public String getCategoryName() {
+			return categoryName;
+		}
+
+		public void setCategoryName(String categoryName) {
+			this.categoryName = categoryName;
+		}
 
 		@Override
 		public String toString() {
-			return "Request [title=" + title + ", content=" + content + "]";
+			return "PostCreateRequest [title=" + title + ", content=" + content + ", categoryName=" + categoryName
+					+ "]";
 		}
 	}
 	
@@ -73,7 +87,6 @@ public class PostDto {
 			this.title = title;
 		}
 		
-		
 		public String getContent() {
 			return content;
 		}
@@ -93,22 +106,24 @@ public class PostDto {
 		private String title;
 		private String content;
 		/*
-		 DTO의 필드로 엔티티를 사용하게 되면 엔티티는 DTO에서 해야 할 일을 같이 해야 하기 때문에 변경에 대한 이유가 늘어난다.
-		 다시말해, 이는 유지보수적인 측면에서 좋지 않기 때문에 DTO를 사용한다.
-		*/
+		 * DTO의 필드로 엔티티를 사용하게 되면 엔티티는 DTO에서 해야 할 일을 같이 해야 하기 때문에 변경에 대한 이유가 늘어난다.
+		 * 다시말해, 이는 유지보수적인 측면에서 좋지 않기 때문에 DTO를 사용한다.
+		 */
 		private List<CommentResponse> comments;
 		private List<FileDto> files;
+		private CategoryResponse category;
 
-		public PostResponse(Long id, String title, String content,  List<CommentResponse> comments, List<FileDto> files) {
+		public PostResponse(Long id, String title, String content,  List<CommentResponse> comments, List<FileDto> files, CategoryResponse category) {
 			this.id = id;
 			this.title = title;
 			this.content = content;
 			this.comments = comments;
 			this.files = files;
+			this.category = category;
 		}
 
 		public PostResponse(Long id, String title, String content) {
-			this(id, title, content, null, null);
+			this(id, title, content, null, null, null);
 		}
 		
 		public PostResponse() {}
@@ -137,14 +152,6 @@ public class PostDto {
 			this.content = content;
 		}
 		
-		public List<FileDto> getFiles() {
-			return files;
-		}
-
-		public void setFiles(List<FileDto> files) {
-			this.files = files;
-		}
-		
 		public List<CommentResponse> getComments() {
 			return comments;
 		}
@@ -153,9 +160,26 @@ public class PostDto {
 			this.comments = comments;
 		}
 
+		public List<FileDto> getFiles() {
+			return files;
+		}
+
+		public void setFiles(List<FileDto> files) {
+			this.files = files;
+		}
+		
+		public CategoryResponse getCategory() {
+			return category;
+		}
+
+		public void setCategory(CategoryResponse category) {
+			this.category = category;
+		}
+
 		@Override
 		public String toString() {
-			return "PostResponse [id=" + id + ", title=" + title + ", content=" + content + ", files=" + files + ", comments= +]";
+			return "PostResponse [id=" + id + ", title=" + title + ", content=" + content + ", comments=" + comments
+					+ ", files=" + files + ", category=" + category + "]";
 		}
 	}
 }

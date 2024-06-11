@@ -43,6 +43,7 @@ public class JwtUtil {
 			return null;
 		}
 		
+		// TODO: 오류 던져야 하나?
 		public boolean verify(String token) {
 			try {
 				Jwts.parserBuilder().setSigningKey(key()).build().parse(token);
@@ -50,15 +51,15 @@ public class JwtUtil {
 				return true;
 			} catch (MalformedJwtException exception) {
 				logger.error("JwtUtil.validate(): 잘못된 형식의 JWT입니다.");
-		  } catch (ExpiredJwtException exception) {
-		  	logger.error("JwtUtil.validate(): 만료된 JWT입니다.");
-		  } catch (UnsupportedJwtException exception) {
-		  	logger.error("JwtUtil.validate(): 지원되지 않는 JWT입니다.");
-		  } catch (SignatureException exception) {
-	      logger.error("JwtUtil.validate(): 잘못된 서명입니다.");
-	    } catch (IllegalArgumentException exception) {
-	    	logger.error("JwtUtil.validate(): 잘못된 인자입니다.");
-		  }
+			} catch (ExpiredJwtException exception) {
+				logger.error("JwtUtil.validate(): 만료된 JWT입니다.");
+			} catch (UnsupportedJwtException exception) {
+				logger.error("JwtUtil.validate(): 지원되지 않는 JWT입니다.");
+			} catch (SignatureException exception) {
+				logger.error("JwtUtil.validate(): 잘못된 서명입니다.");
+			} catch (IllegalArgumentException exception) {
+				logger.error("JwtUtil.validate(): 잘못된 인자입니다.");
+			}
 			
 			return false;
 		}

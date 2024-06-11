@@ -25,6 +25,29 @@ public class CategoryDto {
 		}
 	}
 
+	public static class CategoryUpdateRequest {
+		private String name;
+
+		public CategoryUpdateRequest(String name) {
+			this.name = name;
+		}
+		
+		public CategoryUpdateRequest() {}
+		
+		public String getName() {
+			return name;
+		}
+
+		public void setName(String name) {
+			this.name = name;
+		}
+
+		@Override
+		public String toString() {
+			return "CategoryUpdateRequest [name=" + name + "]";
+		}
+	}	
+
 	public static class CategoryResponse {
 		private Long id;
 		private String name;
