@@ -1,4 +1,4 @@
-package com.whooa.blog.utils;
+package com.whooa.blog.util;
 
 import jakarta.servlet.http.Cookie;
 

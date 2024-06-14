@@ -1,4 +1,4 @@
-package com.whooa.blog.utils;
+package com.whooa.blog.util;
 
 public class NotNullNotEmptyChecker {
 	public static boolean check(String input) {

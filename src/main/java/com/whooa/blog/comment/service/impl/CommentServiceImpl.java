@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 
 import com.whooa.blog.comment.dto.CommentDto.CommentUpdateRequest;
 import com.whooa.blog.comment.dto.CommentDto.CommentCreateRequest;
+import com.whooa.blog.comment.dto.CommentDto.CommentDeleteRequest;
 import com.whooa.blog.comment.dto.CommentDto.CommentResponse;
 import com.whooa.blog.comment.entity.CommentEntity;
 import com.whooa.blog.comment.exception.CommentNotBelongingToPostException;
@@ -18,28 +19,34 @@ import com.whooa.blog.common.code.Code;
 import com.whooa.blog.post.entity.PostEntity;
 import com.whooa.blog.post.exception.PostNotFoundException;
 import com.whooa.blog.post.repository.PostRepository;
-import com.whooa.blog.utils.NotNullNotEmptyChecker;
+import com.whooa.blog.user.exception.InvalidCredentialsException;
+import com.whooa.blog.util.NotNullNotEmptyChecker;
+import com.whooa.blog.util.PasswordUtil;
 
 @Service
 public class CommentServiceImpl implements CommentService {
 	private CommentRepository commentRepository;
 	private PostRepository postRepository;
+	private PasswordUtil passwordUtil;
 
-	public CommentServiceImpl(CommentRepository commentRepository, PostRepository postRepository) {
+	public CommentServiceImpl(CommentRepository commentRepository, PostRepository postRepository, PasswordUtil passwordUtil) {
 		this.commentRepository = commentRepository;
 		this.postRepository = postRepository;
+		this.passwordUtil = passwordUtil;
 	}
 	
 	@Override
 	public CommentResponse create(Long postId, CommentCreateRequest commentCreate) {
-		PostEntity postEntity = postRepository.findById(postId).orElseThrow(() -> new PostNotFoundException(Code.NOT_FOUND, new String[] {"포스트가 존재하지 않습니다."}));
-		
+		PostEntity postEntity = postRepository.findById(postId).orElseThrow(() -> new PostNotFoundException(Code.NOT_FOUND, new String[] {"포스트가 존재하지 않습니다."}));		
 		CommentEntity commentEntity = CommentMapper.INSTANCE.toEntity(commentCreate);
-		commentEntity.setPost(postEntity);
 		
-		postRepository.save(postEntity);
-		// TODO: 아이디가 -1로 반한된다.
-		return CommentMapper.INSTANCE.toDto(commentEntity);
+		String plainPassword = commentEntity.getPassword();
+		String hashedPassword = passwordUtil.hash(plainPassword);
+		
+		commentEntity.setPost(postEntity);
+		commentEntity.setPassword(hashedPassword);
+
+		return CommentMapper.INSTANCE.toDto(commentRepository.save(commentEntity));
 	}
 
 	@Override
@@ -60,7 +67,13 @@ public class CommentServiceImpl implements CommentService {
 			throw new CommentNotBelongingToPostException(Code.COMMENT_NOT_IN_POST, new String[] {"댓글이 포스트에 속하지 않습니다."});
 		}
 		
+		String plainPassword = commentUpdate.getPassword();
+		String hashedPassword = commentEntity.getPassword();
 		String content = commentUpdate.getContent();
+		
+		if (!passwordUtil.match(plainPassword, hashedPassword)) {
+			throw new InvalidCredentialsException(Code.BAD_REQUEST, new String[] {"비밀번호가 일치하지 않습니다."});
+		}
 		
 		if (NotNullNotEmptyChecker.check(content)) {
 			commentEntity.setContent(content);
@@ -70,12 +83,19 @@ public class CommentServiceImpl implements CommentService {
 	}
 
 	@Override
-	public void delete(Long postId, Long commentId) {
+	public void delete(Long postId, Long commentId, CommentDeleteRequest commentDelete) {
 		PostEntity postEntity = postRepository.findById(postId).orElseThrow(() -> new PostNotFoundException(Code.NOT_FOUND, new String[] {"포스트가 존재하지 않습니다."}));
 		CommentEntity commentEntity = commentRepository.findById(commentId).orElseThrow(() -> new CommentNotFoundException(Code.NOT_FOUND, new String[] {"댓글이 존재하지 않습니다."}));
 		
 		if (!commentEntity.getPost().getId().equals(postEntity.getId())) {
 			throw new CommentNotBelongingToPostException(Code.COMMENT_NOT_IN_POST, new String[] {"댓글이 포스트에 속하지 않습니다."});
+		}
+		
+		String plainPassword = commentDelete.getPassword();
+		String hashedPassword = commentEntity.getPassword();
+		
+		if (!passwordUtil.match(plainPassword, hashedPassword)) {
+			throw new InvalidCredentialsException(Code.BAD_REQUEST, new String[] {"비밀번호가 일치하지 않습니다."});
 		}
 		
 		commentRepository.delete(commentEntity);
@@ -93,9 +113,7 @@ public class CommentServiceImpl implements CommentService {
 		CommentEntity commentEntity = CommentMapper.INSTANCE.toEntity(commentCreate);
 		commentEntity.setParentId(parentCommentEntity.getId());
 		commentEntity.setPost(postEntity);
-		
-		postRepository.save(postEntity);
-		
-		return CommentMapper.INSTANCE.toDto(commentEntity);
+				
+		return CommentMapper.INSTANCE.toDto(commentRepository.save(commentEntity));
 	}
 }

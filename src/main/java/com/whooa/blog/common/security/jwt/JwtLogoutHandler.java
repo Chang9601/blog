@@ -5,7 +5,7 @@ import org.springframework.security.web.authentication.logout.LogoutHandler;
 import org.springframework.stereotype.Component;
 
 import com.whooa.blog.common.type.JwtType;
-import com.whooa.blog.utils.CookieUtil;
+import com.whooa.blog.util.CookieUtil;
 
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;

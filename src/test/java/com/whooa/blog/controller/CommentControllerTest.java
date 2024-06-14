@@ -26,7 +26,7 @@ import com.whooa.blog.comment.service.CommentService;
 import com.whooa.blog.post.entity.PostEntity;
 import com.whooa.blog.post.exception.PostNotFoundException;
 import com.whooa.blog.post.service.PostService;
-import com.whooa.blog.utils.SerializeDeserializeUtil;
+import com.whooa.blog.util.SerializeDeserializeUtil;
 
 import static org.mockito.BDDMockito.*;
 import static org.junit.jupiter.api.Assertions.*;

@@ -1,11 +1,11 @@
-package com.whooa.blog.utils;
+package com.whooa.blog.util;
 
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-@Service
+@Component
 public class SerializeDeserializeUtil {
 	private ObjectMapper objectMapper;
 	

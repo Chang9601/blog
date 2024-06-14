@@ -14,13 +14,15 @@ import com.whooa.blog.category.dto.CategoryDto.CategoryResponse;
 import com.whooa.blog.category.dto.CategoryDto.CategoryUpdateRequest;
 import com.whooa.blog.category.entity.CategoryEntity;
 import com.whooa.blog.category.exception.CategoryNotFoundException;
+import com.whooa.blog.category.exception.DuplicateCategoryException;
 import com.whooa.blog.category.mapper.CategoryMapper;
 import com.whooa.blog.category.repository.CategoryRepository;
 import com.whooa.blog.category.service.CategoryService;
 import com.whooa.blog.common.api.PageResponse;
 import com.whooa.blog.common.code.Code;
 import com.whooa.blog.common.dto.PageQueryString;
-import com.whooa.blog.utils.NotNullNotEmptyChecker;
+import com.whooa.blog.user.exception.DuplicateUserException;
+import com.whooa.blog.util.NotNullNotEmptyChecker;
 
 @Service
 public class CategoryServiceImpl implements CategoryService {
@@ -32,6 +34,10 @@ public class CategoryServiceImpl implements CategoryService {
 
 	@Override
 	public CategoryResponse create(CategoryCreateRequest categoryCreate) {
+		if (categoryRepository.existsByName(categoryCreate.getName())) {
+			throw new DuplicateCategoryException(Code.CONFLICT, new String[] {"카테고리가 존재합니다."});
+		}
+		
 		CategoryEntity categoryEntity = categoryRepository.save(CategoryMapper.INSTANCE.toEntity(categoryCreate));
 		
 		return CategoryMapper.INSTANCE.toDto(categoryEntity);

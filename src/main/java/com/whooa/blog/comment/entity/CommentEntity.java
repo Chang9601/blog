@@ -27,11 +27,6 @@ public class CommentEntity extends AbstractEntity {
 	 * 즉시 로딩(FetchType.EAGER)는 엔티티 조회 시 연관된 엔티티도 함께 조회한다.
 	 */
 	@ManyToOne(fetch = FetchType.LAZY)
-	/*
-	 * No property postId found for CommentEntity 오류 발생.
-	 * 필드 이름을 postEntity로 설정했기 때문에 post_entity_id로 수정해야 하는데 데이터베이스의 외래키 이름이 복잡하다.
-	 * 따라서, 필드 이름을 post로 수정한다.
-	 */
 	@JoinColumn(name = "post_id", nullable = false)
 	private PostEntity post;
 

@@ -6,7 +6,6 @@ import java.util.List;
 import com.whooa.blog.common.entity.AbstractEntity;
 import com.whooa.blog.post.entity.PostEntity;
 
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.OneToMany;
@@ -18,7 +17,7 @@ public class CategoryEntity extends AbstractEntity {
 	@Column(length = 300, nullable = false)
 	private String name;
 	
-	@OneToMany(mappedBy = "category", cascade = CascadeType.ALL, orphanRemoval = true)
+	@OneToMany(mappedBy = "category")
 	private List<PostEntity> posts = new ArrayList<PostEntity>();
 	
 	public CategoryEntity(Long id, String name) {
@@ -45,5 +44,10 @@ public class CategoryEntity extends AbstractEntity {
 
 	public void setPosts(List<PostEntity> posts) {
 		this.posts = posts;
+	}
+
+	@Override
+	public String toString() {
+		return "CategoryEntity [name=" + name + ", posts=" + posts + "]";
 	}
 }

@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.whooa.blog.comment.dto.CommentDto.CommentCreateRequest;
+import com.whooa.blog.comment.dto.CommentDto.CommentDeleteRequest;
 import com.whooa.blog.comment.dto.CommentDto.CommentUpdateRequest;
 import com.whooa.blog.comment.dto.CommentDto.CommentResponse;
 import com.whooa.blog.comment.service.CommentService;
@@ -51,10 +52,10 @@ public class CommentController {
 	
 	@ResponseStatus(value = HttpStatus.OK)
 	@DeleteMapping("/posts/{post-id}/comments/{comment-id}")
-	public ApiResponse<CommentResponse> deleteComment(@PathVariable("post-id") Long postId, @PathVariable("comment-id") Long commentId) {
-		commentService.delete(postId, commentId);
+	public ApiResponse<CommentResponse> deleteComment(@PathVariable("post-id") Long postId, @PathVariable("comment-id") Long commentId, @Valid @RequestBody CommentDeleteRequest commentDelete) {
+		commentService.delete(postId, commentId, commentDelete);
 				
-		return ApiResponse.handleSuccess(Code.NO_CONTENT.getCode(), Code.NO_CONTENT.getMessage(), null, new String[] {"댓글이 삭제되었습니다."});
+		return ApiResponse.handleSuccess(Code.NO_CONTENT.getCode(), Code.NO_CONTENT.getMessage(), null, new String[] {"댓글을 삭제했습니다."});
 	}
 	
 	@ResponseStatus(value = HttpStatus.CREATED)

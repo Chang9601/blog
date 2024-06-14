@@ -1,4 +1,4 @@
-package com.whooa.blog.utils;
+package com.whooa.blog.util;
 
 public class PaginationConstants {
 	public static final int PAGE_NO = 0;

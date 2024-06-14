@@ -18,7 +18,7 @@ import com.whooa.blog.common.type.JwtToken;
 import com.whooa.blog.common.type.JwtType;
 import com.whooa.blog.user.dto.UserDto.UserResponse;
 import com.whooa.blog.user.type.UserRole;
-import com.whooa.blog.utils.CookieUtil;
+import com.whooa.blog.util.CookieUtil;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

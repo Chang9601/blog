@@ -4,7 +4,7 @@ import java.util.List;
 
 import com.whooa.blog.category.dto.CategoryDto.CategoryResponse;
 import com.whooa.blog.comment.dto.CommentDto.CommentResponse;
-import com.whooa.blog.file.dto.FileDto;
+import com.whooa.blog.file.value.File;
 
 import jakarta.validation.constraints.NotBlank;
 
@@ -12,10 +12,10 @@ import jakarta.validation.constraints.NotBlank;
  * DTO 사용 이유.
  * 1. 필요없거나 민감한 데이터를 제외하고 필요한 데이터만을 응답으로 전달할 수 있다.
  * 2. 엔티티 구현을 캡슐화하여 보호할 수 있다. 
- * 	 만약 DTO가 없다면 클라이언트의 요청과 엔티티 모델이 강하게 결합되어 클라이언트 변화가 엔티티에 영향을 끼친다.
- * 	 엔티티는 도메인의 핵심 논리와 속성을 갖고 있으며 데이터베이스 테이블에 대응되는 클래스이므로 함부로 변경되지 않아야 한다.
+ * 	  만약 DTO가 없다면 클라이언트의 요청과 엔티티 모델이 강하게 결합되어 클라이언트 변화가 엔티티에 영향을 끼친다.
+ * 	  엔티티는 도메인의 핵심 논리와 속성을 갖고 있으며 데이터베이스 테이블에 대응되는 클래스이므로 함부로 변경되지 않아야 한다.
  * 3. 검증 코드와 엔티티의 속성 코드를 분리할 수 있다.
- * 	 엔티티 클래스에 @Column, @OneToOne와 같은 어노테이션들이 사용되는데 @Min, @Lenth와 같은 검증 코드가 사용되면 엔티티 클래스가 복잡하다.
+ * 	  엔티티 클래스에 @Column, @OneToOne와 같은 어노테이션들이 사용되는데 @Min, @Lenth와 같은 검증 코드가 사용되면 엔티티 클래스가 복잡하다.
  */
 public class PostDto {
 
@@ -71,10 +71,12 @@ public class PostDto {
 	public static class PostUpdateRequest {
 		private String title;
 		private String content;
-		
-		public PostUpdateRequest(String title, String content) {
+		private String categoryName;
+
+		public PostUpdateRequest(String title, String content, String categoryName) {
 			this.title = title;
 			this.content = content;
+			this.categoryName = categoryName;
 		}
 		
 		public PostUpdateRequest() {}
@@ -94,11 +96,20 @@ public class PostDto {
 		public void setContent(String content) {
 			this.content = content;
 		}
+		
+		public String getCategoryName() {
+			return categoryName;
+		}
+
+		public void setCategoryName(String categoryName) {
+			this.categoryName = categoryName;
+		}
 
 		@Override
 		public String toString() {
-			return "Request [title=" + title + ", content=" + content + "]";
-		}
+			return "PostUpdateRequest [title=" + title + ", content=" + content + ", categoryName=" + categoryName
+					+ "]";
+		}	
 	}
 	
 	public static class PostResponse {
@@ -110,10 +121,10 @@ public class PostDto {
 		 * 다시말해, 이는 유지보수적인 측면에서 좋지 않기 때문에 DTO를 사용한다.
 		 */
 		private List<CommentResponse> comments;
-		private List<FileDto> files;
+		private List<File> files;
 		private CategoryResponse category;
 
-		public PostResponse(Long id, String title, String content,  List<CommentResponse> comments, List<FileDto> files, CategoryResponse category) {
+		public PostResponse(Long id, String title, String content,  List<CommentResponse> comments, List<File> files, CategoryResponse category) {
 			this.id = id;
 			this.title = title;
 			this.content = content;
@@ -160,11 +171,11 @@ public class PostDto {
 			this.comments = comments;
 		}
 
-		public List<FileDto> getFiles() {
+		public List<File> getFiles() {
 			return files;
 		}
 
-		public void setFiles(List<FileDto> files) {
+		public void setFiles(List<File> files) {
 			this.files = files;
 		}
 		

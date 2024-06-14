@@ -17,7 +17,7 @@ import com.whooa.blog.user.dto.UserDto.UserCreateRequest;
 import com.whooa.blog.user.dto.UserDto.UserResponse;
 import com.whooa.blog.user.dto.UserDto.UserSignInRequest;
 import com.whooa.blog.user.service.AuthService;
-import com.whooa.blog.utils.CookieUtil;
+import com.whooa.blog.util.CookieUtil;
 
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;

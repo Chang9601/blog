@@ -62,6 +62,6 @@ public class CategoryController {
 	public ApiResponse<CategoryResponse> deleteCategory(@PathVariable Long id) {
 		categoryService.delete(id);
 				
-		return ApiResponse.handleSuccess(Code.NO_CONTENT.getCode(), Code.NO_CONTENT.getMessage(), null, new String[] {"카테고리가 삭제되었습니다."});
+		return ApiResponse.handleSuccess(Code.NO_CONTENT.getCode(), Code.NO_CONTENT.getMessage(), null, new String[] {"카테고리를 삭제했습니다."});
 	}	
 }

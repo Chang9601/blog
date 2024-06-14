@@ -86,6 +86,31 @@ public class CommentDto {
 			return "CommentUpdateRequest [content=" + content + ", password=" + password + "]";
 		}
 	}
+	
+	public static class CommentDeleteRequest {		
+		@NotBlank(message = "비밀번호를 입력하세오.")
+		private String password;
+		
+		public CommentDeleteRequest(String password) {
+			this.password = password;
+		}
+		
+		public CommentDeleteRequest() {}
+		
+	
+		public String getPassword() {
+			return password;
+		}
+
+		public void setPassword(String password) {
+			this.password = password;
+		}
+
+		@Override
+		public String toString() {
+			return "CommentDeleteRequest [password=" + password + "]";
+		}
+	}
 
 	public static class CommentResponse {
 		private Long id;

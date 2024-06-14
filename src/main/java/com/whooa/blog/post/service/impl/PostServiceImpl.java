@@ -17,8 +17,9 @@ import com.whooa.blog.category.repository.CategoryRepository;
 import com.whooa.blog.common.api.PageResponse;
 import com.whooa.blog.common.code.Code;
 import com.whooa.blog.common.dto.PageQueryString;
-import com.whooa.blog.file.dto.FileDto;
+import com.whooa.blog.common.security.UserDetailsImpl;
 import com.whooa.blog.file.service.FileService;
+import com.whooa.blog.file.value.File;
 import com.whooa.blog.post.dto.PostDto.PostCreateRequest;
 import com.whooa.blog.post.dto.PostDto.PostUpdateRequest;
 import com.whooa.blog.post.dto.PostDto.PostResponse;
@@ -27,13 +28,17 @@ import com.whooa.blog.post.exception.PostNotFoundException;
 import com.whooa.blog.post.mapper.PostMapper;
 import com.whooa.blog.post.repository.PostRepository;
 import com.whooa.blog.post.service.PostService;
-import com.whooa.blog.utils.NotNullNotEmptyChecker;
+import com.whooa.blog.user.entity.UserEntity;
+import com.whooa.blog.user.exception.UserNotFoundException;
+import com.whooa.blog.user.repository.UserRepository;
+import com.whooa.blog.util.NotNullNotEmptyChecker;
 
 @Service
 public class PostServiceImpl implements PostService {
 	private FileService fileService;
-	private PostRepository postRepository;
 	private CategoryRepository categoryRepository;
+	private PostRepository postRepository;
+	private UserRepository userRepository;
 	// private PostMapper postMapper = Mappers.getMapper(PostMapper.class);
 	
 	/*
@@ -45,39 +50,42 @@ public class PostServiceImpl implements PostService {
 	 * 2. 불변성을 보장하고 NullPointerException 예외를 방지한다.
 	 * 3. 테스트에서 오류를 방지한다.
 	 */
-	public PostServiceImpl(FileService fileService, PostRepository postRepository, CategoryRepository categoryRepository) {
+	public PostServiceImpl(FileService fileService, CategoryRepository categoryRepository, PostRepository postRepository, UserRepository userRepository) {
 		this.fileService = fileService;
-		this.postRepository = postRepository;
 		this.categoryRepository = categoryRepository;
+		this.postRepository = postRepository;
+		this.userRepository = userRepository;
 	}
 
 	@Override
-	public PostResponse create(PostCreateRequest postCreate, MultipartFile[] uploadFiles) {
+	public PostResponse create(UserDetailsImpl userDetailsImpl, PostCreateRequest postCreate, MultipartFile[] uploadFiles) {
+		List<File> files = null;
+		
+		Long userId = userDetailsImpl.getId();
+		
 		String title = postCreate.getTitle();
 		String content = postCreate.getContent();
 		String categoryName = postCreate.getCategoryName();
 		
 		CategoryEntity categoryEntity = categoryRepository.findByName(categoryName).orElseThrow(() -> new CategoryNotFoundException(Code.NOT_FOUND, new String[] {"카테고리가 존재하지 않습니다."}));
+		UserEntity userEntity = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(Code.NOT_FOUND, new String[] {"아이디에 해당하는 사용자가 존재하지 않습니다."}));
 		PostEntity postEntity = new PostEntity(title, content);
+		
 		postEntity.setCategory(categoryEntity);
+		postEntity.setUser(userEntity);
 	
 		// TODO: Mapper에서 연관관계 정리.
 		// PostEntity postEntity = postRepository.save(PostMapper.INSTANCE.toEntity(postCreate));
 						
-		PostResponse post = PostMapper.INSTANCE.toDto(postEntity);
-		
 		if (uploadFiles != null && uploadFiles.length > 0) {
-			List<FileDto> files = Arrays.stream(uploadFiles)
+			files = Arrays.stream(uploadFiles)
 					.map(uploadFile -> fileService.upload(uploadFile, postEntity))
 					.collect(Collectors.toList());
-		    
-			post.setFiles(files);
-		    post = PostMapper.INSTANCE.toDto(postEntity);
-		  }
-		
-		categoryRepository.save(categoryEntity);
-		
-		// TODO: 아이디가 -1
+		}
+	
+		PostResponse post = PostMapper.INSTANCE.toDto(postRepository.save(postEntity));
+		post.setFiles(files);
+
 		return post;
 	}
 
@@ -103,6 +111,30 @@ public class PostServiceImpl implements PostService {
 		
 		return PageResponse.handleResponse(postResponse, pageSize, pageNo, totalElements, totalPages, isLast, isFirst);
 	}
+	
+	@Override
+	public PageResponse<PostResponse> findAllByCategoryId(PageQueryString pageDto, Long id) {
+		categoryRepository.findById(id).orElseThrow(() -> new CategoryNotFoundException(Code.NOT_FOUND, new String[] {"카테고리가 존재하지 않습니다."}));
+
+		String sortBy = pageDto.getSortBy();		
+		Sort sort = pageDto.getSortDir().equalsIgnoreCase(Sort.Direction.ASC.name()) ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
+		
+		Pageable pageable = PageRequest.of(pageDto.getPageNo(), pageDto.getPageSize(), sort);
+		
+		Page<PostEntity> posts = postRepository.findByCategoryId(pageable, id);
+		
+		List<PostEntity> postEntities = posts.getContent();
+		int pageSize = posts.getSize();
+		int pageNo = posts.getNumber();
+		long totalElements = posts.getTotalElements();
+		int totalPages = posts.getTotalPages();
+		boolean isLast = posts.isLast();
+		boolean isFirst = posts.isFirst();
+		
+		List<PostResponse> postResponse = postEntities.stream().map((postEntity) -> PostMapper.INSTANCE.toDto(postEntity)).collect(Collectors.toList());
+		
+		return PageResponse.handleResponse(postResponse, pageSize, pageNo, totalElements, totalPages, isLast, isFirst);
+	}
 
 	@Override
 	public PostResponse find(Long id) {
@@ -112,12 +144,14 @@ public class PostServiceImpl implements PostService {
 	}
 
 	@Override
-	public PostResponse update(PostUpdateRequest postDto, Long id) {
+	public PostResponse update(PostUpdateRequest postUpdate, Long id) {
+		String title = postUpdate.getTitle();
+		String content = postUpdate.getContent();
+		String categoryName = postUpdate.getCategoryName();
+		
 		PostEntity postEntity = postRepository.findById(id).orElseThrow(() -> new PostNotFoundException(Code.NOT_FOUND, new String[] {"포스트가 존재하지 않습니다."}));
-		
-		String title = postDto.getTitle();
-		String content = postDto.getContent();
-		
+		CategoryEntity categoryEntity = categoryRepository.findByName(categoryName).orElseThrow(() -> new CategoryNotFoundException(Code.NOT_FOUND, new String[] {"카테고리가 존재하지 않습니다."}));
+
 		if (NotNullNotEmptyChecker.check(title)) {
 			postEntity.setTitle(title);
 		}
@@ -125,7 +159,14 @@ public class PostServiceImpl implements PostService {
 		if (NotNullNotEmptyChecker.check(content)) {
 			postEntity.setContent(content);
 		}
-				
+		
+		if (NotNullNotEmptyChecker.check(categoryName)) {
+			postEntity.setCategory(categoryEntity);
+		}
+		
+		categoryRepository.save(categoryEntity);
+
+		// TODO: 포스트가 삭제?
 		return PostMapper.INSTANCE.toDto(postRepository.save(postEntity));
 	}
 

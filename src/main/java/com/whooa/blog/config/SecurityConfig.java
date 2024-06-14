@@ -77,7 +77,7 @@ public class SecurityConfig {
 	}
 	
 	@Bean
-	 public BCryptPasswordEncoder bCryptPasswordEncoder() {
+	public BCryptPasswordEncoder bCryptPasswordEncoder() {
 		return new BCryptPasswordEncoder();
 	}
 	
@@ -92,7 +92,6 @@ public class SecurityConfig {
 	 */
 	@Bean
 	public AuthenticationManager authenticationManager() throws Exception {
-		
 		/* DaoAuthenticationProvider은 DAO에서 계정 정보를 꺼내오고 비밀번호 일치 여부를 검사하고 인증 여부를 넘긴다. */
 		DaoAuthenticationProvider daoAuthenticationProvider = new DaoAuthenticationProvider();
 		
@@ -138,7 +137,7 @@ public class SecurityConfig {
 						  * 인증 객체 존재 여부와 상관없이 정상적으로 API 호출이 이루어진다.
 						  */
 						 .requestMatchers(HttpMethod.POST, "/api/v1/users/**").permitAll()
-			             .requestMatchers("/api/v1/user/**").authenticated()
+			             .requestMatchers("/api/v1/users/**").authenticated()
 						 .requestMatchers(HttpMethod.GET, "/api/v1/categories/**").permitAll()
 						 .requestMatchers("/api/v1/categories/**").hasAuthority(UserRole.ADMIN.getRole())
 						 /* 

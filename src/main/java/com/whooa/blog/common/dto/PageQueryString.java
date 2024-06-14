@@ -1,6 +1,6 @@
 package com.whooa.blog.common.dto;
 
-import com.whooa.blog.utils.PaginationConstants;
+import com.whooa.blog.util.PaginationConstants;
 
 public class PageQueryString {
 	private int pageNo = PaginationConstants.PAGE_NO;

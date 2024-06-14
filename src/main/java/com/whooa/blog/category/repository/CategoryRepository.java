@@ -8,4 +8,5 @@ import com.whooa.blog.category.entity.CategoryEntity;
 
 public interface CategoryRepository extends JpaRepository<CategoryEntity, Long>  {
 	public abstract Optional<CategoryEntity> findByName(String name);
+	public abstract Boolean existsByName(String email);
 }

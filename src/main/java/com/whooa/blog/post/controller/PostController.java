@@ -2,12 +2,12 @@ package com.whooa.blog.post.controller;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestPart;
@@ -19,6 +19,7 @@ import com.whooa.blog.common.api.ApiResponse;
 import com.whooa.blog.common.api.PageResponse;
 import com.whooa.blog.common.code.Code;
 import com.whooa.blog.common.dto.PageQueryString;
+import com.whooa.blog.common.security.UserDetailsImpl;
 import com.whooa.blog.post.dto.PostDto.PostResponse;
 import com.whooa.blog.post.dto.PostDto.PostCreateRequest;
 import com.whooa.blog.post.dto.PostDto.PostUpdateRequest;
@@ -56,26 +57,32 @@ public class PostController {
 	 */
 	@ResponseStatus(value = HttpStatus.CREATED)
 	@PostMapping(consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
-	public ApiResponse<PostResponse> createPost(@Valid @RequestPart(name = "post") PostCreateRequest postCreate, @RequestPart(name = "files", required = false) MultipartFile[] uploadFiles) {		
-		return ApiResponse.handleSuccess(Code.CREATED.getCode(), Code.CREATED.getMessage(), postService.create(postCreate, uploadFiles), new String[] {"포스트를 생성했습니다."});
+	public ApiResponse<PostResponse> createPost(@AuthenticationPrincipal UserDetailsImpl userDetailsImpl, @Valid @RequestPart(name = "post") PostCreateRequest postCreate, @RequestPart(name = "files", required = false) MultipartFile[] uploadFiles) {		
+		return ApiResponse.handleSuccess(Code.CREATED.getCode(), Code.CREATED.getMessage(), postService.create(userDetailsImpl, postCreate, uploadFiles), new String[] {"포스트를 생성했습니다."});
 	}
 	
 	@ResponseStatus(value = HttpStatus.OK)
 	@GetMapping
 	public ApiResponse<PageResponse<PostResponse>> getPosts(PageQueryString pageDto) {		
-		return ApiResponse.handleSuccess(Code.OK.getCode(), Code.OK.getMessage(), postService.findAll(pageDto), new String[] {"포스트를 조회했습니다."});
+		return ApiResponse.handleSuccess(Code.OK.getCode(), Code.OK.getMessage(), postService.findAll(pageDto), new String[] {"포스트 목록을 조회했습니다."});
+	}
+
+	@ResponseStatus(value = HttpStatus.OK)
+	@GetMapping("/category/{id}")
+	public ApiResponse<PageResponse<PostResponse>> getPostsByCategoryName(PageQueryString pageDto, @PathVariable Long id) {		
+		return ApiResponse.handleSuccess(Code.OK.getCode(), Code.OK.getMessage(), postService.findAllByCategoryId(pageDto, id), new String[] {"포스트 목록을 조회했습니다."});
 	}
 	
 	/* @PathVariable 어노테이션은 메서드 인자를 URI 템플릿 변수의 값에 바인딩한다. */
 	@ResponseStatus(value = HttpStatus.OK)
 	@GetMapping("/{id}")
 	public ApiResponse<PostResponse> getPost(@PathVariable Long id) {		
-		return ApiResponse.handleSuccess(Code.OK.getCode(), Code.OK.getMessage(), postService.find(id), new String[] {"포스트 목록을 조회했습니다."});
+		return ApiResponse.handleSuccess(Code.OK.getCode(), Code.OK.getMessage(), postService.find(id), new String[] {"포스트를 조회했습니다."});
 	}
 	
 	/* @RequestBody 어노테이션은 내부적으로 Spring이 제공하는 HttpMessageConverter를 사용하여 JSON을 Java 객체로 변환한다. */
 	@ResponseStatus(value = HttpStatus.OK)
-	@PutMapping("/{id}")
+	@PatchMapping("/{id}")
 	public ApiResponse<PostResponse> updatePost(@Valid @RequestBody PostUpdateRequest postUpdate, @PathVariable Long id) {		
 		return ApiResponse.handleSuccess(Code.OK.getCode(), Code.OK.getMessage(), postService.update(postUpdate, id), new String[] {"포스트를 수정했습니다."});
 	}

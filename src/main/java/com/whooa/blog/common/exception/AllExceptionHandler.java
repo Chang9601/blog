@@ -7,7 +7,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -21,6 +20,7 @@ import com.whooa.blog.common.api.ApiResponse;
 import com.whooa.blog.common.code.Code;
 import com.whooa.blog.post.exception.PostNotFoundException;
 import com.whooa.blog.user.exception.DuplicateUserException;
+import com.whooa.blog.user.exception.InvalidCredentialsException;
 import com.whooa.blog.user.exception.UnauthenticatedUserException;
 import com.whooa.blog.user.exception.UserNotFoundException;
 
@@ -57,6 +57,13 @@ public class AllExceptionHandler {
     @ResponseStatus(HttpStatus.CONFLICT)
 	public ApiResponse<DuplicateUserException> handleException(DuplicateUserException exception) {		
 		logger.error("DuplicateUserException: {}", exception.getException().getMessage());
+		return ApiResponse.handleFailure(exception.getException().getCode(), exception.getException().getMessage(), null, exception.getDetails());
+	}
+	
+	@ExceptionHandler(InvalidCredentialsException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+	public ApiResponse<UserNotFoundException> handleException(InvalidCredentialsException exception) {
+		logger.error("InvalidCredentialsException: {}", exception.getException().getMessage());
 		return ApiResponse.handleFailure(exception.getException().getCode(), exception.getException().getMessage(), null, exception.getDetails());
 	}
 	

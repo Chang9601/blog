@@ -1,14 +1,18 @@
 package com.whooa.blog.user.entity;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 import com.whooa.blog.common.entity.AbstractEntity;
+import com.whooa.blog.post.entity.PostEntity;
 import com.whooa.blog.user.type.UserRole;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 
 @Entity
@@ -38,6 +42,9 @@ public class UserEntity extends AbstractEntity {
 	@Enumerated(EnumType.STRING)
 	@Column(name = "user_role", nullable = false)
 	private UserRole userRole = UserRole.USER;
+	
+	@OneToMany(mappedBy = "user")
+	private List<PostEntity> posts = new ArrayList<PostEntity>();
 	
 	public UserEntity(Long id, String name, String email, String password, UserRole userRole) {
 		super(id);
@@ -114,6 +121,14 @@ public class UserEntity extends AbstractEntity {
 
 	public void setUserRole(UserRole userRole) {
 		this.userRole = userRole;
+	}
+	
+	public List<PostEntity> getPosts() {
+		return posts;
+	}
+
+	public void setPosts(List<PostEntity> posts) {
+		this.posts = posts;
 	}
 
 	@Override
