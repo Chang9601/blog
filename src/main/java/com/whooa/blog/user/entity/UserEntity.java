@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.whooa.blog.comment.entity.CommentEntity;
 import com.whooa.blog.common.entity.AbstractEntity;
 import com.whooa.blog.post.entity.PostEntity;
 import com.whooa.blog.user.type.UserRole;
@@ -45,6 +46,9 @@ public class UserEntity extends AbstractEntity {
 	
 	@OneToMany(mappedBy = "user")
 	private List<PostEntity> posts = new ArrayList<PostEntity>();
+	
+	@OneToMany(mappedBy = "user")
+	private List<CommentEntity> comments = new ArrayList<CommentEntity>();
 	
 	public UserEntity(Long id, String name, String email, String password, UserRole userRole) {
 		super(id);
@@ -130,11 +134,20 @@ public class UserEntity extends AbstractEntity {
 	public void setPosts(List<PostEntity> posts) {
 		this.posts = posts;
 	}
+	
+	public List<CommentEntity> getComments() {
+		return comments;
+	}
+
+	public void setComments(List<CommentEntity> comments) {
+		this.comments = comments;
+	}
 
 	@Override
 	public String toString() {
 		return "UserEntity [id=" + super.getId() + ", name=" + name + ", email=" + email + ", password=" + password + ", active=" + active
 				+ ", refreshToken=" + refreshToken + ", passwordResetToken=" + passwordResetToken
-				+ ", passwordResetTokenExpiration=" + passwordResetTokenExpiration + ", userRole=" + userRole + "]";
+				+ ", passwordResetTokenExpiration=" + passwordResetTokenExpiration + ", userRole=" + userRole
+				+ ", posts=" + posts + ", comments=" + comments + "]";
 	}
 }

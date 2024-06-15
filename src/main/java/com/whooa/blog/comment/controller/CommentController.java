@@ -1,8 +1,7 @@
 package com.whooa.blog.comment.controller;
 
-import java.util.List;
-
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -19,7 +18,10 @@ import com.whooa.blog.comment.dto.CommentDto.CommentUpdateRequest;
 import com.whooa.blog.comment.dto.CommentDto.CommentResponse;
 import com.whooa.blog.comment.service.CommentService;
 import com.whooa.blog.common.api.ApiResponse;
+import com.whooa.blog.common.api.PageResponse;
 import com.whooa.blog.common.code.Code;
+import com.whooa.blog.common.dto.PageQueryString;
+import com.whooa.blog.common.security.UserDetailsImpl;
 
 import jakarta.validation.Valid;
 
@@ -34,14 +36,14 @@ public class CommentController {
 	
 	@ResponseStatus(value = HttpStatus.CREATED)
 	@PostMapping("/posts/{post-id}/comments")
-	public ApiResponse<CommentResponse> createComment(@PathVariable("post-id") Long postId, @Valid @RequestBody CommentCreateRequest commentCreate) {		
-		return ApiResponse.handleSuccess(Code.CREATED.getCode(), Code.CREATED.getMessage(), commentService.create(postId, commentCreate), new String[] {"댓글을 생성했습니다."});
+	public ApiResponse<CommentResponse> createComment(@AuthenticationPrincipal UserDetailsImpl userDetailsImpl, @PathVariable("post-id") Long postId, @Valid @RequestBody CommentCreateRequest commentCreate) {		
+		return ApiResponse.handleSuccess(Code.CREATED.getCode(), Code.CREATED.getMessage(), commentService.create(userDetailsImpl, postId, commentCreate), new String[] {"댓글을 생성했습니다."});
 	}
 	
 	@ResponseStatus(value = HttpStatus.OK)
 	@GetMapping("/posts/{post-id}/comments")
-	public ApiResponse<List<CommentResponse>> getCommentsByPostId(@PathVariable("post-id") Long postId) {		
-		return ApiResponse.handleSuccess(Code.OK.getCode(), Code.OK.getMessage(), commentService.findAllByPostId(postId), new String[] {"포스트의 댓글 목록을 조회했습니다."});
+	public ApiResponse<PageResponse<CommentResponse>> getCommentsByPostId(@PathVariable("post-id") Long postId, PageQueryString pageQueryString) {		
+		return ApiResponse.handleSuccess(Code.OK.getCode(), Code.OK.getMessage(), commentService.findAllByPostId(postId, pageQueryString), new String[] {"포스트의 댓글 목록을 조회했습니다."});
 	}
 	
 	@ResponseStatus(value = HttpStatus.OK)

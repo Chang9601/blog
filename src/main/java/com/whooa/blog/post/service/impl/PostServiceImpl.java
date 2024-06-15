@@ -35,10 +35,11 @@ import com.whooa.blog.util.NotNullNotEmptyChecker;
 
 @Service
 public class PostServiceImpl implements PostService {
-	private FileService fileService;
 	private CategoryRepository categoryRepository;
 	private PostRepository postRepository;
 	private UserRepository userRepository;
+	private FileService fileService;
+
 	// private PostMapper postMapper = Mappers.getMapper(PostMapper.class);
 	
 	/*
@@ -50,11 +51,11 @@ public class PostServiceImpl implements PostService {
 	 * 2. 불변성을 보장하고 NullPointerException 예외를 방지한다.
 	 * 3. 테스트에서 오류를 방지한다.
 	 */
-	public PostServiceImpl(FileService fileService, CategoryRepository categoryRepository, PostRepository postRepository, UserRepository userRepository) {
-		this.fileService = fileService;
+	public PostServiceImpl(CategoryRepository categoryRepository, PostRepository postRepository, UserRepository userRepository, FileService fileService) {
 		this.categoryRepository = categoryRepository;
 		this.postRepository = postRepository;
 		this.userRepository = userRepository;
+		this.fileService = fileService;
 	}
 
 	@Override
@@ -121,7 +122,7 @@ public class PostServiceImpl implements PostService {
 		
 		Pageable pageable = PageRequest.of(pageDto.getPageNo(), pageDto.getPageSize(), sort);
 		
-		Page<PostEntity> posts = postRepository.findByCategoryId(pageable, id);
+		Page<PostEntity> posts = postRepository.findByCategoryId(id, pageable);
 		
 		List<PostEntity> postEntities = posts.getContent();
 		int pageSize = posts.getSize();

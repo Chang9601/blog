@@ -3,6 +3,10 @@ package com.whooa.blog.comment.service.impl;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import com.whooa.blog.comment.dto.CommentDto.CommentUpdateRequest;
@@ -15,11 +19,17 @@ import com.whooa.blog.comment.exception.CommentNotFoundException;
 import com.whooa.blog.comment.mapper.CommentMapper;
 import com.whooa.blog.comment.repository.CommentRepository;
 import com.whooa.blog.comment.service.CommentService;
+import com.whooa.blog.common.api.PageResponse;
 import com.whooa.blog.common.code.Code;
+import com.whooa.blog.common.dto.PageQueryString;
+import com.whooa.blog.common.security.UserDetailsImpl;
 import com.whooa.blog.post.entity.PostEntity;
 import com.whooa.blog.post.exception.PostNotFoundException;
 import com.whooa.blog.post.repository.PostRepository;
+import com.whooa.blog.user.entity.UserEntity;
 import com.whooa.blog.user.exception.InvalidCredentialsException;
+import com.whooa.blog.user.exception.UserNotFoundException;
+import com.whooa.blog.user.repository.UserRepository;
 import com.whooa.blog.util.NotNullNotEmptyChecker;
 import com.whooa.blog.util.PasswordUtil;
 
@@ -27,17 +37,23 @@ import com.whooa.blog.util.PasswordUtil;
 public class CommentServiceImpl implements CommentService {
 	private CommentRepository commentRepository;
 	private PostRepository postRepository;
+	private UserRepository userRepository;
 	private PasswordUtil passwordUtil;
 
-	public CommentServiceImpl(CommentRepository commentRepository, PostRepository postRepository, PasswordUtil passwordUtil) {
+
+	public CommentServiceImpl(CommentRepository commentRepository, PostRepository postRepository, UserRepository userRepository, PasswordUtil passwordUtil) {
 		this.commentRepository = commentRepository;
 		this.postRepository = postRepository;
+		this.userRepository = userRepository;
 		this.passwordUtil = passwordUtil;
 	}
 	
 	@Override
-	public CommentResponse create(Long postId, CommentCreateRequest commentCreate) {
-		PostEntity postEntity = postRepository.findById(postId).orElseThrow(() -> new PostNotFoundException(Code.NOT_FOUND, new String[] {"포스트가 존재하지 않습니다."}));		
+	public CommentResponse create(UserDetailsImpl userDetailsImpl, Long postId, CommentCreateRequest commentCreate) {
+		Long userId = userDetailsImpl.getId();
+
+		PostEntity postEntity = postRepository.findById(postId).orElseThrow(() -> new PostNotFoundException(Code.NOT_FOUND, new String[] {"포스트가 존재하지 않습니다."}));	
+		UserEntity userEntity = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(Code.NOT_FOUND, new String[] {"아이디에 해당하는 사용자가 존재하지 않습니다."}));
 		CommentEntity commentEntity = CommentMapper.INSTANCE.toEntity(commentCreate);
 		
 		String plainPassword = commentEntity.getPassword();
@@ -45,17 +61,31 @@ public class CommentServiceImpl implements CommentService {
 		
 		commentEntity.setPost(postEntity);
 		commentEntity.setPassword(hashedPassword);
-
+		commentEntity.setUser(userEntity);
+		
 		return CommentMapper.INSTANCE.toDto(commentRepository.save(commentEntity));
 	}
 
 	@Override
-	public List<CommentResponse> findAllByPostId(Long postId) {
-		postRepository.findById(postId).orElseThrow(() -> new PostNotFoundException(Code.NOT_FOUND, new String[] {"포스트가 존재하지 않습니다."}));
-
-		List<CommentEntity> commentEntities = commentRepository.findByPostId(postId);
+	public PageResponse<CommentResponse> findAllByPostId(Long postId, PageQueryString pageQueryString) {
+		String sortBy = pageQueryString.getSortBy();		
+		Sort sortDir = pageQueryString.getSortDir().equalsIgnoreCase(Sort.Direction.ASC.name()) ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
 		
-		return commentEntities.stream().map((commentEntity) -> CommentMapper.INSTANCE.toDto(commentEntity)).collect(Collectors.toList());
+		Pageable pageable = PageRequest.of(pageQueryString.getPageNo(), pageQueryString.getPageSize(), sortDir);
+
+		Page<CommentEntity> comments = commentRepository.findByPostId(postId, pageable);
+
+		List<CommentEntity> commentEntities = comments.getContent();
+		int pageSize = comments.getSize();
+		int pageNo = comments.getNumber();
+		long totalElements = comments.getTotalElements();
+		int totalPages = comments.getTotalPages();
+		boolean isLast = comments.isLast();
+		boolean isFirst = comments.isFirst();
+		
+		List<CommentResponse> commentResponse = commentEntities.stream().map((commentEntity) -> CommentMapper.INSTANCE.toDto(commentEntity)).collect(Collectors.toList());
+		
+		return PageResponse.handleResponse(commentResponse, pageSize, pageNo, totalElements, totalPages, isLast, isFirst);
 	}
 
 	@Override

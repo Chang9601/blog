@@ -9,7 +9,7 @@ import com.whooa.blog.common.dto.PageQueryString;
 public interface CategoryService {
 	public abstract CategoryResponse create(CategoryCreateRequest categoryCreate);
 	public abstract CategoryResponse find(Long id);
-	public abstract PageResponse<CategoryResponse> findAll(PageQueryString pageDto);
-	public abstract CategoryResponse update(CategoryUpdateRequest categoryUpdate, Long id);
+	public abstract PageResponse<CategoryResponse> findAll(PageQueryString pageQueryString);
+	public abstract CategoryResponse update(Long id, CategoryUpdateRequest categoryUpdate);
 	public abstract void delete(Long id);
 }

@@ -47,14 +47,14 @@ public class CategoryController {
 	
 	@ResponseStatus(value = HttpStatus.OK)
 	@GetMapping
-	public ApiResponse<PageResponse<CategoryResponse>> getCategories(PageQueryString pageDto) {
-		return ApiResponse.handleSuccess(Code.OK.getCode(), Code.OK.getMessage(), categoryService.findAll(pageDto), new String[] {"카테고리 목록을 조회했습니다."});
+	public ApiResponse<PageResponse<CategoryResponse>> getCategories(PageQueryString pageQueryString) {
+		return ApiResponse.handleSuccess(Code.OK.getCode(), Code.OK.getMessage(), categoryService.findAll(pageQueryString), new String[] {"카테고리 목록을 조회했습니다."});
 	}
 	
 	@ResponseStatus(value = HttpStatus.OK)
 	@PatchMapping("/{id}")
-	public ApiResponse<CategoryResponse> updateCategory(@Valid @RequestBody CategoryUpdateRequest categoryUpdate, @PathVariable Long id) {		
-		return ApiResponse.handleSuccess(Code.OK.getCode(), Code.OK.getMessage(), categoryService.update(categoryUpdate, id), new String[] {"카테고리을 수정했습니다."});
+	public ApiResponse<CategoryResponse> updateCategory(@PathVariable Long id, @Valid @RequestBody CategoryUpdateRequest categoryUpdate) {		
+		return ApiResponse.handleSuccess(Code.OK.getCode(), Code.OK.getMessage(), categoryService.update(id, categoryUpdate), new String[] {"카테고리을 수정했습니다."});
 	}
 	
 	@ResponseStatus(value = HttpStatus.OK)

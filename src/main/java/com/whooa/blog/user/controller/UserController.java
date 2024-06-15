@@ -2,6 +2,7 @@ package com.whooa.blog.user.controller;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -35,5 +36,13 @@ public class UserController {
 	@GetMapping("/me")
 	public ApiResponse<UserResponse> getMe(@AuthenticationPrincipal UserDetailsImpl userDetailsImpl) {
 		return ApiResponse.handleSuccess(Code.OK.getCode(), Code.OK.getMessage(), userService.find(userDetailsImpl), new String[] {"본인을 조회했습니다."});
+	}
+	
+	@ResponseStatus(value = HttpStatus.OK)
+	@DeleteMapping
+	public ApiResponse<UserResponse> deleteUser(@AuthenticationPrincipal UserDetailsImpl userDetailsImpl) {
+		userService.delete(userDetailsImpl);
+		
+		return ApiResponse.handleSuccess(Code.OK.getCode(), Code.OK.getMessage(), null, new String[] {"사용자를 삭제했습니다."});
 	}
 }

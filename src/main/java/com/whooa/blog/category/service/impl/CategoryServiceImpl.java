@@ -21,7 +21,6 @@ import com.whooa.blog.category.service.CategoryService;
 import com.whooa.blog.common.api.PageResponse;
 import com.whooa.blog.common.code.Code;
 import com.whooa.blog.common.dto.PageQueryString;
-import com.whooa.blog.user.exception.DuplicateUserException;
 import com.whooa.blog.util.NotNullNotEmptyChecker;
 
 @Service
@@ -51,11 +50,11 @@ public class CategoryServiceImpl implements CategoryService {
 	}
 
 	@Override
-	public PageResponse<CategoryResponse> findAll(PageQueryString pageDto) {
-		String sortBy = pageDto.getSortBy();		
-		Sort sort = pageDto.getSortDir().equalsIgnoreCase(Sort.Direction.ASC.name()) ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
+	public PageResponse<CategoryResponse> findAll(PageQueryString pageQueryString) {
+		String sortBy = pageQueryString.getSortBy();		
+		Sort sortDir = pageQueryString.getSortDir().equalsIgnoreCase(Sort.Direction.ASC.name()) ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
 		
-		Pageable pageable = PageRequest.of(pageDto.getPageNo(), pageDto.getPageSize(), sort);
+		Pageable pageable = PageRequest.of(pageQueryString.getPageNo(), pageQueryString.getPageSize(), sortDir);
 		
 		Page<CategoryEntity> categories = categoryRepository.findAll(pageable);
 		
@@ -73,7 +72,7 @@ public class CategoryServiceImpl implements CategoryService {
 	}
 
 	@Override
-	public CategoryResponse update(CategoryUpdateRequest categoryUpdate, Long id) {
+	public CategoryResponse update(Long id, CategoryUpdateRequest categoryUpdate) {
 		CategoryEntity categoryEntity = categoryRepository.findById(id).orElseThrow(() -> new CategoryNotFoundException(Code.NOT_FOUND, new String[] {"카테고리가 존재하지 않습니다."}));
 		
 		String name = categoryUpdate.getName();

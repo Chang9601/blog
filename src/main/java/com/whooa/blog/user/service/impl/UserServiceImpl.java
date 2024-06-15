@@ -3,7 +3,9 @@ package com.whooa.blog.user.service.impl;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import com.whooa.blog.common.api.PageResponse;
 import com.whooa.blog.common.code.Code;
+import com.whooa.blog.common.dto.PageQueryString;
 import com.whooa.blog.common.security.UserDetailsImpl;
 
 import com.whooa.blog.user.dto.UserDto.UserCreateRequest;
@@ -49,7 +51,7 @@ public class UserServiceImpl implements UserService {
 	@Override
 	public UserResponse find(UserDetailsImpl userDetailsImpl) {
 		Long id = userDetailsImpl.getId();		
-		UserEntity userEntity = userRepository.findById(id).orElseThrow(() -> new UserNotFoundException(Code.NOT_FOUND, new String[] {"아이디에 해당하는 사용자가 존재하지 않습니다."}));
+		UserEntity userEntity = userRepository.findByIdAndActiveTrue(id).orElseThrow(() -> new UserNotFoundException(Code.NOT_FOUND, new String[] {"아이디에 해당하는 사용자가 존재하지 않습니다."}));
 		
 		return UserMapper.INSTANCE.toDto(userEntity);
 
@@ -61,4 +63,23 @@ public class UserServiceImpl implements UserService {
 		
 		return UserMapper.INSTANCE.toDto(userEntity);
 	}
+	
+	@Override
+	public PageResponse<UserResponse> findAll(PageQueryString pageDto) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void delete(UserDetailsImpl userDetailsImpl) {
+		Long id = userDetailsImpl.getId();
+
+		UserEntity userEntity = userRepository.findById(id).orElseThrow(() -> new UserNotFoundException(Code.NOT_FOUND, new String[] {"아이디에 해당하는 사용자가 존재하지 않습니다."}));
+
+		userEntity.setActive(false);
+		
+		userRepository.save(userEntity);
+	}
+
+
 }

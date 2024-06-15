@@ -48,6 +48,6 @@ public class CategoryEntity extends AbstractEntity {
 
 	@Override
 	public String toString() {
-		return "CategoryEntity [name=" + name + ", posts=" + posts + "]";
+		return "CategoryEntity [id=" + super.getId() + ", name=" + name + ", posts=" + posts + "]";
 	}
 }

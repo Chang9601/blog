@@ -2,6 +2,7 @@ package com.whooa.blog.comment.entity;
 
 import com.whooa.blog.common.entity.AbstractEntity;
 import com.whooa.blog.post.entity.PostEntity;
+import com.whooa.blog.user.entity.UserEntity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -30,6 +31,10 @@ public class CommentEntity extends AbstractEntity {
 	@JoinColumn(name = "post_id", nullable = false)
 	private PostEntity post;
 
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "user_id", nullable = false)
+	private UserEntity user;
+	
 	/* 대댓글은 댓글이며 부모 댓글의 자식이기 때문에 엔티티로 만들지 않는다. */
 	@Column(name = "parent_id", nullable = true)
 	private Long parentId;
@@ -114,16 +119,30 @@ public class CommentEntity extends AbstractEntity {
 		post.getComments().add(this);
 	}
 	
+	public UserEntity getUser() {
+		return user;
+	}
+
+	public void setUser(UserEntity user) {
+		if (this.user != null) {
+			this.user.getComments().remove(this);
+		}
+
+		this.user = user;
+		user.getComments().add(this);
+	}
+
 	public Long getParentId() {
 		return parentId;
 	}
 
 	public void setParentId(Long parentId) {
 		this.parentId = parentId;
-	}	
+	}
 
 	@Override
 	public String toString() {
-		return "CommentEntity [id=" + super.getId() + ", name=" + name + ", content=" + content + ", password=" + password + ", post=" + post + ", parentId=" + parentId + "]";
+		return "CommentEntity [id=" + super.getId() + ", name=" + name + ", content=" + content + ", password=" + password + ", post=" + post
+				+ ", user=" + user + ", parentId=" + parentId + "]";
 	}
 }
