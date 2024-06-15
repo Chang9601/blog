@@ -4,9 +4,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import com.whooa.blog.category.dto.CategoryDto.CategoryCreateRequest;
@@ -20,8 +18,8 @@ import com.whooa.blog.category.repository.CategoryRepository;
 import com.whooa.blog.category.service.CategoryService;
 import com.whooa.blog.common.api.PageResponse;
 import com.whooa.blog.common.code.Code;
-import com.whooa.blog.common.dto.PageQueryString;
 import com.whooa.blog.util.NotNullNotEmptyChecker;
+import com.whooa.blog.util.PaginationUtil;
 
 @Service
 public class CategoryServiceImpl implements CategoryService {
@@ -50,11 +48,11 @@ public class CategoryServiceImpl implements CategoryService {
 	}
 
 	@Override
-	public PageResponse<CategoryResponse> findAll(PageQueryString pageQueryString) {
-		String sortBy = pageQueryString.getSortBy();		
-		Sort sortDir = pageQueryString.getSortDir().equalsIgnoreCase(Sort.Direction.ASC.name()) ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
+	public PageResponse<CategoryResponse> findAll(PaginationUtil paginationUtil) {
+		//String sortBy = pageQueryString.getSortBy();		
+		//Sort sortDir = pageQueryString.getSortDir().equalsIgnoreCase(Sort.Direction.ASC.name()) ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
 		
-		Pageable pageable = PageRequest.of(pageQueryString.getPageNo(), pageQueryString.getPageSize(), sortDir);
+		Pageable pageable = paginationUtil.makePageable(); //PageRequest.of(pageQueryString.getPageNo(), pageQueryString.getPageSize(), sortDir);
 		
 		Page<CategoryEntity> categories = categoryRepository.findAll(pageable);
 		

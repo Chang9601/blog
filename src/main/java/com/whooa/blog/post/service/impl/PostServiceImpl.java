@@ -5,9 +5,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -16,7 +14,6 @@ import com.whooa.blog.category.exception.CategoryNotFoundException;
 import com.whooa.blog.category.repository.CategoryRepository;
 import com.whooa.blog.common.api.PageResponse;
 import com.whooa.blog.common.code.Code;
-import com.whooa.blog.common.dto.PageQueryString;
 import com.whooa.blog.common.security.UserDetailsImpl;
 import com.whooa.blog.file.service.FileService;
 import com.whooa.blog.file.value.File;
@@ -32,6 +29,7 @@ import com.whooa.blog.user.entity.UserEntity;
 import com.whooa.blog.user.exception.UserNotFoundException;
 import com.whooa.blog.user.repository.UserRepository;
 import com.whooa.blog.util.NotNullNotEmptyChecker;
+import com.whooa.blog.util.PaginationUtil;
 
 @Service
 public class PostServiceImpl implements PostService {
@@ -91,12 +89,8 @@ public class PostServiceImpl implements PostService {
 	}
 
 	@Override
-	public PageResponse<PostResponse> findAll(PageQueryString pageDto) {
-		// TODO: 페이지 관련 코드 간소화.
-		String sortBy = pageDto.getSortBy();		
-		Sort sort = pageDto.getSortDir().equalsIgnoreCase(Sort.Direction.ASC.name()) ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
-		
-		Pageable pageable = PageRequest.of(pageDto.getPageNo(), pageDto.getPageSize(), sort);
+	public PageResponse<PostResponse> findAll(PaginationUtil paginationUtil) {
+		Pageable pageable = paginationUtil.makePageable();
 		
 		Page<PostEntity> posts = postRepository.findAll(pageable);
 		
@@ -114,13 +108,10 @@ public class PostServiceImpl implements PostService {
 	}
 	
 	@Override
-	public PageResponse<PostResponse> findAllByCategoryId(PageQueryString pageDto, Long id) {
+	public PageResponse<PostResponse> findAllByCategoryId(PaginationUtil paginationUtil, Long id) {
 		categoryRepository.findById(id).orElseThrow(() -> new CategoryNotFoundException(Code.NOT_FOUND, new String[] {"카테고리가 존재하지 않습니다."}));
 
-		String sortBy = pageDto.getSortBy();		
-		Sort sort = pageDto.getSortDir().equalsIgnoreCase(Sort.Direction.ASC.name()) ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
-		
-		Pageable pageable = PageRequest.of(pageDto.getPageNo(), pageDto.getPageSize(), sort);
+		Pageable pageable = paginationUtil.makePageable();
 		
 		Page<PostEntity> posts = postRepository.findByCategoryId(id, pageable);
 		

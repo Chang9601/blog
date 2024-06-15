@@ -18,12 +18,12 @@ import org.springframework.web.multipart.MultipartFile;
 import com.whooa.blog.common.api.ApiResponse;
 import com.whooa.blog.common.api.PageResponse;
 import com.whooa.blog.common.code.Code;
-import com.whooa.blog.common.dto.PageQueryString;
 import com.whooa.blog.common.security.UserDetailsImpl;
 import com.whooa.blog.post.dto.PostDto.PostResponse;
 import com.whooa.blog.post.dto.PostDto.PostCreateRequest;
 import com.whooa.blog.post.dto.PostDto.PostUpdateRequest;
 import com.whooa.blog.post.service.PostService;
+import com.whooa.blog.util.PaginationUtil;
 
 import jakarta.validation.Valid;
 
@@ -63,14 +63,14 @@ public class PostController {
 	
 	@ResponseStatus(value = HttpStatus.OK)
 	@GetMapping
-	public ApiResponse<PageResponse<PostResponse>> getPosts(PageQueryString pageDto) {		
-		return ApiResponse.handleSuccess(Code.OK.getCode(), Code.OK.getMessage(), postService.findAll(pageDto), new String[] {"포스트 목록을 조회했습니다."});
+	public ApiResponse<PageResponse<PostResponse>> getPosts(PaginationUtil paginationUtil) {		
+		return ApiResponse.handleSuccess(Code.OK.getCode(), Code.OK.getMessage(), postService.findAll(paginationUtil), new String[] {"포스트 목록을 조회했습니다."});
 	}
 
 	@ResponseStatus(value = HttpStatus.OK)
 	@GetMapping("/category/{id}")
-	public ApiResponse<PageResponse<PostResponse>> getPostsByCategoryName(PageQueryString pageDto, @PathVariable Long id) {		
-		return ApiResponse.handleSuccess(Code.OK.getCode(), Code.OK.getMessage(), postService.findAllByCategoryId(pageDto, id), new String[] {"포스트 목록을 조회했습니다."});
+	public ApiResponse<PageResponse<PostResponse>> getPostsByCategoryName(PaginationUtil paginationUtil, @PathVariable Long id) {		
+		return ApiResponse.handleSuccess(Code.OK.getCode(), Code.OK.getMessage(), postService.findAllByCategoryId(paginationUtil, id), new String[] {"포스트 목록을 조회했습니다."});
 	}
 	
 	/* @PathVariable 어노테이션은 메서드 인자를 URI 템플릿 변수의 값에 바인딩한다. */

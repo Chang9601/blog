@@ -20,8 +20,8 @@ import com.whooa.blog.comment.service.CommentService;
 import com.whooa.blog.common.api.ApiResponse;
 import com.whooa.blog.common.api.PageResponse;
 import com.whooa.blog.common.code.Code;
-import com.whooa.blog.common.dto.PageQueryString;
 import com.whooa.blog.common.security.UserDetailsImpl;
+import com.whooa.blog.util.PaginationUtil;
 
 import jakarta.validation.Valid;
 
@@ -42,8 +42,8 @@ public class CommentController {
 	
 	@ResponseStatus(value = HttpStatus.OK)
 	@GetMapping("/posts/{post-id}/comments")
-	public ApiResponse<PageResponse<CommentResponse>> getCommentsByPostId(@PathVariable("post-id") Long postId, PageQueryString pageQueryString) {		
-		return ApiResponse.handleSuccess(Code.OK.getCode(), Code.OK.getMessage(), commentService.findAllByPostId(postId, pageQueryString), new String[] {"포스트의 댓글 목록을 조회했습니다."});
+	public ApiResponse<PageResponse<CommentResponse>> getCommentsByPostId(@PathVariable("post-id") Long postId, PaginationUtil paginationUtil) {		
+		return ApiResponse.handleSuccess(Code.OK.getCode(), Code.OK.getMessage(), commentService.findAllByPostId(postId, paginationUtil), new String[] {"포스트의 댓글 목록을 조회했습니다."});
 	}
 	
 	@ResponseStatus(value = HttpStatus.OK)

@@ -4,12 +4,12 @@ import com.whooa.blog.category.dto.CategoryDto.CategoryCreateRequest;
 import com.whooa.blog.category.dto.CategoryDto.CategoryResponse;
 import com.whooa.blog.category.dto.CategoryDto.CategoryUpdateRequest;
 import com.whooa.blog.common.api.PageResponse;
-import com.whooa.blog.common.dto.PageQueryString;
+import com.whooa.blog.util.PaginationUtil;
 
 public interface CategoryService {
 	public abstract CategoryResponse create(CategoryCreateRequest categoryCreate);
 	public abstract CategoryResponse find(Long id);
-	public abstract PageResponse<CategoryResponse> findAll(PageQueryString pageQueryString);
+	public abstract PageResponse<CategoryResponse> findAll(PaginationUtil paginationUtil);
 	public abstract CategoryResponse update(Long id, CategoryUpdateRequest categoryUpdate);
 	public abstract void delete(Long id);
 }

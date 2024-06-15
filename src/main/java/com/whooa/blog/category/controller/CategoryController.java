@@ -19,7 +19,7 @@ import com.whooa.blog.category.service.CategoryService;
 import com.whooa.blog.common.api.ApiResponse;
 import com.whooa.blog.common.api.PageResponse;
 import com.whooa.blog.common.code.Code;
-import com.whooa.blog.common.dto.PageQueryString;
+import com.whooa.blog.util.PaginationUtil;
 
 import jakarta.validation.Valid;
 
@@ -33,7 +33,6 @@ public class CategoryController {
 	}
 	
 	@ResponseStatus(value = HttpStatus.CREATED)
-	//@PreAuthorize("hasRole('ADMIN')")
 	@PostMapping
 	public ApiResponse<CategoryResponse> createCategory(@Valid @RequestBody CategoryCreateRequest categoryCreate) {
 		return ApiResponse.handleSuccess(Code.CREATED.getCode(), Code.CREATED.getMessage(), categoryService.create(categoryCreate), new String[] {"카테고리를 생성했습니다."});
@@ -47,8 +46,8 @@ public class CategoryController {
 	
 	@ResponseStatus(value = HttpStatus.OK)
 	@GetMapping
-	public ApiResponse<PageResponse<CategoryResponse>> getCategories(PageQueryString pageQueryString) {
-		return ApiResponse.handleSuccess(Code.OK.getCode(), Code.OK.getMessage(), categoryService.findAll(pageQueryString), new String[] {"카테고리 목록을 조회했습니다."});
+	public ApiResponse<PageResponse<CategoryResponse>> getCategories(PaginationUtil paginationUtil) {
+		return ApiResponse.handleSuccess(Code.OK.getCode(), Code.OK.getMessage(), categoryService.findAll(paginationUtil), new String[] {"카테고리 목록을 조회했습니다."});
 	}
 	
 	@ResponseStatus(value = HttpStatus.OK)

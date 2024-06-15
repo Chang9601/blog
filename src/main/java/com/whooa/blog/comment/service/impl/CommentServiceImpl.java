@@ -4,9 +4,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import com.whooa.blog.comment.dto.CommentDto.CommentUpdateRequest;
@@ -21,7 +19,6 @@ import com.whooa.blog.comment.repository.CommentRepository;
 import com.whooa.blog.comment.service.CommentService;
 import com.whooa.blog.common.api.PageResponse;
 import com.whooa.blog.common.code.Code;
-import com.whooa.blog.common.dto.PageQueryString;
 import com.whooa.blog.common.security.UserDetailsImpl;
 import com.whooa.blog.post.entity.PostEntity;
 import com.whooa.blog.post.exception.PostNotFoundException;
@@ -31,6 +28,7 @@ import com.whooa.blog.user.exception.InvalidCredentialsException;
 import com.whooa.blog.user.exception.UserNotFoundException;
 import com.whooa.blog.user.repository.UserRepository;
 import com.whooa.blog.util.NotNullNotEmptyChecker;
+import com.whooa.blog.util.PaginationUtil;
 import com.whooa.blog.util.PasswordUtil;
 
 @Service
@@ -67,11 +65,8 @@ public class CommentServiceImpl implements CommentService {
 	}
 
 	@Override
-	public PageResponse<CommentResponse> findAllByPostId(Long postId, PageQueryString pageQueryString) {
-		String sortBy = pageQueryString.getSortBy();		
-		Sort sortDir = pageQueryString.getSortDir().equalsIgnoreCase(Sort.Direction.ASC.name()) ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
-		
-		Pageable pageable = PageRequest.of(pageQueryString.getPageNo(), pageQueryString.getPageSize(), sortDir);
+	public PageResponse<CommentResponse> findAllByPostId(Long postId, PaginationUtil paginationUtil) {
+		Pageable pageable = paginationUtil.makePageable();
 
 		Page<CommentEntity> comments = commentRepository.findByPostId(postId, pageable);
 
