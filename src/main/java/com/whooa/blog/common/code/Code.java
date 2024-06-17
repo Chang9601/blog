@@ -17,10 +17,12 @@ public enum Code {
 	
 	DIRECTY_NOT_CREATED(2000, "디렉터리를 생성할 수 없습니다."),
 	INVALID_PATH_SEQUENCE(2001, "유효하지 않은 경로 시퀀스가 포함되어 있습니다."), 
-	FILE_NOT_STORED(2002, "파일을 저장할 수 없습니다."),
+	FILE_NOT_SAVED(2002, "파일을 저장할 수 없습니다."),
 	FILE_NOT_DOWNLOADED(2003, "파일을 다운로드할 수 없습니다."),
 	
-	INVALID_JWT(3000, "JWT 토큰이 유효하지 않습니다.");
+	INVALID_JWT(3000, "JWT 토큰이 유효하지 않습니다."),
+	
+	USER_NOT_MATCHED(4000, "사용자가 일치하지 않습니다.");
 
 	private int code;
 	private String message;

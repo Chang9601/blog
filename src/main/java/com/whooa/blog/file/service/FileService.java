@@ -7,6 +7,6 @@ import com.whooa.blog.file.value.File;
 import com.whooa.blog.post.entity.PostEntity;
 
 public interface FileService {
-	public abstract File upload(MultipartFile uploadFile, PostEntity postEntity);
+	public abstract File upload(PostEntity postEntity, MultipartFile uploadFile);
 	public abstract Resource downalod(String fileName);
 }

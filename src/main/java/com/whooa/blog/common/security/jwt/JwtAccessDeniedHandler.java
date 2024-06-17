@@ -31,16 +31,16 @@ public class JwtAccessDeniedHandler implements AccessDeniedHandler {
 	}
 
 	@Override
-	public void handle(HttpServletRequest request, HttpServletResponse response,
+	public void handle(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse,
 			 AccessDeniedException accessDeniedException) throws IOException, ServletException {
 		logger.error("JwtAccessDeniedHandler: 필요한 권한이 없는 사용자입니다.");
 		
 		ApiResponse<UnauthorizedUserException> failure = ApiResponse.handleFailure(Code.FORBIDDEN.getCode(), Code.FORBIDDEN.getMessage(), null, new String[] {"필요한 권한이 없습니다."});
 		String serializedFailure = objectMapper.writeValueAsString(failure);
 		
-		response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-		response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-		response.setCharacterEncoding(StandardCharsets.UTF_8.name());
-		response.getWriter().write(serializedFailure);
+		httpServletResponse.setStatus(HttpServletResponse.SC_FORBIDDEN);
+		httpServletResponse.setContentType(MediaType.APPLICATION_JSON_VALUE);
+		httpServletResponse.setCharacterEncoding(StandardCharsets.UTF_8.name());
+		httpServletResponse.getWriter().write(serializedFailure);
 	}
 }

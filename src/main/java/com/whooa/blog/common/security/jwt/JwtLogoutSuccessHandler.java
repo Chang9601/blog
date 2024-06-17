@@ -26,14 +26,14 @@ public class JwtLogoutSuccessHandler implements LogoutSuccessHandler {
 	}
 
 	@Override
-	public void onLogoutSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication)
+	public void onLogoutSuccess(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse, Authentication authentication)
 			throws IOException, ServletException {
 		ApiResponse<?> success = ApiResponse.handleSuccess(Code.OK.getCode(), Code.OK.getMessage(), null, new String[] {"로그아웃 했습니다."});
 		String serializedSuccess = objectMapper.writeValueAsString(success);
 
-		response.setStatus(HttpServletResponse.SC_OK);
-		response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-		response.setCharacterEncoding(StandardCharsets.UTF_8.name());
-		response.getWriter().write(serializedSuccess);
+		httpServletResponse.setStatus(HttpServletResponse.SC_OK);
+		httpServletResponse.setContentType(MediaType.APPLICATION_JSON_VALUE);
+		httpServletResponse.setCharacterEncoding(StandardCharsets.UTF_8.name());
+		httpServletResponse.getWriter().write(serializedSuccess);
 	}
 }

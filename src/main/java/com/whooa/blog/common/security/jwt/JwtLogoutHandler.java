@@ -14,22 +14,22 @@ import jakarta.servlet.http.HttpServletResponse;
 @Component
 public class JwtLogoutHandler implements LogoutHandler {
 	@Override
-	public void logout(HttpServletRequest request, HttpServletResponse response, Authentication authentication) {
+	public void logout(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse, Authentication authentication) {
 			// TODO: 블랙 리스트.
-			Cookie[] cookies = request.getCookies();
+			Cookie[] cookies = httpServletRequest.getCookies();
 			
 			if (cookies != null) {
-				for (Cookie cookie: request.getCookies()) {
+				for (Cookie cookie: httpServletRequest.getCookies()) {
 					String name = cookie.getName();
 					
 					if (name.equals(JwtType.ACCESS_TOKEN.getType())) {
 						CookieUtil.clear(cookie, "/");
-						response.addCookie(cookie);
+						httpServletResponse.addCookie(cookie);
 					}
 					
 					if (name.equals(JwtType.REFRESH_TOKEN.getType())) {
 						CookieUtil.clear(cookie, "/");
-						response.addCookie(cookie);
+						httpServletResponse.addCookie(cookie);
 					}
 				}
 			}

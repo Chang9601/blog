@@ -30,6 +30,14 @@ public class CategoryEntity extends AbstractEntity {
 		super(-1L);
 	}
 	
+	public Long getId() {
+		return super.getId();
+	}
+	
+	public void setId(Long id) {
+		super.setId(id);
+	}
+	
 	public String getName() {
 		return name;
 	}

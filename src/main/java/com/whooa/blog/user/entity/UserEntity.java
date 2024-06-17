@@ -19,20 +19,17 @@ import jakarta.persistence.Table;
 @Entity
 @Table(name = "user")
 public class UserEntity extends AbstractEntity {
-	@Column(length = 300, nullable = false)
-	private String name;
+	@Column(nullable = false)
+	private Boolean active = true;
 	
 	@Column(length = 300, unique = true, nullable = false)
 	private String email;
 	
+	@Column(length = 300, nullable = false)
+	private String name;
+	
 	@Column(length = 500, nullable = false)
 	private String password;
-	
-	@Column(nullable = false)
-	private Boolean active = true;
-	
-	@Column(name = "refresh_token", length = 500)
-	private String refreshToken;
 	
 	@Column(name= "password_reset_token", length = 500)
 	private String passwordResetToken;
@@ -40,22 +37,30 @@ public class UserEntity extends AbstractEntity {
 	@Column(name = "password_reset_token_expiration")
 	private LocalDateTime passwordResetTokenExpiration;
 	
+	@Column(name = "refresh_token", length = 500)
+	private String refreshToken;
+	
 	@Enumerated(EnumType.STRING)
 	@Column(name = "user_role", nullable = false)
 	private UserRole userRole = UserRole.USER;
-	
-	@OneToMany(mappedBy = "user")
-	private List<PostEntity> posts = new ArrayList<PostEntity>();
-	
+
 	@OneToMany(mappedBy = "user")
 	private List<CommentEntity> comments = new ArrayList<CommentEntity>();
 	
-	public UserEntity(Long id, String name, String email, String password, UserRole userRole) {
+	@OneToMany(mappedBy = "user")
+	private List<PostEntity> posts = new ArrayList<PostEntity>();
+
+	public UserEntity(Long id, Boolean active, String email, String name, String password, String passwordResetToken,
+			LocalDateTime passwordResetTokenExpiration, String refreshToken, UserRole userRole) {
 		super(id);
 		
-		this.name = name;
+		this.active = active;
 		this.email = email;
+		this.name = name;
 		this.password = password;
+		this.passwordResetToken = passwordResetToken;
+		this.passwordResetTokenExpiration = passwordResetTokenExpiration;
+		this.refreshToken = refreshToken;
 		this.userRole = userRole;
 	}
 
@@ -63,12 +68,12 @@ public class UserEntity extends AbstractEntity {
 		super(-1L);
 	}
 
-	public String getName() {
-		return name;
+	public Boolean getActive() {
+		return active;
 	}
 
-	public void setName(String name) {
-		this.name = name;
+	public void setActive(Boolean active) {
+		this.active = active;
 	}
 
 	public String getEmail() {
@@ -77,6 +82,14 @@ public class UserEntity extends AbstractEntity {
 
 	public void setEmail(String email) {
 		this.email = email;
+	}
+	
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
 	}
 
 	public String getPassword() {
@@ -87,22 +100,6 @@ public class UserEntity extends AbstractEntity {
 		this.password = password;
 	}
 	
-	public Boolean getActive() {
-		return active;
-	}
-
-	public void setActive(Boolean active) {
-		this.active = active;
-	}
-
-	public String getRefreshToken() {
-		return refreshToken;
-	}
-
-	public void setRefreshToken(String refreshToken) {
-		this.refreshToken = refreshToken;
-	}
-
 	public String getPasswordResetToken() {
 		return passwordResetToken;
 	}
@@ -117,6 +114,14 @@ public class UserEntity extends AbstractEntity {
 
 	public void setPasswordResetTokenExpiration(LocalDateTime passwordResetTokenExpiration) {
 		this.passwordResetTokenExpiration = passwordResetTokenExpiration;
+	}
+	
+	public String getRefreshToken() {
+		return refreshToken;
+	}
+
+	public void setRefreshToken(String refreshToken) {
+		this.refreshToken = refreshToken;
 	}
 
 	public UserRole getUserRole() {
@@ -145,9 +150,9 @@ public class UserEntity extends AbstractEntity {
 
 	@Override
 	public String toString() {
-		return "UserEntity [id=" + super.getId() + ", name=" + name + ", email=" + email + ", password=" + password + ", active=" + active
-				+ ", refreshToken=" + refreshToken + ", passwordResetToken=" + passwordResetToken
-				+ ", passwordResetTokenExpiration=" + passwordResetTokenExpiration + ", userRole=" + userRole
-				+ ", posts=" + posts + ", comments=" + comments + "]";
+		return "UserEntity [id=" + super.getId() + ", active=" + active + ", email=" + email + ", name=" + name + ", password=" + password
+				+ ", passwordResetToken=" + passwordResetToken + ", passwordResetTokenExpiration="
+				+ passwordResetTokenExpiration + ", refreshToken=" + refreshToken + ", userRole=" + userRole
+				+ ", comments=" + comments + ", posts=" + posts + "]";
 	}
 }

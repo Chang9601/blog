@@ -37,8 +37,6 @@ public class PostServiceImpl implements PostService {
 	private PostRepository postRepository;
 	private UserRepository userRepository;
 	private FileService fileService;
-
-	// private PostMapper postMapper = Mappers.getMapper(PostMapper.class);
 	
 	/*
 	 * 생성자 주입은 생성자를 사용해서 의존성을 주입한다.
@@ -57,7 +55,7 @@ public class PostServiceImpl implements PostService {
 	}
 
 	@Override
-	public PostResponse create(UserDetailsImpl userDetailsImpl, PostCreateRequest postCreate, MultipartFile[] uploadFiles) {
+	public PostResponse create(PostCreateRequest postCreate, MultipartFile[] uploadFiles, UserDetailsImpl userDetailsImpl) {
 		List<File> files = null;
 		
 		Long userId = userDetailsImpl.getId();
@@ -68,8 +66,10 @@ public class PostServiceImpl implements PostService {
 		
 		CategoryEntity categoryEntity = categoryRepository.findByName(categoryName).orElseThrow(() -> new CategoryNotFoundException(Code.NOT_FOUND, new String[] {"카테고리가 존재하지 않습니다."}));
 		UserEntity userEntity = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(Code.NOT_FOUND, new String[] {"아이디에 해당하는 사용자가 존재하지 않습니다."}));
-		PostEntity postEntity = new PostEntity(title, content);
+		PostEntity postEntity = new PostEntity();
 		
+		postEntity.setContent(content);
+		postEntity.setTitle(title);
 		postEntity.setCategory(categoryEntity);
 		postEntity.setUser(userEntity);
 	
@@ -78,7 +78,7 @@ public class PostServiceImpl implements PostService {
 						
 		if (uploadFiles != null && uploadFiles.length > 0) {
 			files = Arrays.stream(uploadFiles)
-					.map(uploadFile -> fileService.upload(uploadFile, postEntity))
+					.map(uploadFile -> fileService.upload(postEntity, uploadFile))
 					.collect(Collectors.toList());
 		}
 	
@@ -86,6 +86,20 @@ public class PostServiceImpl implements PostService {
 		post.setFiles(files);
 
 		return post;
+	}
+
+	@Override
+	public void delete(Long id) {
+		PostEntity postEntity = postRepository.findById(id).orElseThrow(() -> new PostNotFoundException(Code.NOT_FOUND, new String[] {"포스트가 존재하지 않습니다."}));
+		
+		postRepository.delete(postEntity);
+	}
+	
+	@Override
+	public PostResponse find(Long id) {
+		PostEntity postEntity = postRepository.findById(id).orElseThrow(() -> new PostNotFoundException(Code.NOT_FOUND, new String[] {"포스트가 존재하지 않습니다."}));
+		
+		return PostMapper.INSTANCE.toDto(postEntity);
 	}
 
 	@Override
@@ -108,12 +122,12 @@ public class PostServiceImpl implements PostService {
 	}
 	
 	@Override
-	public PageResponse<PostResponse> findAllByCategoryId(PaginationUtil paginationUtil, Long id) {
-		categoryRepository.findById(id).orElseThrow(() -> new CategoryNotFoundException(Code.NOT_FOUND, new String[] {"카테고리가 존재하지 않습니다."}));
+	public PageResponse<PostResponse> findAllByCategoryId(Long categoryId, PaginationUtil paginationUtil) {
+		categoryRepository.findById(categoryId).orElseThrow(() -> new CategoryNotFoundException(Code.NOT_FOUND, new String[] {"카테고리가 존재하지 않습니다."}));
 
 		Pageable pageable = paginationUtil.makePageable();
 		
-		Page<PostEntity> posts = postRepository.findByCategoryId(id, pageable);
+		Page<PostEntity> posts = postRepository.findByCategoryId(categoryId, pageable);
 		
 		List<PostEntity> postEntities = posts.getContent();
 		int pageSize = posts.getSize();
@@ -129,14 +143,7 @@ public class PostServiceImpl implements PostService {
 	}
 
 	@Override
-	public PostResponse find(Long id) {
-		PostEntity postEntity = postRepository.findById(id).orElseThrow(() -> new PostNotFoundException(Code.NOT_FOUND, new String[] {"포스트가 존재하지 않습니다."}));
-		
-		return PostMapper.INSTANCE.toDto(postEntity);
-	}
-
-	@Override
-	public PostResponse update(PostUpdateRequest postUpdate, Long id) {
+	public PostResponse update(Long id, PostUpdateRequest postUpdate) {
 		String title = postUpdate.getTitle();
 		String content = postUpdate.getContent();
 		String categoryName = postUpdate.getCategoryName();
@@ -158,14 +165,6 @@ public class PostServiceImpl implements PostService {
 		
 		categoryRepository.save(categoryEntity);
 
-		// TODO: 포스트가 삭제?
 		return PostMapper.INSTANCE.toDto(postRepository.save(postEntity));
-	}
-
-	@Override
-	public void delete(Long id) {
-		PostEntity postEntity = postRepository.findById(id).orElseThrow(() -> new PostNotFoundException(Code.NOT_FOUND, new String[] {"포스트가 존재하지 않습니다."}));
-		
-		postRepository.delete(postEntity);
 	}
 }

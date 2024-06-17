@@ -11,10 +11,10 @@ import com.whooa.blog.post.dto.PostDto.PostResponse;
 
 public interface PostService {
 	/* 인터페이스의 메서드는 기본적으로 public 접근 제한자를 사용하고 정적이다. */
-	public abstract PostResponse create(UserDetailsImpl userDetailsImpl, PostCreateRequest postCreate, MultipartFile[] uploadFiles);
+	public abstract PostResponse create(PostCreateRequest postCreate, MultipartFile[] uploadFiles, UserDetailsImpl userDetailsImpl);
+	public abstract void delete(Long id);
 	public abstract PostResponse find(Long id);
 	public abstract PageResponse<PostResponse> findAll(PaginationUtil paginationUtil);
-	public abstract PageResponse<PostResponse> findAllByCategoryId(PaginationUtil paginationUtil, Long id);
-	public abstract PostResponse update(PostUpdateRequest postUpdate, Long id);
-	public abstract void delete(Long id);
+	public abstract PageResponse<PostResponse> findAllByCategoryId(Long categoryId, PaginationUtil paginationUtil);
+	public abstract PostResponse update(Long id, PostUpdateRequest postUpdate);
 }

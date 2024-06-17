@@ -10,9 +10,9 @@ import com.whooa.blog.util.PaginationUtil;
 import com.whooa.blog.comment.dto.CommentDto.CommentResponse;
 
 public interface CommentService {
-	public abstract CommentResponse create(UserDetailsImpl userDetailsImpl, Long postId, CommentCreateRequest commentCreate);
+	public abstract CommentResponse create(Long postId, CommentCreateRequest commentCreate, UserDetailsImpl userDetailsImpl);
+	public abstract void delete(Long id, Long postId, CommentDeleteRequest commentDelete, UserDetailsImpl userDetailsImpl);
 	public abstract PageResponse<CommentResponse> findAllByPostId(Long postId, PaginationUtil paginationUtil);
-	public abstract CommentResponse update(Long postId, Long commentId, CommentUpdateRequest commentUpdate);
-	public abstract void delete(Long postId, Long commentId, CommentDeleteRequest commentDelete);
-	public abstract CommentResponse reply(Long postId, Long commentId, CommentCreateRequest commentCreate);
+	public abstract CommentResponse reply(Long id, Long postId, CommentCreateRequest commentCreate, UserDetailsImpl userDetailsImpl);
+	public abstract CommentResponse update(Long id, Long postId, CommentUpdateRequest commentUpdate, UserDetailsImpl userDetailsImpl);
 }

@@ -44,16 +44,16 @@ public class JwtAuthEntryPoint implements AuthenticationEntryPoint {
 
 	// TODO: 경우에 따른 예외 처리.
 	@Override
-	public void commence(HttpServletRequest request, HttpServletResponse response,
-			 AuthenticationException authException) throws IOException, ServletException {
+	public void commence(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse,
+			 AuthenticationException authenticationException) throws IOException, ServletException {
 		logger.error("JwtAuthEntryPoint: 인증되지 않은 사용자입니다.");
 				
 		ApiResponse<UnauthenticatedUserException> failure = ApiResponse.handleFailure(Code.UNAUTHORIZED.getCode(), Code.UNAUTHORIZED.getMessage(), null, new String[] {"로그인을 하셔야 합니다."});
 		String serializedFailure = objectMapper.writeValueAsString(failure);
 		
-		response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-		response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-		response.setCharacterEncoding(StandardCharsets.UTF_8.name());
-		response.getWriter().write(serializedFailure);
+		httpServletResponse.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+		httpServletResponse.setContentType(MediaType.APPLICATION_JSON_VALUE);
+		httpServletResponse.setCharacterEncoding(StandardCharsets.UTF_8.name());
+		httpServletResponse.getWriter().write(serializedFailure);
 	}
 }

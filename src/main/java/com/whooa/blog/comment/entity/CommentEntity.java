@@ -14,11 +14,15 @@ import jakarta.persistence.Table;
 @Entity
 @Table(name = "comment")
 public class CommentEntity extends AbstractEntity {
-	@Column(length = 300, nullable = false)
-	private String name;
-	
 	@Column(length = 500, nullable = false)
 	private String content;
+	
+	@Column(length = 300, nullable = false)
+	private String name;
+
+	/* 대댓글은 댓글이며 부모 댓글의 자식이기 때문에 엔티티로 만들지 않는다. */
+	@Column(name = "parent_id", nullable = true)
+	private Long parentId;
 	
 	@Column(length = 500, nullable = false)
 	private String password;
@@ -35,43 +39,49 @@ public class CommentEntity extends AbstractEntity {
 	@JoinColumn(name = "user_id", nullable = false)
 	private UserEntity user;
 	
-	/* 대댓글은 댓글이며 부모 댓글의 자식이기 때문에 엔티티로 만들지 않는다. */
-	@Column(name = "parent_id", nullable = true)
-	private Long parentId;
-	
-	public CommentEntity(Long id, String name, String content, Long parentId, String password, PostEntity post) {
+	public CommentEntity(Long id, String content, String name, Long parentId, String password, PostEntity post, UserEntity user) {
 		super(id);
 		
-		this.name = name;
 		this.content = content;
+		this.name = name;
 		this.parentId = parentId;
 		this.password = password;
 		this.post = post;
+		this.user = user;
 	}
 
-	// TODO: 생성자 정리.
-	public CommentEntity(String name, String content, Long parentId, String password, PostEntity post) {
-		this(-1L, name, content, parentId, password, post);
-	}
-	
-	public CommentEntity(Long id, String name, String content, Long parentId) {
-		this(id, name, content, parentId, null, null);
-	}
-	
-	public CommentEntity(Long id, String name, String content, String password) {
-		this(id, name, content, -1L, password, null);
-	}
-	
-	public CommentEntity(String name, String content, Long parentId) {
-		this(-1L, name, content, parentId, null, null);
-	}
-		
-	public CommentEntity(String name, String content, String password) {
-		this(-1L, name, content, -1L, password, null);
-	}
-	
 	public CommentEntity() {
 		super(-1L);
+	}
+	
+	public CommentEntity content(String content) {
+		this.content = content;
+		return this;
+	}
+	
+	public CommentEntity name(String name) {
+		this.name = name;
+		return this;
+	}
+	
+	public CommentEntity parentId(Long parentId) {
+		this.parentId = parentId;
+		return this;
+	}
+	
+	public CommentEntity password(String password) {
+		this.password = password;
+		return this;
+	}
+	
+	public CommentEntity post(PostEntity post) {
+		this.post = post;
+		return this;
+	}
+	
+	public CommentEntity user(UserEntity user) {
+		this.user = user;
+		return this;
 	}
 
 	public Long getId() {
@@ -82,6 +92,14 @@ public class CommentEntity extends AbstractEntity {
 		super.setId(id);
 	}
 	
+	public String getContent() {
+		return content;
+	}
+
+	public void setContent(String content) {
+		this.content = content;
+	}
+	
 	public String getName() {
 		return name;
 	}
@@ -90,12 +108,12 @@ public class CommentEntity extends AbstractEntity {
 		this.name = name;
 	}
 
-	public String getContent() {
-		return content;
+	public Long getParentId() {
+		return parentId;
 	}
 
-	public void setContent(String content) {
-		this.content = content;
+	public void setParentId(Long parentId) {
+		this.parentId = parentId;
 	}
 	
 	public String getPassword() {
@@ -132,17 +150,9 @@ public class CommentEntity extends AbstractEntity {
 		user.getComments().add(this);
 	}
 
-	public Long getParentId() {
-		return parentId;
-	}
-
-	public void setParentId(Long parentId) {
-		this.parentId = parentId;
-	}
-
 	@Override
 	public String toString() {
-		return "CommentEntity [id=" + super.getId() + ", name=" + name + ", content=" + content + ", password=" + password + ", post=" + post
-				+ ", user=" + user + ", parentId=" + parentId + "]";
+		return "CommentEntity [id=" + super.getId() + ", content=" + content + ", name=" + name + ", parentId=" + parentId + ", password="
+				+ password + ", post=" + post + ", user=" + user + "]";
 	}
 }

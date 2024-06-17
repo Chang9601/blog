@@ -44,9 +44,9 @@ public class JwtUtil {
 		}
 		
 		// TODO: 오류 던져야 하나?
-		public boolean verify(String token) {
+		public boolean verify(String jwt) {
 			try {
-				Jwts.parserBuilder().setSigningKey(key()).build().parse(token);
+				Jwts.parserBuilder().setSigningKey(key()).build().parse(jwt);
 				
 				return true;
 			} catch (MalformedJwtException exception) {
@@ -64,19 +64,21 @@ public class JwtUtil {
 			return false;
 		}
 		
-		public String parseEmail(String token) {
-			return parseClaim(token, Claims::getSubject);
+		public String parseEmail(String jwt) {
+			return parseClaim(jwt, Claims::getSubject);
 		}
 		
-		public String parseRequest(HttpServletRequest request) {
-			String bearer = request.getHeader(HttpHeaders.AUTHORIZATION);
-			
-			if (StringUtils.hasText(bearer) && bearer.startsWith("Bearer " )) {
-				return bearer.substring(7);
-			}
-			
-			return null;
-		}
+	    /*  Authorinzation 헤더의 Beaer 토큰을 사용하는 경우. */
+	    //
+		// public String parseHttpServletRequest(HttpServletRequest httpServletRequest) {
+		//	 String bearer = httpServletRequest.getHeader(HttpHeaders.AUTHORIZATION);
+		//	
+		//	 if (StringUtils.hasText(bearer) && bearer.startsWith("Bearer " )) {
+		//		return bearer.substring(7);
+		//	 }
+		//	
+		//	 return null;
+		//  }
 		
 		private String build(String email, long expiration) {
 			Claims claims = Jwts.claims().setSubject(email);
@@ -95,14 +97,14 @@ public class JwtUtil {
 			return Keys.hmacShaKeyFor(Decoders.BASE64.decode(JWT_SECRET));
 		}
 		
-		private <T> T parseClaim(String token, Function<Claims, T> claimResolver) {
-			Claims claims = parseAllClaims(token);
+		private <T> T parseClaim(String jwt, Function<Claims, T> claimResolver) {
+			Claims claims = parseAllClaims(jwt);
 			
 			return claimResolver.apply(claims);
 		}
 		
-		private Claims parseAllClaims(String token) {
-			return Jwts.parserBuilder().setSigningKey(key()).build().parseClaimsJws(token).getBody();
+		private Claims parseAllClaims(String jwt) {
+			return Jwts.parserBuilder().setSigningKey(key()).build().parseClaimsJws(jwt).getBody();
 		}
 		
 		private enum JwtExpiration {

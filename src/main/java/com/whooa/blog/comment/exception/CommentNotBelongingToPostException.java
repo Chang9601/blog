@@ -4,8 +4,7 @@ import com.whooa.blog.common.code.Code;
 import com.whooa.blog.common.exception.AbstractException;
 
 public class CommentNotBelongingToPostException extends AbstractException {
-
-	public CommentNotBelongingToPostException(Code exception,  String[] details) {
-		super(exception, details);
+	public CommentNotBelongingToPostException(Code code,  String[] details) {
+		super(code, details);
 	}
 }

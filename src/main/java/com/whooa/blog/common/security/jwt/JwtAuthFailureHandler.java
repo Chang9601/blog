@@ -33,29 +33,29 @@ public class JwtAuthFailureHandler implements AuthenticationFailureHandler {
 	}
 	
 	@Override
-	public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response,
-			 AuthenticationException exception) throws IOException, ServletException {
+	public void onAuthenticationFailure(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse,
+			 AuthenticationException authenticationException) throws IOException, ServletException {
 		logger.error("JwtAuthFailureHandler: 인증이 실패했습니다.");
 		
 		ApiResponse<?> failure;
 		
-		if (exception instanceof BadCredentialsException) {
-			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+		if (authenticationException instanceof BadCredentialsException) {
+			httpServletResponse.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 			failure = ApiResponse.handleFailure(Code.BAD_REQUEST.getCode(), Code.BAD_REQUEST.getMessage(), null, new String[] {"이메일 혹은 비밀번호가 유효하지 않습니다."});
-		} else if (exception instanceof UsernameNotFoundException) {
-			response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+		} else if (authenticationException instanceof UsernameNotFoundException) {
+			httpServletResponse.setStatus(HttpServletResponse.SC_NOT_FOUND);
 			failure = ApiResponse.handleFailure(Code.NOT_FOUND.getCode(), Code.NOT_FOUND.getMessage(), null, new String[] {"이메일과 일치하는 사용자가 존재하지 않습니다."});
-		} else if (exception instanceof InternalAuthenticationServiceException) {
-			response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+		} else if (authenticationException instanceof InternalAuthenticationServiceException) {
+			httpServletResponse.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
 			failure = ApiResponse.handleFailure(Code.INTERNAL_SERVER_ERROR.getCode(), Code.INTERNAL_SERVER_ERROR.getMessage(), null, new String[] {"시스템 오류가 발생했습니다."});
 		} else {
-			response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+			httpServletResponse.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
 			failure = ApiResponse.handleFailure(Code.INTERNAL_SERVER_ERROR.getCode(), Code.INTERNAL_SERVER_ERROR.getMessage(), null, new String[] {"알 수 없는 오류가 발생했습니다."});
 		}
 		
 		String serializedFailure = objectMapper.writeValueAsString(failure);
-		response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-		response.setCharacterEncoding(StandardCharsets.UTF_8.name());
-		response.getWriter().write(serializedFailure);
+		httpServletResponse.setContentType(MediaType.APPLICATION_JSON_VALUE);
+		httpServletResponse.setCharacterEncoding(StandardCharsets.UTF_8.name());
+		httpServletResponse.getWriter().write(serializedFailure);
 	}
 }

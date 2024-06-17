@@ -25,8 +25,14 @@ import com.whooa.blog.post.dto.PostDto.PostUpdateRequest;
 import com.whooa.blog.post.service.PostService;
 import com.whooa.blog.util.PaginationUtil;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 
+@Tag(
+	name = "포스트 API"
+)
 /*
  * @Controller 어노테이션은 클래스를 Spring MVC 컨트롤러로 만든다. 
  * @ResponseBody 어노테이션은 Java 객체를 JSON으로 변환하고 JSON이 다시 HTTP 응답으로 변환된다.
@@ -41,6 +47,13 @@ public class PostController {
 		this.postService = postService;
 	}
 	
+	
+	@Operation(
+		summary = "포스트 생성"
+	)
+	@SecurityRequirement(
+		name = "JWT Cookie Authentication"
+	)	
 	/*
 	 * @Valid 어노테이션은 Hibernate 검증자(validator)를 활성화한다.
 	 * 
@@ -57,41 +70,62 @@ public class PostController {
 	 */
 	@ResponseStatus(value = HttpStatus.CREATED)
 	@PostMapping(consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
-	public ApiResponse<PostResponse> createPost(@AuthenticationPrincipal UserDetailsImpl userDetailsImpl, @Valid @RequestPart(name = "post") PostCreateRequest postCreate, @RequestPart(name = "files", required = false) MultipartFile[] uploadFiles) {		
-		return ApiResponse.handleSuccess(Code.CREATED.getCode(), Code.CREATED.getMessage(), postService.create(userDetailsImpl, postCreate, uploadFiles), new String[] {"포스트를 생성했습니다."});
+	public ApiResponse<PostResponse> createPost(@Valid @RequestPart(name = "post") PostCreateRequest postCreate, @RequestPart(name = "files", required = false) MultipartFile[] uploadFiles, @AuthenticationPrincipal UserDetailsImpl userDetailsImpl) {		
+		return ApiResponse.handleSuccess(Code.CREATED.getCode(), Code.CREATED.getMessage(), postService.create(postCreate, uploadFiles, userDetailsImpl), new String[] {"포스트를 생성했습니다."});
 	}
-	
+
+	@Operation(
+		summary = "포스트 삭제"
+	)
+	@SecurityRequirement(
+		name = "JWT Cookie Authentication"
+	)
+	@ResponseStatus(value = HttpStatus.OK)
+	@DeleteMapping("/{id}")
+	public ApiResponse<PostResponse> deletePost(@PathVariable Long id, @AuthenticationPrincipal UserDetailsImpl userDetailsImpl) {
+		postService.delete(id);
+				
+		return ApiResponse.handleSuccess(Code.NO_CONTENT.getCode(), Code.NO_CONTENT.getMessage(), null, new String[] {"포스트가 삭제되었습니다."});
+	}
+
+	@Operation(
+		summary = "포스트 목록 조회"
+	)
 	@ResponseStatus(value = HttpStatus.OK)
 	@GetMapping
 	public ApiResponse<PageResponse<PostResponse>> getPosts(PaginationUtil paginationUtil) {		
 		return ApiResponse.handleSuccess(Code.OK.getCode(), Code.OK.getMessage(), postService.findAll(paginationUtil), new String[] {"포스트 목록을 조회했습니다."});
 	}
 
+	@Operation(
+		summary = "카테고리에 속하는 포스트 목록 조회"
+	)
 	@ResponseStatus(value = HttpStatus.OK)
-	@GetMapping("/category/{id}")
-	public ApiResponse<PageResponse<PostResponse>> getPostsByCategoryName(PaginationUtil paginationUtil, @PathVariable Long id) {		
-		return ApiResponse.handleSuccess(Code.OK.getCode(), Code.OK.getMessage(), postService.findAllByCategoryId(paginationUtil, id), new String[] {"포스트 목록을 조회했습니다."});
+	@GetMapping("/categories/{id}")
+	public ApiResponse<PageResponse<PostResponse>> getPostsByCategoryId(@PathVariable Long categoryId, PaginationUtil paginationUtil) {		
+		return ApiResponse.handleSuccess(Code.OK.getCode(), Code.OK.getMessage(), postService.findAllByCategoryId(categoryId, paginationUtil), new String[] {"카테고리 속하는 포스트 목록을 조회했습니다."});
 	}
 	
+	@Operation(
+		summary = "포스트 조회"
+	)
 	/* @PathVariable 어노테이션은 메서드 인자를 URI 템플릿 변수의 값에 바인딩한다. */
 	@ResponseStatus(value = HttpStatus.OK)
 	@GetMapping("/{id}")
 	public ApiResponse<PostResponse> getPost(@PathVariable Long id) {		
 		return ApiResponse.handleSuccess(Code.OK.getCode(), Code.OK.getMessage(), postService.find(id), new String[] {"포스트를 조회했습니다."});
 	}
-	
+
+	@Operation(
+		summary = "포스트 수정"
+	)
+	@SecurityRequirement(
+		name = "JWT Cookie Authentication"
+	)
 	/* @RequestBody 어노테이션은 내부적으로 Spring이 제공하는 HttpMessageConverter를 사용하여 JSON을 Java 객체로 변환한다. */
 	@ResponseStatus(value = HttpStatus.OK)
 	@PatchMapping("/{id}")
-	public ApiResponse<PostResponse> updatePost(@Valid @RequestBody PostUpdateRequest postUpdate, @PathVariable Long id) {		
-		return ApiResponse.handleSuccess(Code.OK.getCode(), Code.OK.getMessage(), postService.update(postUpdate, id), new String[] {"포스트를 수정했습니다."});
+	public ApiResponse<PostResponse> updatePost(@PathVariable Long id, @Valid @RequestBody PostUpdateRequest postUpdate, @AuthenticationPrincipal UserDetailsImpl userDetailsImpl) {		
+		return ApiResponse.handleSuccess(Code.OK.getCode(), Code.OK.getMessage(), postService.update(id, postUpdate), new String[] {"포스트를 수정했습니다."});
 	}
-	
-	@ResponseStatus(value = HttpStatus.OK)
-	@DeleteMapping("/{id}")
-	public ApiResponse<PostResponse> deletePost(@PathVariable Long id) {
-		postService.delete(id);
-				
-		return ApiResponse.handleSuccess(Code.NO_CONTENT.getCode(), Code.NO_CONTENT.getMessage(), null, new String[] {"포스트가 삭제되었습니다."});
-	}	
 }

@@ -13,6 +13,8 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+import com.whooa.blog.common.type.JwtType;
+
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
@@ -44,17 +46,17 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 	}
 
 	@Override
-	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+	protected void doFilterInternal(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse, FilterChain filterChain)
 			throws ServletException, IOException {
 
 		String accessToken = null;
-		Cookie[] cookies = request.getCookies();
+		Cookie[] cookies = httpServletRequest.getCookies();
 		
 		if (cookies != null) {
-			for (Cookie cookie: request.getCookies()) {
+			for (Cookie cookie: httpServletRequest.getCookies()) {
 				String name = cookie.getName();
 				
-				if (name.equals("AccessToken")) {
+				if (name.equals(JwtType.ACCESS_TOKEN.getType())) {
 					accessToken = cookie.getValue();
 				}
 			}
@@ -84,16 +86,16 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 					 */
 					// UserResponse user = userService.findByEmail(email);
 					 
-					UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-					authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+					UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+					usernamePasswordAuthenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(httpServletRequest));
 					
-					SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+					SecurityContextHolder.getContext().setAuthentication(usernamePasswordAuthenticationToken);
 				} catch (UsernameNotFoundException exception) {
 					logger.error("UsernameNotFoundException: {}", exception.getMessage());
 				}
 			}
 		}
 		
-		filterChain.doFilter(request, response);
+		filterChain.doFilter(httpServletRequest, httpServletResponse);
 	}
 }

@@ -24,12 +24,12 @@ import com.whooa.blog.util.UserRoleMapper;
 
 @Service
 public class UserServiceImpl implements UserService {
-	private UserRepository userRepository;
 	private BCryptPasswordEncoder bCryptPasswordEncoder;
+	private UserRepository userRepository;
 	
-	public UserServiceImpl(UserRepository userRepository, BCryptPasswordEncoder bCryptPasswordEncoder) {
-		this.userRepository = userRepository;
+	public UserServiceImpl( BCryptPasswordEncoder bCryptPasswordEncoder, UserRepository userRepository) {
 		this.bCryptPasswordEncoder = bCryptPasswordEncoder;
+		this.userRepository = userRepository;
 	}
 	
 	@Override

@@ -1,8 +1,19 @@
 package com.whooa.blog.category.dto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotBlank;
+
 public class CategoryDto {
 
+	@Schema(
+		description = "카테고리 생성 DTO"
+	)	
 	public static class CategoryCreateRequest {
+		
+		@Schema(
+			description = "카테고리 이름"
+		)
+		@NotBlank(message = "이름을 입력하세요.")
 		private String name;
 
 		public CategoryCreateRequest(String name) {
@@ -24,8 +35,15 @@ public class CategoryDto {
 			return "CategoryCreateRequest [name=" + name + "]";
 		}
 	}
-
+	
+	@Schema(
+		description = "카테고리 수정 DTO"
+	)	
 	public static class CategoryUpdateRequest {
+		@Schema(
+			description = "카테고리 이름"
+		)
+		@NotBlank(message = "이름을 입력하세요.")
 		private String name;
 
 		public CategoryUpdateRequest(String name) {
@@ -48,8 +66,17 @@ public class CategoryDto {
 		}
 	}	
 
+	@Schema(
+		description = "카테고리 응답 DTO"
+	)	
 	public static class CategoryResponse {
+		@Schema(
+			description = "카테고리 아이디"
+		)
 		private Long id;
+		@Schema(
+			description = "카테고리 이름"
+		)
 		private String name;
 		
 		public CategoryResponse(Long id, String name) {

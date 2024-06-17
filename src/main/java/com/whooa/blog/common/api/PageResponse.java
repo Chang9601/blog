@@ -24,35 +24,63 @@ public class PageResponse<T> {
 
 	public static <T> PageResponse<T> handleResponse(List<T> content, int pageSize, int pageNo, long totalElements, int totalPages, boolean isLast,
 			 boolean isFirst) {
-		return new PageResponse<>(content, pageSize, pageNo, totalElements, totalPages, isLast, isFirst);
+		return new PageResponse<T>(content, pageSize, pageNo, totalElements, totalPages, isLast, isFirst);
 	}
 	
 	public List<T> getContent() {
 		return content;
-	}	
+	}
+
+	public void setContent(List<T> content) {
+		this.content = content;
+	}
 
 	public int getPageSize() {
 		return pageSize;
+	}
+
+	public void setPageSize(int pageSize) {
+		this.pageSize = pageSize;
 	}
 
 	public int getPageNo() {
 		return pageNo;
 	}
 
+	public void setPageNo(int pageNo) {
+		this.pageNo = pageNo;
+	}
+
 	public long getTotalElements() {
 		return totalElements;
+	}
+
+	public void setTotalElements(long totalElements) {
+		this.totalElements = totalElements;
 	}
 
 	public int getTotalPages() {
 		return totalPages;
 	}
 
+	public void setTotalPages(int totalPages) {
+		this.totalPages = totalPages;
+	}
+
 	public boolean isLast() {
 		return isLast;
 	}
 
+	public void setLast(boolean isLast) {
+		this.isLast = isLast;
+	}
+
 	public boolean isFirst() {
 		return isFirst;
+	}
+
+	public void setFirst(boolean isFirst) {
+		this.isFirst = isFirst;
 	}
 
 	@Override

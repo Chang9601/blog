@@ -4,7 +4,7 @@ import com.whooa.blog.common.code.Code;
 import com.whooa.blog.common.exception.AbstractException;
 
 public class DuplicateCategoryException extends AbstractException {
-	public DuplicateCategoryException(Code exception, String[] details) {
-		super(exception, details);
+	public DuplicateCategoryException(Code code, String[] details) {
+		super(code, details);
 	}
 }

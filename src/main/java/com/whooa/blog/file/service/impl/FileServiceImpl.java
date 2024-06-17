@@ -58,7 +58,7 @@ public class FileServiceImpl implements FileService {
 	}
 
 	@Override
-	public File upload(MultipartFile uploadFile, PostEntity postEntity) {
+	public File upload(PostEntity postEntity, MultipartFile uploadFile) {
 		/* 정규화된 경로를 생성하여 "path/.."과 내부 단순 점과 같은 시퀀스를 제거한다. */	
 		String originalFilename = StringUtils.cleanPath(uploadFile.getOriginalFilename());
 		
@@ -86,12 +86,12 @@ public class FileServiceImpl implements FileService {
 			String fileExtension = getExtension(filename);
 			String mimeType = uploadFile.getContentType();
 			
-			File file = new File(filename, filePath, fileSize, fileExtension, mimeType);
+			File file =  new File(fileExtension, mimeType, filename, filePath, fileSize);
 			postEntity.getFiles().add(file);
 						
 			return file;
 		} catch (IOException exception) {
-			throw new FileNotSavedException(Code.FILE_NOT_STORED, new String[] {"파일 " + originalFilename + "을 저장할 수 없습니다."});
+			throw new FileNotSavedException(Code.FILE_NOT_SAVED, new String[] {"파일 " + originalFilename + "을 저장할 수 없습니다."});
 		}
 	}
 

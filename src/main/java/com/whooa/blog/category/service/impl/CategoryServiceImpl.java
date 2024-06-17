@@ -41,6 +41,13 @@ public class CategoryServiceImpl implements CategoryService {
 	}
 
 	@Override
+	public void delete(Long id) {
+		CategoryEntity categoryEntity = categoryRepository.findById(id).orElseThrow(() -> new CategoryNotFoundException(Code.NOT_FOUND, new String[] {"카테고리가 존재하지 않습니다."}));
+
+		categoryRepository.delete(categoryEntity);		
+	}
+	
+	@Override
 	public CategoryResponse find(Long id) {
 		CategoryEntity categoryEntity = categoryRepository.findById(id).orElseThrow(() -> new CategoryNotFoundException(Code.NOT_FOUND, new String[] {"카테고리가 존재하지 않습니다."}));
 		
@@ -82,10 +89,4 @@ public class CategoryServiceImpl implements CategoryService {
 		return CategoryMapper.INSTANCE.toDto(categoryRepository.save(categoryEntity));
 	}
 
-	@Override
-	public void delete(Long id) {
-		CategoryEntity categoryEntity = categoryRepository.findById(id).orElseThrow(() -> new CategoryNotFoundException(Code.NOT_FOUND, new String[] {"카테고리가 존재하지 않습니다."}));
-
-		categoryRepository.delete(categoryEntity);		
-	}
 }

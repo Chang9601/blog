@@ -22,11 +22,11 @@ import jakarta.persistence.Table;
 @Entity
 @Table(name = "post")
 public class PostEntity extends AbstractEntity {
-	@Column(length = 300, nullable = false)
-	private String title;
-	
 	@Column(length = 2000, nullable = false)
 	private String content;
+	
+	@Column(length = 300, nullable = false)
+	private String title;
 	
 	/*
 	 * 데이터세트의 관계를 결정하는 관계형 측면에서 참조가 아니라 삽입을 사용한다. 즉, 일대다(구체적으로, 1:소.).
@@ -36,13 +36,13 @@ public class PostEntity extends AbstractEntity {
 	@ElementCollection
 	@CollectionTable(name = "file", joinColumns = @JoinColumn(name = "post_id"))
 	private List<File> files = new ArrayList<File>();
-	
-	@OneToMany(mappedBy = "post")
-	private List<CommentEntity> comments = new ArrayList<CommentEntity>();
-	
+
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "category_id", nullable = false)
 	private CategoryEntity category;
+	
+	@OneToMany(mappedBy = "post")
+	private List<CommentEntity> comments = new ArrayList<CommentEntity>();
 	
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "user_id", nullable = false)
@@ -52,16 +52,13 @@ public class PostEntity extends AbstractEntity {
 	 * List, Set과 같은 자료구조는 엔티티 생성 시 바로 초기화를 하기 때문에 생성자에 포함하지 않는다.
 	 * 포함하면 게터에서 NullPointerException이 발생한다. 
 	 */
-	public PostEntity(Long id, String title, String content) {
+	public PostEntity(Long id, String content, String title) {
 		super(id);
 		
-		this.title = title;
 		this.content = content;
+		this.title = title;
 	}
 
-	public PostEntity(String title, String content) {	
-		this(-1L, title, content);
-	}
 	
 	public PostEntity() {
 		super(-1L);
@@ -75,14 +72,6 @@ public class PostEntity extends AbstractEntity {
 		super.setId(id);
 	}
 
-	public String getTitle() {
-		return title;
-	}
-
-	public void setTitle(String title) {
-		this.title = title;
-	}
-	
 	public String getContent() {
 		return content;
 	}
@@ -91,20 +80,20 @@ public class PostEntity extends AbstractEntity {
 		this.content = content;
 	}
 	
+	public String getTitle() {
+		return title;
+	}
+
+	public void setTitle(String title) {
+		this.title = title;
+	}
+	
 	public List<File> getFiles() {
 		return files;
 	}
 
 	public void setFiles(List<File> files) {
 		this.files = files;
-	}
-	
-	public List<CommentEntity> getComments() {
-		return comments;
-	}
-
-	public void setComments(List<CommentEntity> comments) {
-		this.comments = comments;
 	}
 	
 	public CategoryEntity getCategory() {
@@ -118,6 +107,14 @@ public class PostEntity extends AbstractEntity {
 		
 		this.category = category;
 		category.getPosts().add(this);
+	}
+	
+	public List<CommentEntity> getComments() {
+		return comments;
+	}
+
+	public void setComments(List<CommentEntity> comments) {
+		this.comments = comments;
 	}
 	
 	public UserEntity getUser() {
@@ -135,7 +132,7 @@ public class PostEntity extends AbstractEntity {
 
 	@Override
 	public String toString() {
-		return "PostEntity [id=" + super.getId() + ", title=" + title + ", content=" + content
-				+ ", comments=" + comments + ", files=" + files + "]";
+		return "PostEntity [id=" + super.getId() + ", content=" + content + ", title=" + title + ", files=" + files + ", category=" + category
+				+ ", comments=" + comments + ", user=" + user + "]";
 	}
 }

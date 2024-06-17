@@ -20,38 +20,22 @@ import jakarta.validation.constraints.NotBlank;
 public class PostDto {
 
 	public static class PostCreateRequest {
-		@NotBlank(message = "제목을 입력하세요.")
-		private String title;
-
-		@NotBlank(message = "내용을 입력하세요.")
-		private String content;
-		
 		@NotBlank(message = "카테고리를 입력하세요.")
 		private String categoryName;
 		
-		public PostCreateRequest(String title, String content, String categoryName) {
-			this.title = title;
-			this.content = content;
+		@NotBlank(message = "내용을 입력하세요.")
+		private String content;
+		
+		@NotBlank(message = "제목을 입력하세요.")
+		private String title;
+		
+		public PostCreateRequest(String categoryName, String content, String title) {
 			this.categoryName = categoryName;
-		}
-		
-		public PostCreateRequest() {}
-		
-		public String getTitle() {
-			return title;
-		}
-		
-		public void setTitle(String title) {
+			this.content = content;
 			this.title = title;
 		}
-		
-		public String getContent() {
-			return content;
-		}
-		
-		public void setContent(String content) {
-			this.content = content;
-		}
+
+		public PostCreateRequest() {}
 		
 		public String getCategoryName() {
 			return categoryName;
@@ -61,41 +45,41 @@ public class PostDto {
 			this.categoryName = categoryName;
 		}
 
+		public String getContent() {
+			return content;
+		}
+
+		public void setContent(String content) {
+			this.content = content;
+		}
+
+		public String getTitle() {
+			return title;
+		}
+
+		public void setTitle(String title) {
+			this.title = title;
+		}
+
 		@Override
 		public String toString() {
-			return "PostCreateRequest [title=" + title + ", content=" + content + ", categoryName=" + categoryName
+			return "PostCreateRequest [categoryName=" + categoryName + ", content=" + content + ", title=" + title
 					+ "]";
 		}
 	}
 	
 	public static class PostUpdateRequest {
-		private String title;
-		private String content;
 		private String categoryName;
+		private String content;
+		private String title;
 
-		public PostUpdateRequest(String title, String content, String categoryName) {
-			this.title = title;
-			this.content = content;
+		public PostUpdateRequest(String categoryName, String content, String title) {
 			this.categoryName = categoryName;
-		}
-		
-		public PostUpdateRequest() {}
-		
-		public String getTitle() {
-			return title;
-		}
-		
-		public void setTitle(String title) {
+			this.content = content;
 			this.title = title;
 		}
-		
-		public String getContent() {
-			return content;
-		}
-		
-		public void setContent(String content) {
-			this.content = content;
-		}
+
+		public PostUpdateRequest() {}
 		
 		public String getCategoryName() {
 			return categoryName;
@@ -105,70 +89,83 @@ public class PostDto {
 			this.categoryName = categoryName;
 		}
 
+		public String getContent() {
+			return content;
+		}
+
+		public void setContent(String content) {
+			this.content = content;
+		}
+
+		public String getTitle() {
+			return title;
+		}
+
+		public void setTitle(String title) {
+			this.title = title;
+		}
+
 		@Override
 		public String toString() {
-			return "PostUpdateRequest [title=" + title + ", content=" + content + ", categoryName=" + categoryName
+			return "PostUpdateRequest [categoryName=" + categoryName + ", content=" + content + ", title=" + title
 					+ "]";
-		}	
+		}
 	}
 	
 	public static class PostResponse {
 		private Long id;
-		private String title;
-		private String content;
+		private CategoryResponse category;
 		/*
 		 * DTO의 필드로 엔티티를 사용하게 되면 엔티티는 DTO에서 해야 할 일을 같이 해야 하기 때문에 변경에 대한 이유가 늘어난다.
 		 * 다시말해, 이는 유지보수적인 측면에서 좋지 않기 때문에 DTO를 사용한다.
 		 */
 		private List<CommentResponse> comments;
+		private String content;
 		private List<File> files;
-		private CategoryResponse category;
+		private String title;
 
-		public PostResponse(Long id, String title, String content,  List<CommentResponse> comments, List<File> files, CategoryResponse category) {
+		public PostResponse(Long id, CategoryResponse category, List<CommentResponse> comments, String content,
+				List<File> files, String title) {
 			this.id = id;
-			this.title = title;
-			this.content = content;
-			this.comments = comments;
-			this.files = files;
 			this.category = category;
+			this.comments = comments;
+			this.content = content;
+			this.files = files;
+			this.title = title;
 		}
 
-		public PostResponse(Long id, String title, String content) {
-			this(id, title, content, null, null, null);
-		}
-		
 		public PostResponse() {}
 
 		public Long getId() {
 			return id;
 		}
-		
+
 		public void setId(Long id) {
 			this.id = id;
 		}
-		
-		public String getTitle() {
-			return title;
+
+		public CategoryResponse getCategory() {
+			return category;
 		}
-		
-		public void setTitle(String title) {
-			this.title = title;
+
+		public void setCategory(CategoryResponse category) {
+			this.category = category;
 		}
-		
-		public String getContent() {
-			return content;
-		}
-		
-		public void setContent(String content) {
-			this.content = content;
-		}
-		
+
 		public List<CommentResponse> getComments() {
 			return comments;
 		}
 
 		public void setComments(List<CommentResponse> comments) {
 			this.comments = comments;
+		}
+
+		public String getContent() {
+			return content;
+		}
+
+		public void setContent(String content) {
+			this.content = content;
 		}
 
 		public List<File> getFiles() {
@@ -178,19 +175,19 @@ public class PostDto {
 		public void setFiles(List<File> files) {
 			this.files = files;
 		}
-		
-		public CategoryResponse getCategory() {
-			return category;
+
+		public String getTitle() {
+			return title;
 		}
 
-		public void setCategory(CategoryResponse category) {
-			this.category = category;
+		public void setTitle(String title) {
+			this.title = title;
 		}
 
 		@Override
 		public String toString() {
-			return "PostResponse [id=" + id + ", title=" + title + ", content=" + content + ", comments=" + comments
-					+ ", files=" + files + ", category=" + category + "]";
+			return "PostResponse [id=" + id + ", category=" + category + ", comments=" + comments + ", content="
+					+ content + ", files=" + files + ", title=" + title + "]";
 		}
 	}
 }

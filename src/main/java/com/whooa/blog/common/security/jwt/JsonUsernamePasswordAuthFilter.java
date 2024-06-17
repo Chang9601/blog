@@ -47,17 +47,17 @@ public class JsonUsernamePasswordAuthFilter extends AbstractAuthenticationProces
 
 	/* attemptAuthentication() 메서드는 요청에서 인증 정보를 가져오고 AuthenticationManager 클래스에 인증을 위임한다. */
 	@Override
-	public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response)
+	public Authentication attemptAuthentication(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse)
 			throws AuthenticationException, IOException, ServletException {
-		if (this.postOnly && !request.getMethod().equals("POST")) {
-			throw new AuthenticationServiceException("지원되지 않는 인증 메서드입니다: " + request.getMethod());
+		if (this.postOnly && !httpServletRequest.getMethod().equals("POST")) {
+			throw new AuthenticationServiceException("지원되지 않는 인증 메서드입니다: " + httpServletRequest.getMethod());
 		}
 		
-		if (request.getContentType() == null || !request.getContentType().equals(MediaType.APPLICATION_JSON_VALUE)) {
-			throw new AuthenticationServiceException("지원되지 않는 인증 MIME 타입입니다: " + request.getContentType());	
+		if (httpServletRequest.getContentType() == null || !httpServletRequest.getContentType().equals(MediaType.APPLICATION_JSON_VALUE)) {
+			throw new AuthenticationServiceException("지원되지 않는 인증 MIME 타입입니다: " + httpServletRequest.getContentType());	
 		}
 		
-		ServletInputStream inputStream = request.getInputStream();
+		ServletInputStream inputStream = httpServletRequest.getInputStream();
 		// TODO: 코드 개선으로 경고 삭제.
 		Map<String, String> map = objectMapper.readValue(inputStream, Map.class);
 		
@@ -67,7 +67,7 @@ public class JsonUsernamePasswordAuthFilter extends AbstractAuthenticationProces
 		UsernamePasswordAuthenticationToken authRequest = UsernamePasswordAuthenticationToken.unauthenticated(username, password);
 		
 		/* Allow subclasses to set the "details" property */
-		setDetails(request, authRequest);
+		setDetails(httpServletRequest, authRequest);
 		return this.getAuthenticationManager().authenticate(authRequest);
 	}
 	
@@ -77,8 +77,8 @@ public class JsonUsernamePasswordAuthFilter extends AbstractAuthenticationProces
 		return Objects.isNull(value) ? "" : value.trim();
 	}
 	
-	protected void setDetails(HttpServletRequest request, UsernamePasswordAuthenticationToken authRequest) {
-		authRequest.setDetails(this.authenticationDetailsSource.buildDetails(request));
+	protected void setDetails(HttpServletRequest request, UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken) {
+		usernamePasswordAuthenticationToken.setDetails(this.authenticationDetailsSource.buildDetails(request));
 	}
 
 	public void setUsernameKey(String usernameKey) {

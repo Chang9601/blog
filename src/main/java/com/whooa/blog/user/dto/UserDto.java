@@ -7,33 +7,25 @@ import jakarta.validation.constraints.NotBlank;
 public class UserDto {
 
 	public static class UserCreateRequest {
-		@NotBlank(message = "이름을 입력하세요.")
-		private String name;
-
 		@NotBlank(message = "이메일을 입력하세요.")
 		private String email;
+		
+		@NotBlank(message = "이름을 입력하세요.")
+		private String name;
 
 		@NotBlank(message = "비밀번호를 입력하세요.")
 		private String password;
 		
 		private String userRole;
 		
-		public UserCreateRequest(String name, String email, String password, String userRole) {
-			this.name = name;
+		public UserCreateRequest(String email, String name, String password, String userRole) {
 			this.email = email;
+			this.name = name;
 			this.password = password;
 			this.userRole = userRole;
 		}
-		
+
 		public UserCreateRequest() {}
-
-		public String getName() {
-			return name;
-		}
-
-		public void setName(String name) {
-			this.name = name;
-		}
 
 		public String getEmail() {
 			return email;
@@ -41,6 +33,14 @@ public class UserDto {
 
 		public void setEmail(String email) {
 			this.email = email;
+		}
+
+		public String getName() {
+			return name;
+		}
+
+		public void setName(String name) {
+			this.name = name;
 		}
 
 		public String getPassword() {
@@ -61,7 +61,7 @@ public class UserDto {
 
 		@Override
 		public String toString() {
-			return "UserCreateRequest [name=" + name + ", email=" + email + ", password=" + password + ", userRole="
+			return "UserCreateRequest [email=" + email + ", name=" + name + ", password=" + password + ", userRole="
 					+ userRole + "]";
 		}
 	}

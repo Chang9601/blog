@@ -46,41 +46,39 @@ public class SecurityConfig {
 	 * 엔드포인트 권한 부여 또는 인증 매니저 구성과 같은 기능에 대한 HTTP 보안을 사용자 정의할 수 있도록 WebSecurityConfigurerAdapter 클래스를 확장하는 방법을 제공했다.
 	 * 그러나 최근 버전에서는 이 접근 방식을 폐기하고 컴포넌트 기반 보안 구성을 권장한다.
 	 */
-	private UserDetailsService userDetailsService;
-	private ObjectMapper objectMapper;
-	private JwtAuthEntryPoint jwtAuthEntryPoint;
+
 	private JwtAccessDeniedHandler jwtAccessDeniedHandler;
-	private JwtAuthSuccessHandler jwtAuthSuccessHandler;
+	private JwtAuthEntryPoint jwtAuthEntryPoint;
 	private JwtAuthFailureHandler jwtAuthFailureHandler;
 	private JwtAuthFilter jwtAuthFilter;
+	private JwtAuthSuccessHandler jwtAuthSuccessHandler;
 	private JwtLogoutHandler jwtLogoutHandler;
 	private JwtLogoutSuccessHandler jwtLogoutSuccessHandler;
-	
-	public SecurityConfig(UserDetailsService userDetailsService, 
-						  ObjectMapper objectMapper, 
-						  JwtAccessDeniedHandler jwtAccessDeniedHandler, 
-						  JwtAuthEntryPoint jwtAuthEntryPoint, 
-						  JwtAuthSuccessHandler jwtAuthSuccessHandler, 
-						  JwtAuthFailureHandler jwtAuthFailureHandler, 
-						  JwtAuthFilter jwtAuthFilter,
-						  JwtLogoutHandler jwtLogoutHandler,
-						  JwtLogoutSuccessHandler jwtLogoutSuccessHandler) {
-		this.userDetailsService = userDetailsService;
-		this.objectMapper = objectMapper;
-		this.jwtAuthEntryPoint = jwtAuthEntryPoint;
+	private ObjectMapper objectMapper;
+	private UserDetailsService userDetailsService;
+
+	public SecurityConfig(JwtAccessDeniedHandler jwtAccessDeniedHandler, JwtAuthEntryPoint jwtAuthEntryPoint,
+			JwtAuthFailureHandler jwtAuthFailureHandler, JwtAuthFilter jwtAuthFilter,
+			JwtAuthSuccessHandler jwtAuthSuccessHandler, JwtLogoutHandler jwtLogoutHandler,
+			JwtLogoutSuccessHandler jwtLogoutSuccessHandler, ObjectMapper objectMapper,
+			UserDetailsService userDetailsService) {
+		super();
 		this.jwtAccessDeniedHandler = jwtAccessDeniedHandler;
-		this.jwtAuthSuccessHandler = jwtAuthSuccessHandler;
+		this.jwtAuthEntryPoint = jwtAuthEntryPoint;
 		this.jwtAuthFailureHandler = jwtAuthFailureHandler;
 		this.jwtAuthFilter = jwtAuthFilter;
+		this.jwtAuthSuccessHandler = jwtAuthSuccessHandler;
 		this.jwtLogoutHandler = jwtLogoutHandler;
 		this.jwtLogoutSuccessHandler = jwtLogoutSuccessHandler;
+		this.objectMapper = objectMapper;
+		this.userDetailsService = userDetailsService;
 	}
 	
 	@Bean
 	public BCryptPasswordEncoder bCryptPasswordEncoder() {
 		return new BCryptPasswordEncoder();
 	}
-	
+
 	/*
 	 * AuthenticationManager 클래스는 UserDetailsService 클래스를 사용해서 데이터베이스에서 사용자를 가져온다.
 	 * AuthenticationManager 클래스는 또한 PasswordEncoder 클래스를 사용해서 비밀번호를 암호화/복호화한다

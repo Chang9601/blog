@@ -4,7 +4,7 @@ import com.whooa.blog.common.code.Code;
 import com.whooa.blog.common.exception.AbstractException;
 
 public class CategoryNotFoundException extends AbstractException {
-	public CategoryNotFoundException(Code exception, String[] details) {
-		super(exception, details);
+	public CategoryNotFoundException(Code code, String[] details) {
+		super(code, details);
 	}
 }
