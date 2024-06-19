@@ -30,6 +30,16 @@ public class CategoryEntity extends AbstractEntity {
 		super(-1L);
 	}
 	
+	public CategoryEntity name(String name) {
+		this.name = name;
+		return this;
+	}
+	
+	public CategoryEntity posts(List<PostEntity> posts) {
+		this.posts = posts;
+		return this;
+	}
+	
 	public Long getId() {
 		return super.getId();
 	}

@@ -55,7 +55,7 @@ tasks.named('test') {
 	useJUnitPlatform()
 }
 
-// ./gradlew test에서 출력을 표시한다.
+/* ./gradlew test에서 출력을 표시한다. */
 test {
 	testLogging {
 		showStandardStreams = true

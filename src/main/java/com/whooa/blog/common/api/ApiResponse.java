@@ -25,9 +25,9 @@ public class ApiResponse<T> {
 	public static <T> ApiResponse<T> handleFailure(int code, String message, T data, String[] detail) {
 		int failureCode = code != -1 ? code : Code.INTERNAL_SERVER_ERROR.getCode();
 		String failureMessage = message != null ? message : Code.INTERNAL_SERVER_ERROR.getMessage();
-		String[] failuredetail = detail != null ? detail : new String[] {"내부 오류가 발생했습니다."};
+		String[] failureDetail = detail != null ? detail : new String[] {"내부 오류가 발생했습니다."};
 
-		return new ApiResponse<T>(failureCode, failureMessage, data, failuredetail);		
+		return new ApiResponse<T>(failureCode, failureMessage, data, failureDetail);		
 	}
 	
 	/*

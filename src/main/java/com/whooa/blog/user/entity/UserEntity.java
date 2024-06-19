@@ -67,6 +67,31 @@ public class UserEntity extends AbstractEntity {
 	public UserEntity() {
 		super(-1L);
 	}
+	
+	public UserEntity active(Boolean active) {
+		this.active = active;
+		return this;
+	}
+	
+	public UserEntity email(String email) {
+		this.email = email;
+		return this;
+	}
+	
+	public UserEntity name(String name) {
+		this.name = name;
+		return this;
+	}
+	
+	public UserEntity password(String password) {
+		this.password = password;
+		return this;
+	}
+	
+	public UserEntity userRole(UserRole userRole) {
+		this.userRole = userRole;
+		return this;
+	}
 
 	public Boolean getActive() {
 		return active;

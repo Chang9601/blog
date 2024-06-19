@@ -9,7 +9,6 @@ public class CommentDto {
 		description = "댓글 생성 DTO"
 	)
 	public static class CommentCreateRequest {
-		
 		@Schema(
 			description = "댓글 내용"
 		)		
@@ -66,9 +65,18 @@ public class CommentDto {
 		}
 	}
 	
+	@Schema(
+		description = "댓글 수정 DTO"
+	)	
 	public static class CommentUpdateRequest {
+		@Schema(
+			description = "댓글 내용"
+		)
 		private String content;
 		
+		@Schema(
+			description = "댓글 비밀번호"
+		)		
 		@NotBlank(message = "비밀번호를 입력하세오.")
 		private String password;
 		
@@ -100,8 +108,14 @@ public class CommentDto {
 			return "CommentUpdateRequest [content=" + content + ", password=" + password + "]";
 		}
 	}
-	
+
+	@Schema(
+		description = "댓글 삭제 DTO"
+	)
 	public static class CommentDeleteRequest {		
+		@Schema(
+			description = "댓글 비밀번호"
+		)
 		@NotBlank(message = "비밀번호를 입력하세오.")
 		private String password;
 		
@@ -126,10 +140,30 @@ public class CommentDto {
 		}
 	}
 
+	@Schema(
+		description = "댓글 응답 DTO"
+	)	
 	public static class CommentResponse {
+		@Schema(
+			description = "댓글 아이디"
+		)		
 		private Long id;
+		
+		@Schema(
+			description = "댓글 내용"
+		)		
+		@NotBlank(message = "내용을 입력하세요.")
 		private String content;
+		
+		@Schema(
+			description = "댓글 이름"
+		)			
+		@NotBlank(message = "이름을 입력하세요.")
 		private String name;
+		
+		@Schema(
+			description = "대댓글 아이디"
+		)		
 		private Long parentId;
 
 		public CommentResponse(Long id, String content, String name, Long parentId) {

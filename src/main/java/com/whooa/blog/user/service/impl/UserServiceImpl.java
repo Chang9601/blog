@@ -44,8 +44,7 @@ public class UserServiceImpl implements UserService {
 		String plainPassword = userEntity.getPassword();
 		String hashedPassword = bCryptPasswordEncoder.encode(plainPassword);
 		
-		userEntity.setPassword(hashedPassword);
-		userEntity.setUserRole(UserRoleMapper.map(userRole));
+		userEntity.password(hashedPassword).userRole(UserRoleMapper.map(userRole));
 		
 		return UserMapper.INSTANCE.toDto(userRepository.save(userEntity));
 	}
@@ -55,8 +54,8 @@ public class UserServiceImpl implements UserService {
 		Long id = userDetailsImpl.getId();
 
 		UserEntity userEntity = userRepository.findById(id).orElseThrow(() -> new UserNotFoundException(Code.NOT_FOUND, new String[] {"아이디에 해당하는 사용자가 존재하지 않습니다."}));
-
-		userEntity.setActive(false);
+		
+		userEntity.active(false);
 		
 		userRepository.save(userEntity);
 	}

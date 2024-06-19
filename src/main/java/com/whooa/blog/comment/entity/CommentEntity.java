@@ -75,12 +75,24 @@ public class CommentEntity extends AbstractEntity {
 	}
 	
 	public CommentEntity post(PostEntity post) {
+		if (this.post != null) {
+			this.post.getComments().remove(this);
+		}
+		
 		this.post = post;
+		post.getComments().add(this);
+		
 		return this;
 	}
 	
 	public CommentEntity user(UserEntity user) {
+		if (this.user != null) {
+			this.user.getComments().remove(this);
+		}
+
 		this.user = user;
+		user.getComments().add(this);
+		
 		return this;
 	}
 

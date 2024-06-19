@@ -56,9 +56,6 @@ public class CategoryServiceImpl implements CategoryService {
 
 	@Override
 	public PageResponse<CategoryResponse> findAll(PaginationUtil paginationUtil) {
-		//String sortBy = pageQueryString.getSortBy();		
-		//Sort sortDir = pageQueryString.getSortDir().equalsIgnoreCase(Sort.Direction.ASC.name()) ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
-		
 		Pageable pageable = paginationUtil.makePageable(); //PageRequest.of(pageQueryString.getPageNo(), pageQueryString.getPageSize(), sortDir);
 		
 		Page<CategoryEntity> categories = categoryRepository.findAll(pageable);
@@ -83,7 +80,7 @@ public class CategoryServiceImpl implements CategoryService {
 		String name = categoryUpdate.getName();
 		
 		if (NotNullNotEmptyChecker.check(name)) {
-			categoryEntity.setName(name);
+			categoryEntity.name(name);
 		}
 		
 		return CategoryMapper.INSTANCE.toDto(categoryRepository.save(categoryEntity));

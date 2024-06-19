@@ -71,6 +71,14 @@ public class AllExceptionHandler {
 		return ApiResponse.handleFailure(exception.getCode().getCode(), exception.getCode().getMessage(), null, exception.getDetail());
 	}
 	
+	/* 나머지 예외 처리 메서드. */
+	@ExceptionHandler(Exception.class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+	public ApiResponse<Exception> handleException(Exception exception) {
+		logger.error("Exception: {}", exception.getMessage());
+		return ApiResponse.handleFailure(Code.INTERNAL_SERVER_ERROR.getCode(), Code.INTERNAL_SERVER_ERROR.getMessage(), null, new String[] {exception.getMessage()});
+	}
+	
 	@ExceptionHandler(InvalidCredentialsException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
 	public ApiResponse<UserNotFoundException> handleException(InvalidCredentialsException exception) {
@@ -122,13 +130,5 @@ public class AllExceptionHandler {
 	public ApiResponse<UserNotMatchedException> handleException(UserNotMatchedException exception) {
 		logger.error("UserNotMatchedException: {}", exception.getCode().getMessage());
 		return ApiResponse.handleFailure(exception.getCode().getCode(), exception.getCode().getMessage(), null, exception.getDetail());
-	}
-
-	/* 나머지 예외 처리 메서드. */
-	@ExceptionHandler(Exception.class)
-    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-	public ApiResponse<Exception> handleException(Exception exception) {
-		logger.error("Exception: {}", exception.getMessage());
-		return ApiResponse.handleFailure(Code.INTERNAL_SERVER_ERROR.getCode(), Code.INTERNAL_SERVER_ERROR.getMessage(), null, new String[] {exception.getMessage()});
 	}
 }

@@ -9,7 +9,6 @@ public class CategoryDto {
 		description = "카테고리 생성 DTO"
 	)	
 	public static class CategoryCreateRequest {
-		
 		@Schema(
 			description = "카테고리 이름"
 		)
@@ -74,6 +73,7 @@ public class CategoryDto {
 			description = "카테고리 아이디"
 		)
 		private Long id;
+		
 		@Schema(
 			description = "카테고리 이름"
 		)

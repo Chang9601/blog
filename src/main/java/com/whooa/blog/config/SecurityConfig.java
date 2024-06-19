@@ -19,12 +19,12 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import com.whooa.blog.common.security.jwt.JsonUsernamePasswordAuthFilter;
+import com.whooa.blog.common.security.jwt.JsonUsernamePasswordAuthenticationFilter;
 import com.whooa.blog.common.security.jwt.JwtAccessDeniedHandler;
-import com.whooa.blog.common.security.jwt.JwtAuthEntryPoint;
-import com.whooa.blog.common.security.jwt.JwtAuthFailureHandler;
-import com.whooa.blog.common.security.jwt.JwtAuthFilter;
-import com.whooa.blog.common.security.jwt.JwtAuthSuccessHandler;
+import com.whooa.blog.common.security.jwt.JwtAuthenticationEntryPoint;
+import com.whooa.blog.common.security.jwt.JwtAuthenticationFailureHandler;
+import com.whooa.blog.common.security.jwt.JwtAuthenticationFilter;
+import com.whooa.blog.common.security.jwt.JwtAuthenticationSuccessHandler;
 import com.whooa.blog.common.security.jwt.JwtLogoutHandler;
 import com.whooa.blog.common.security.jwt.JwtLogoutSuccessHandler;
 
@@ -46,28 +46,27 @@ public class SecurityConfig {
 	 * 엔드포인트 권한 부여 또는 인증 매니저 구성과 같은 기능에 대한 HTTP 보안을 사용자 정의할 수 있도록 WebSecurityConfigurerAdapter 클래스를 확장하는 방법을 제공했다.
 	 * 그러나 최근 버전에서는 이 접근 방식을 폐기하고 컴포넌트 기반 보안 구성을 권장한다.
 	 */
-
 	private JwtAccessDeniedHandler jwtAccessDeniedHandler;
-	private JwtAuthEntryPoint jwtAuthEntryPoint;
-	private JwtAuthFailureHandler jwtAuthFailureHandler;
-	private JwtAuthFilter jwtAuthFilter;
-	private JwtAuthSuccessHandler jwtAuthSuccessHandler;
+	private JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
+	private JwtAuthenticationFailureHandler jwtAuthenticationFailureHandler;
+	private JwtAuthenticationFilter jwtAuthenticationFilter;
+	private JwtAuthenticationSuccessHandler jwtAuthenticationSuccessHandler;
 	private JwtLogoutHandler jwtLogoutHandler;
 	private JwtLogoutSuccessHandler jwtLogoutSuccessHandler;
 	private ObjectMapper objectMapper;
 	private UserDetailsService userDetailsService;
 
-	public SecurityConfig(JwtAccessDeniedHandler jwtAccessDeniedHandler, JwtAuthEntryPoint jwtAuthEntryPoint,
-			JwtAuthFailureHandler jwtAuthFailureHandler, JwtAuthFilter jwtAuthFilter,
-			JwtAuthSuccessHandler jwtAuthSuccessHandler, JwtLogoutHandler jwtLogoutHandler,
+	public SecurityConfig(JwtAccessDeniedHandler jwtAccessDeniedHandler, JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint,
+			JwtAuthenticationFailureHandler jwtAuthenticationFailureHandler, JwtAuthenticationFilter jwtAuthenticationFilter,
+			JwtAuthenticationSuccessHandler jwtAuthenticationSuccessHandler, JwtLogoutHandler jwtLogoutHandler,
 			JwtLogoutSuccessHandler jwtLogoutSuccessHandler, ObjectMapper objectMapper,
 			UserDetailsService userDetailsService) {
 		super();
 		this.jwtAccessDeniedHandler = jwtAccessDeniedHandler;
-		this.jwtAuthEntryPoint = jwtAuthEntryPoint;
-		this.jwtAuthFailureHandler = jwtAuthFailureHandler;
-		this.jwtAuthFilter = jwtAuthFilter;
-		this.jwtAuthSuccessHandler = jwtAuthSuccessHandler;
+		this.jwtAuthenticationEntryPoint = jwtAuthenticationEntryPoint;
+		this.jwtAuthenticationFailureHandler = jwtAuthenticationFailureHandler;
+		this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+		this.jwtAuthenticationSuccessHandler = jwtAuthenticationSuccessHandler;
 		this.jwtLogoutHandler = jwtLogoutHandler;
 		this.jwtLogoutSuccessHandler = jwtLogoutSuccessHandler;
 		this.objectMapper = objectMapper;
@@ -90,7 +89,7 @@ public class SecurityConfig {
 	 */
 	@Bean
 	public AuthenticationManager authenticationManager() throws Exception {
-		/* DaoAuthenticationProvider은 DAO에서 계정 정보를 꺼내오고 비밀번호 일치 여부를 검사하고 인증 여부를 넘긴다. */
+		/* DaoAuthenticationProvider 클래스는 UserDetailsService 인터페이스와 PasswordEncoder 인터페이스를 사용하여 사용자 이름과 비밀번호를 인증하는 AuthenticationProvider 인터페이스의 구현체이다. */
 		DaoAuthenticationProvider daoAuthenticationProvider = new DaoAuthenticationProvider();
 		
 		daoAuthenticationProvider.setUserDetailsService(userDetailsService);
@@ -101,11 +100,11 @@ public class SecurityConfig {
 	
 	@Bean
 	public AbstractAuthenticationProcessingFilter jsonUsernamePasswordAuthFilter() throws Exception {
-		JsonUsernamePasswordAuthFilter jsonUsernamePasswordAuthFilter = new JsonUsernamePasswordAuthFilter(objectMapper);
+		JsonUsernamePasswordAuthenticationFilter jsonUsernamePasswordAuthFilter = new JsonUsernamePasswordAuthenticationFilter(objectMapper);
 		
 		jsonUsernamePasswordAuthFilter.setAuthenticationManager(authenticationManager());
-		jsonUsernamePasswordAuthFilter.setAuthenticationSuccessHandler(jwtAuthSuccessHandler);
-		jsonUsernamePasswordAuthFilter.setAuthenticationFailureHandler(jwtAuthFailureHandler);
+		jsonUsernamePasswordAuthFilter.setAuthenticationSuccessHandler(jwtAuthenticationSuccessHandler);
+		jsonUsernamePasswordAuthFilter.setAuthenticationFailureHandler(jwtAuthenticationFailureHandler);
 		
 		return jsonUsernamePasswordAuthFilter;
 	}
@@ -157,8 +156,7 @@ public class SecurityConfig {
 			 * 즉, 인증 중에 발생하는 AuthenticationException의 하위 클래스(e.g., UsernameNotFoundException)을 컨트롤러어드바이스가 처리할 수 없다.
 			 * 따라서 Spring Security 관련 핸들러 인터페이스를 직접 구현한 다음 추가한다.
 			 */
-			.exceptionHandling((exception) -> exception.accessDeniedHandler(jwtAccessDeniedHandler))
-			.exceptionHandling((exception) -> exception.authenticationEntryPoint(jwtAuthEntryPoint))
+			.exceptionHandling((exception) -> exception.authenticationEntryPoint(jwtAuthenticationEntryPoint).accessDeniedHandler(jwtAccessDeniedHandler))
 			/* 
 			 * STATELESS는 인증 관련 세션 기능을 사용하지 않도록 하는 설정이다. 
 			 * 하지만 인증 외 세션을 사용할 경우 인증 외에 세션에 관련된 필터(e.g., SessionManagementFilter, DisableEncodeUrlFilter)는 계속 필터 체인에 존재한다. 
@@ -166,8 +164,7 @@ public class SecurityConfig {
 			 */
 			/* form 로그인 필터인 UsernamePasswordAuthenticationFilter 클래스에 JSON 로그인 필터를 추가한다. */
 			.addFilterAt(jsonUsernamePasswordAuthFilter(), UsernamePasswordAuthenticationFilter.class)
-			/* JSON 로그인 필터 앞에 JWT 필터를 추가한다. */
-			.addFilterBefore(jwtAuthFilter, JsonUsernamePasswordAuthFilter.class)
+			.addFilterBefore(jwtAuthenticationFilter, JsonUsernamePasswordAuthenticationFilter.class)
 			.build(); /* build() 메서드가 반환하는 DefaultSecurityFilterChain 클래스는 SecurityFilterChain 인터페이스의 구현 클래스이다. */
 	}
 	

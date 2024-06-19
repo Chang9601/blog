@@ -67,7 +67,7 @@ public class CommentController {
 	}
 
 	@Operation(
-		summary = "포스트 댓글 목록 조회"
+		summary = "댓글 목록 조회"
 	)
 	@ResponseStatus(value = HttpStatus.OK)
 	@GetMapping("/posts/{post-id}/comments")

@@ -2,20 +2,36 @@ package com.whooa.blog.user.dto;
 
 import com.whooa.blog.user.type.UserRole;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 
 public class UserDto {
 
+	@Schema(
+		description = "사용자 생성 DTO"
+	)
 	public static class UserCreateRequest {
+		@Schema(
+			description = "사용자 이름"
+		)		
 		@NotBlank(message = "이메일을 입력하세요.")
 		private String email;
-		
+
+		@Schema(
+			description = "사용자 이메일"
+		)
 		@NotBlank(message = "이름을 입력하세요.")
 		private String name;
 
+		@Schema(
+			description = "사용자 비밀번호"
+		)
 		@NotBlank(message = "비밀번호를 입력하세요.")
 		private String password;
-		
+
+		@Schema(
+			description = "사용자 역할"
+		)		
 		private String userRole;
 		
 		public UserCreateRequest(String email, String name, String password, String userRole) {
@@ -65,11 +81,20 @@ public class UserDto {
 					+ userRole + "]";
 		}
 	}
-	
+
+	@Schema(
+		description = "사용자 수정 DTO"
+	)	
 	public static class UserSignInRequest {
+		@Schema(
+			description = "사용자 이메일"
+		)	
 		@NotBlank(message = "이메일을 입력하세요.")
 		private String email;
 
+		@Schema(
+			description = "사용자 비밀번호"
+		)
 		@NotBlank(message = "비밀번호를 입력하세요.")
 		private String password;
 
@@ -101,10 +126,24 @@ public class UserDto {
 			return "UserSignIn [email=" + email + ", password=" + password + "]";
 		}
 	}
-	
+
+	@Schema(
+		description = "사용자 응답 DTO"
+	)
 	public static class UserResponse {
+		@Schema(
+			description = "사용자 아이디"
+		)		
 		private Long id;
+		
+		@Schema(
+			description = "사용자 이메일"
+		)
 		private String email;
+		
+		@Schema(
+			description = "사용자 역할"
+		)
 		private UserRole userRole;
 		
 		public UserResponse(Long id, String email, UserRole userRole) {

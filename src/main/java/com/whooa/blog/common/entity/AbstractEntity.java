@@ -13,10 +13,6 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.MappedSuperclass;
 
-/*
- * @MappedSuperclass 어노테이션은 부모 클래스를 테이블과 매핑하지 않고 부모 클래스를 상속받는 자식 클래스에게 매핑 정보만 제공한다.
- * 즉, 추상 클래스와 비슷하며 실제 테이블과 매핑되지 않는다.
- */
 @MappedSuperclass
 /*
  * @EntityListeners 어노테이션으로 리스너의 기능을 사용하면 엔티티의 생명주기에 따른 이벤트를 처리할 수 있다.
