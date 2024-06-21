@@ -55,10 +55,6 @@ public class PostController {
 		name = "JWT Cookie Authentication"
 	)	
 	/*
-	 * @Valid 어노테이션은 Hibernate 검증자(validator)를 활성화한다.
-	 * 
-	 * @ResponseStatus 어노테이션은 컨트롤러에서 지정된 HTTP 상태 코드로 응답하도록 하는 역할을 한다.
-	 * 
 	 * @RequestBody 어노테이션은 데이터를 JSON 형식으로 전달받기 때문에 만약 파일을 본문으로 받게 된다면 원하는 결과를 얻을 수 없다. 
 	 * @RequestParam 어노테이션은 또한 기본적으로 문자열 데이터를 처리하는데 사용되므로 미디어 파일과 같은 이진 데이터를 받아오는 것은 적절하지 않다.
 	 * @RequestPart 어노테이션을 사용해서 이진 데이터를 받는다.
@@ -101,8 +97,8 @@ public class PostController {
 		summary = "카테고리에 속하는 포스트 목록 조회"
 	)
 	@ResponseStatus(value = HttpStatus.OK)
-	@GetMapping("/categories/{id}")
-	public ApiResponse<PageResponse<PostResponse>> getPostsByCategoryId(@PathVariable Long categoryId, PaginationUtil paginationUtil) {		
+	@GetMapping("/categories/{category-id}")
+	public ApiResponse<PageResponse<PostResponse>> getPostsByCategoryId(@PathVariable("category-id") Long categoryId, PaginationUtil paginationUtil) {		
 		return ApiResponse.handleSuccess(Code.OK.getCode(), Code.OK.getMessage(), postService.findAllByCategoryId(categoryId, paginationUtil), new String[] {"카테고리 속하는 포스트 목록을 조회했습니다."});
 	}
 	
@@ -125,7 +121,7 @@ public class PostController {
 	/* @RequestBody 어노테이션은 내부적으로 Spring이 제공하는 HttpMessageConverter를 사용하여 JSON을 Java 객체로 변환한다. */
 	@ResponseStatus(value = HttpStatus.OK)
 	@PatchMapping("/{id}")
-	public ApiResponse<PostResponse> updatePost(@PathVariable Long id, @Valid @RequestBody PostUpdateRequest postUpdate, @AuthenticationPrincipal UserDetailsImpl userDetailsImpl) {		
-		return ApiResponse.handleSuccess(Code.OK.getCode(), Code.OK.getMessage(), postService.update(id, postUpdate), new String[] {"포스트를 수정했습니다."});
+	public ApiResponse<PostResponse> updatePost(@PathVariable Long id, @Valid @RequestBody PostUpdateRequest postUpdate, @RequestPart(name = "files", required = false) MultipartFile[] uploadFiles, @AuthenticationPrincipal UserDetailsImpl userDetailsImpl) {		
+		return ApiResponse.handleSuccess(Code.OK.getCode(), Code.OK.getMessage(), postService.update(id, postUpdate, uploadFiles, userDetailsImpl), new String[] {"포스트를 수정했습니다."});
 	}
 }

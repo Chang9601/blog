@@ -59,9 +59,50 @@ public class PostEntity extends AbstractEntity {
 		this.title = title;
 	}
 
-	
 	public PostEntity() {
 		super(-1L);
+	}
+	
+	public PostEntity content(String content) {
+		this.content = content;
+		return this;
+	}
+
+	public PostEntity title(String title) {
+		this.title = title;
+		return this;
+	}
+	
+	public PostEntity files(List<File> files) {
+		this.files = files;
+		return this;
+	}
+
+	public PostEntity category(CategoryEntity category) {
+		if (this.category != null) {
+			this.category.getPosts().remove(this);
+		}
+		
+		this.category = category;
+		category.getPosts().add(this);
+		
+		return this;
+	}
+
+	public PostEntity comments(List<CommentEntity> comments) {
+		this.comments = comments;
+		return this;
+	}
+
+	public PostEntity user(UserEntity user) {
+		if (this.user != null) {
+			this.user.getPosts().remove(this);
+		}
+
+		this.user = user;
+		user.getPosts().add(this);
+		
+		return this;
 	}
 	
 	public Long getId() {

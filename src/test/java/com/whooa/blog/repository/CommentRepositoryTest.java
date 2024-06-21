@@ -1,6 +1,5 @@
 package com.whooa.blog.repository;
 
-import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 
@@ -12,6 +11,7 @@ import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabas
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase.Replace;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
+import org.springframework.data.domain.Page;
 
 import com.whooa.blog.comment.entity.CommentEntity;
 import com.whooa.blog.comment.repository.CommentRepository;
@@ -30,19 +30,19 @@ public class CommentRepositoryTest {
 	private CommentRepository commentRepository;
 	
 	private PostEntity postEntity;
-	private CommentEntity commentEntity;
+	private CommentEntity commentEntity1;
 
 	@BeforeEach
 	public void setUp() {
-		postEntity = postRepository.save(new PostEntity("테스트", "테스트를 위한 포스트"));
-		commentEntity = new CommentEntity("홍길동", "테스트를 위한 댓글", "1234");
-		commentEntity.setPost(postEntity);
+		postEntity = postRepository.save(new PostEntity().content("테스트 내용").title("테스트 제목").category(null));
+		commentEntity1 = new CommentEntity().content("테스트 댓글").name("홍길동").password("1234");
+		commentEntity1.setPost(postEntity);
 	}
 	
 	@DisplayName("포스트의 댓글을 생성하는데 성공한다.")
 	@Test
 	public void givenCommentEntity_whenCallSave_thenReturnCommentEntity() {		
-		CommentEntity savedCommentEntity = commentRepository.save(commentEntity);
+		CommentEntity savedCommentEntity = commentRepository.save(commentEntity1);
 		
 		assertNotNull(savedCommentEntity);
 		assertTrue(savedCommentEntity.getId() > 0);
@@ -59,14 +59,14 @@ public class CommentRepositoryTest {
 	@DisplayName("포스트의 댓글 목록을 조회하는데 성공한다.")
 	@Test
 	public void givenPostEntityId_whenCallFindByPostId_thenReturnAllCommentEntitiesForPostEntity() {
-		CommentEntity commentEntity2 = new CommentEntity("김철수", "실전을 위한 댓글", "4321");
+		CommentEntity commentEntity2 = new CommentEntity().content("테스트 댓글").name("김철수").password("1579");
 		commentEntity2.setPost(postEntity);
 
 		postRepository.save(postEntity);
 		
-		List<CommentEntity> commentEntities = commentRepository.findByPostId(postEntity.getId());
+		Page<CommentEntity> commentEntities = commentRepository.findByPostId(postEntity.getId(), null);
 				
-		assertEquals(commentEntities.size(), 2);			
+		assertEquals(commentEntities.getTotalElements(), 2);			
 	}
 	
 //	@DisplayName("포스트의 댓글이 존재하지 않아서 포스트의 댓글 목록을 조회하는데 실패한다.")
@@ -80,7 +80,7 @@ public class CommentRepositoryTest {
 	@DisplayName("포스트의 댓글을 조회하는데 성공한다.")
 	@Test
 	public void givenId_whenCallFindById_thenReturnCommentEntity() {		
-		CommentEntity savedCommentEntity = commentRepository.save(commentEntity);
+		CommentEntity savedCommentEntity = commentRepository.save(commentEntity1);
 		CommentEntity foundCommentEntity = commentRepository.findById(savedCommentEntity.getId()).get();
 
 		assertNotNull(foundCommentEntity);
@@ -90,7 +90,7 @@ public class CommentRepositoryTest {
 	@DisplayName("포스트의 댓글이 존재하지 않아서 포스트의 댓글을 조회하는데 실패한다")
 	@Test
 	public void givenId_whenCallFindById_thenThrowNoSuchElementException() {
-		commentRepository.save(commentEntity);
+		commentRepository.save(commentEntity1);
 		
 		assertThrows(NoSuchElementException.class, () -> {
 			commentRepository.findById(1000L).get();
@@ -100,7 +100,7 @@ public class CommentRepositoryTest {
 	@DisplayName("포스트의 댓글을 갱신하는데 성공한다.")
 	@Test
 	public void givenCommentEntity_whenCallSave_thenReturnUpdatedCommentEntity() {
-		CommentEntity savedCommentEntity = commentRepository.save(commentEntity);
+		CommentEntity savedCommentEntity = commentRepository.save(commentEntity1);
 		CommentEntity foundCommentEntity = commentRepository.findById(savedCommentEntity.getId()).get();
 		
 		foundCommentEntity.setContent("실전을 위한 댓글");
@@ -113,7 +113,7 @@ public class CommentRepositoryTest {
 	@DisplayName("댓글을 작성하지 않아서 포스트의 댓글을 갱신하는데 실패한다.")
 	@Test
 	public void givenNull_whenCallSave_thenInvalidDataAccessApiUsageException() {
-		CommentEntity savedCommentEntity = commentRepository.save(commentEntity);
+		CommentEntity savedCommentEntity = commentRepository.save(commentEntity1);
 		CommentEntity foundCommentEntity = commentRepository.findById(savedCommentEntity.getId()).get();
 		
 		foundCommentEntity.setContent("실전을 위한 댓글");
@@ -126,7 +126,7 @@ public class CommentRepositoryTest {
 	@DisplayName("포스트의 댓글을 삭제하는데 성공한다.")
 	@Test
 	public void givenCommentEntity_whenCallDelete_thenReturnNothing() {
-		CommentEntity savedCommentEntity = commentRepository.save(commentEntity);
+		CommentEntity savedCommentEntity = commentRepository.save(commentEntity1);
 
 		commentRepository.delete(savedCommentEntity);
 		
@@ -136,7 +136,7 @@ public class CommentRepositoryTest {
 	@DisplayName("댓글을 작성하지 않아서 포스트의 댓글을 삭제하는데 실패한다.")
 	@Test
 	public void givenNull_whenCallDelete_thenThrowInvalidDataAccessApiUsageException() {		
-		commentRepository.save(commentEntity);
+		commentRepository.save(commentEntity1);
 		
 		assertThrows(InvalidDataAccessApiUsageException.class, () -> {
 			commentRepository.delete(null);

@@ -16,5 +16,5 @@ public interface PostService {
 	public abstract PostResponse find(Long id);
 	public abstract PageResponse<PostResponse> findAll(PaginationUtil paginationUtil);
 	public abstract PageResponse<PostResponse> findAllByCategoryId(Long categoryId, PaginationUtil paginationUtil);
-	public abstract PostResponse update(Long id, PostUpdateRequest postUpdate);
+	public abstract PostResponse update(Long id, PostUpdateRequest postUpdate, MultipartFile[] uploadFiles, UserDetailsImpl userDetailsImpl);
 }

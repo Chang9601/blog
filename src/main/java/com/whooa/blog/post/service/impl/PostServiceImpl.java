@@ -143,13 +143,18 @@ public class PostServiceImpl implements PostService {
 	}
 
 	@Override
-	public PostResponse update(Long id, PostUpdateRequest postUpdate) {
+	public PostResponse update(Long id, PostUpdateRequest postUpdate, MultipartFile[] uploadFiles, UserDetailsImpl userDetailsImpl) {
+		List<File> files = null;
+
+		Long userId = userDetailsImpl.getId();
+
 		String title = postUpdate.getTitle();
 		String content = postUpdate.getContent();
 		String categoryName = postUpdate.getCategoryName();
 		
 		PostEntity postEntity = postRepository.findById(id).orElseThrow(() -> new PostNotFoundException(Code.NOT_FOUND, new String[] {"포스트가 존재하지 않습니다."}));
 		CategoryEntity categoryEntity = categoryRepository.findByName(categoryName).orElseThrow(() -> new CategoryNotFoundException(Code.NOT_FOUND, new String[] {"카테고리가 존재하지 않습니다."}));
+		userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(Code.NOT_FOUND, new String[] {"아이디에 해당하는 사용자가 존재하지 않습니다."}));
 
 		if (NotNullNotEmptyChecker.check(title)) {
 			postEntity.setTitle(title);
@@ -163,8 +168,15 @@ public class PostServiceImpl implements PostService {
 			postEntity.setCategory(categoryEntity);
 		}
 		
-		categoryRepository.save(categoryEntity);
-
-		return PostMapper.INSTANCE.toDto(postRepository.save(postEntity));
+		if (uploadFiles != null && uploadFiles.length > 0) {
+			files = Arrays.stream(uploadFiles)
+					.map(uploadFile -> fileService.upload(postEntity, uploadFile))
+					.collect(Collectors.toList());
+		}
+		
+		PostResponse post = PostMapper.INSTANCE.toDto(postRepository.save(postEntity));
+		post.setFiles(files);
+		
+		return post;
 	}
 }

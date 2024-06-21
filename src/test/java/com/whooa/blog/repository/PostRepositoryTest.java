@@ -13,6 +13,8 @@ import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabas
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 
+import com.whooa.blog.category.entity.CategoryEntity;
+import com.whooa.blog.category.repository.CategoryRepository;
 import com.whooa.blog.post.entity.PostEntity;
 import com.whooa.blog.post.repository.PostRepository;
 
@@ -30,12 +32,21 @@ import static org.junit.jupiter.api.Assertions.*;
 public class PostRepositoryTest {
 	@Autowired
 	private PostRepository postRepository;
+
+	@Autowired
+	private CategoryRepository categoryRepository;
 	
-	private PostEntity postEntity;
+	private PostEntity postEntity1;
+	private CategoryEntity categoryEntity;
 
 	@BeforeEach
 	public void setUp() {
-		postEntity = new PostEntity("테스트", "테스트를 위한 포스트");
+		categoryEntity = new CategoryEntity();
+		categoryEntity.name("테스트");
+		
+		categoryEntity = categoryRepository.save(categoryEntity);
+		
+		postEntity1 = new PostEntity().content("테스트 내용").title("테스트 제목").category(categoryEntity);
 	}
 	
 	@DisplayName("포스트를 생성하는데 성공한다.")
@@ -44,7 +55,7 @@ public class PostRepositoryTest {
 		// given: 설정.
 		
 		// when: 행위.
-		PostEntity savedPostEntity = postRepository.save(postEntity);
+		PostEntity savedPostEntity = postRepository.save(postEntity1);
 		
 		// then: 검증.
 		assertNotNull(savedPostEntity);
@@ -62,30 +73,30 @@ public class PostRepositoryTest {
 	@DisplayName("포스트 목록을 조회하는데 성공한다.")
 	@Test
 	public void givenNothing_whenCallFindAll_thenReturnAllPostEntities() {
-		PostEntity postEntity2 = new PostEntity("실전", "실전을 위한 포스트");
+		PostEntity postEntity2 = new PostEntity().content("실전 내용").title("실전 제목").category(categoryEntity);
 		
-		postRepository.save(postEntity);
+		postRepository.save(postEntity1);
 		postRepository.save(postEntity2);
 		
 		List<PostEntity> postEntities = postRepository.findAll();
 		
-		assertEquals(postEntities.size(), 2);			
+		assertEquals(postEntities.size(), 2);	
 	}
 	
 	@DisplayName("포스트가 존재하지 않아서 포스트 목록을 조회하는데 실패한다.")
 	@Test
 	public void givenNothing_whenCallFindAll_thenReturnNothing() {
 		List<PostEntity> postEntities = postRepository.findAll();
-		
+
 		assertEquals(postEntities.size(), 0);
-	}	
+	}
 	
 	@DisplayName("포스트를 조회하는데 성공한다.")
 	@Test
 	public void givenId_whenCallFindById_thenReturnPostEntity() {		
-		PostEntity savedPostEntity = postRepository.save(postEntity);
+		PostEntity savedPostEntity = postRepository.save(postEntity1);
 		PostEntity foundPostEntity = postRepository.findById(savedPostEntity.getId()).get();
-				
+
 		assertNotNull(foundPostEntity);
 		assertEquals(foundPostEntity.getTitle(), savedPostEntity.getTitle());			
 	}
@@ -93,12 +104,12 @@ public class PostRepositoryTest {
 	@DisplayName("포스트가 존재하지 않아서 포스트를 조회하는데 실패한다.")
 	@Test
 	public void givenId_whenCallFindById_thenThrowNoSuchElementException() {
-		postRepository.save(postEntity);
+		postRepository.save(postEntity1);
 		
 		/*
-		  둘 중 어느 방법?
-		  Assertions.assertEquals(postRepository.findById(1000L), Optional.empty());
-		*/
+		 * 둘 중 어느 방법?
+		 * Assertions.assertEquals(postRepository.findById(1000L), Optional.empty());
+		 */
 		assertThrows(NoSuchElementException.class, () -> {
 			postRepository.findById(1000L).get();
 		});
@@ -107,12 +118,11 @@ public class PostRepositoryTest {
 	@DisplayName("포스트를 갱신하는데 성공한다.")
 	@Test
 	public void givenPostEntity_whenCallSave_thenReturnUpdatedPostEntity() {		
-		PostEntity savedPostEntity = postRepository.save(postEntity);
+		PostEntity savedPostEntity = postRepository.save(postEntity1);
 		PostEntity foundPostEntity = postRepository.findById(savedPostEntity.getId()).get();
 		
-		foundPostEntity.setTitle("실전");
-		foundPostEntity.setContent("실전을 위한 포스트");
-		
+		foundPostEntity.content("실전 내용").title("실전 제목");
+
 		PostEntity updatedPostEntity = postRepository.save(foundPostEntity);
 
 		assertEquals(updatedPostEntity.getTitle(), foundPostEntity.getTitle());
@@ -122,11 +132,10 @@ public class PostRepositoryTest {
 	@DisplayName("포스트가 존재하지 않아서 포스트를 갱신하는데 실패한다.")
 	@Test
 	public void givenNull_whenCallSave_thenInvalidDataAccessApiUsageException() {
-		PostEntity savedPostEntity = postRepository.save(postEntity);
+		PostEntity savedPostEntity = postRepository.save(postEntity1);
 		PostEntity foundPostEntity = postRepository.findById(savedPostEntity.getId()).get();
 		
-		foundPostEntity.setTitle("실전");
-		foundPostEntity.setContent("실전을 위한 포스트");
+		foundPostEntity.content("실전 내용").title("실전 제목");
 
 		assertThrows(InvalidDataAccessApiUsageException.class, () -> {
 			postRepository.save(null);
@@ -136,20 +145,20 @@ public class PostRepositoryTest {
 	@DisplayName("포스트를 삭제하는데 성공한다.")
 	@Test
 	public void givenPostEntity_whenCallDelete_thenReturnNothing() {		
-		PostEntity savedPostEntity = postRepository.save(postEntity);
+		PostEntity savedPostEntity = postRepository.save(postEntity1);
 		
 		postRepository.delete(savedPostEntity);
 		/*
-		  Optional cannot be resolved to a type 오류.
-		  Optional<PostEntity> postEntityOptional = postRepository.findById(savedPostEntity.getId());
-		*/
+		 * Optional cannot be resolved to a type 오류.
+		 * Optional<PostEntity> postEntity1Optional = postRepository.findById(savedPostEntity.getId());
+		 */
 		assertEquals(postRepository.findById(savedPostEntity.getId()), Optional.empty());
 	}
 	
 	@DisplayName("포스트가 존재하지 않아서 포스트를 삭제하는데 실패한다.")
 	@Test
 	public void givenNull_whenCallDelete_thenThrowInvalidDataAccessApiUsageException() {		
-		postRepository.save(postEntity);
+		postRepository.save(postEntity1);
 		
 		assertThrows(InvalidDataAccessApiUsageException.class, () -> {
 			postRepository.delete(null);

@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import com.whooa.blog.category.exception.CategoryNotFoundException;
+import com.whooa.blog.category.exception.DuplicateCategoryException;
 import com.whooa.blog.comment.exception.CommentNotBelongingToPostException;
 import com.whooa.blog.comment.exception.CommentNotFoundException;
 import com.whooa.blog.common.api.ApiResponse;
@@ -61,6 +62,13 @@ public class AllExceptionHandler {
     @ResponseStatus(HttpStatus.NOT_FOUND)
 	public ApiResponse<CommentNotFoundException> handleException(CommentNotFoundException exception) {
 		logger.error("CommentNotFoundException: {}", exception.getCode().getMessage());
+		return ApiResponse.handleFailure(exception.getCode().getCode(), exception.getCode().getMessage(), null, exception.getDetail());
+	}
+
+	@ExceptionHandler(DuplicateCategoryException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+	public ApiResponse<DuplicateCategoryException> handleException(DuplicateCategoryException exception) {		
+		logger.error("DuplicateCategoryException: {}", exception.getCode().getMessage());
 		return ApiResponse.handleFailure(exception.getCode().getCode(), exception.getCode().getMessage(), null, exception.getDetail());
 	}
 	

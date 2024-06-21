@@ -11,10 +11,10 @@ public class File {
 	@Column(name = "mime_type", nullable = false)
 	private String mimeType;
 	
-	@Column(nullable = false)
+	@Column(length = 500, nullable = false)
 	private String name;
 	
-	@Column(nullable = false)
+	@Column(length = 700, nullable = false)
 	private String path;
 
 	@Column(nullable = false)

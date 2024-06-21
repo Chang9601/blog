@@ -120,7 +120,10 @@ public class CommentServiceImpl implements CommentService {
 		
 		CommentEntity commentEntity = CommentMapper.INSTANCE.toEntity(commentCreate);
 		
-		commentEntity.parentId(parentCommentEntity.getId()).post(postEntity).user(userEntity);
+		String plainPassword = commentEntity.getPassword();
+		String hashedPassword = passwordUtil.hash(plainPassword);
+		
+		commentEntity.parentId(parentCommentEntity.getId()).password(hashedPassword).post(postEntity).user(userEntity);
 				
 		return CommentMapper.INSTANCE.toDto(commentRepository.save(commentEntity));
 	}

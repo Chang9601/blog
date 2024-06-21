@@ -18,7 +18,7 @@ import io.swagger.v3.oas.models.security.SecurityScheme.Type;
 public class SpringDocConfig {
 	
 	@Bean
-	public OpenAPI openAPI(@Value("${spring.doc.version}") String version) {
+	public OpenAPI openAPI(@Value("${springdoc.version}") String version) {
 		return new OpenAPI()
 				.components(components())
 				.info(info(version))
