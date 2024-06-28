@@ -56,7 +56,7 @@ public class CategoryServiceImpl implements CategoryService {
 
 	@Override
 	public PageResponse<CategoryResponse> findAll(PaginationUtil paginationUtil) {
-		Pageable pageable = paginationUtil.makePageable(); //PageRequest.of(pageQueryString.getPageNo(), pageQueryString.getPageSize(), sortDir);
+		Pageable pageable = paginationUtil.makePageable();
 		
 		Page<CategoryEntity> categories = categoryRepository.findAll(pageable);
 		

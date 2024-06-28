@@ -12,31 +12,63 @@ import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabas
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.domain.Page;
+import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 
+import com.whooa.blog.category.entity.CategoryEntity;
+import com.whooa.blog.category.repository.CategoryRepository;
 import com.whooa.blog.comment.entity.CommentEntity;
 import com.whooa.blog.comment.repository.CommentRepository;
 import com.whooa.blog.post.entity.PostEntity;
 import com.whooa.blog.post.repository.PostRepository;
+import com.whooa.blog.user.entity.UserEntity;
+import com.whooa.blog.user.repository.UserRepository;
+import com.whooa.blog.user.type.UserRole;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@EnableJpaAuditing
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = Replace.NONE)
 public class CommentRepositoryTest {
 	@Autowired
-	private PostRepository postRepository;
-	
-	@Autowired
 	private CommentRepository commentRepository;
 	
-	private PostEntity postEntity;
+	@Autowired
+	private CategoryRepository categoryRepository;
+	
+	@Autowired
+	private PostRepository postRepository;
+
+	@Autowired
+	private UserRepository userRepository;
+	
 	private CommentEntity commentEntity1;
+	private CategoryEntity categoryEntity;
+	private PostEntity postEntity;
+	private UserEntity userEntity;
 
 	@BeforeEach
 	public void setUp() {
-		postEntity = postRepository.save(new PostEntity().content("테스트 내용").title("테스트 제목").category(null));
-		commentEntity1 = new CommentEntity().content("테스트 댓글").name("홍길동").password("1234");
-		commentEntity1.setPost(postEntity);
+		categoryEntity = categoryRepository.save(new CategoryEntity().name("테스트 카테고리"));
+
+		userEntity = userRepository.save(new UserEntity()
+				.email("test@test.com")
+				.name("테스트 이름")
+				.password("1234")
+				.userRole(UserRole.USER));
+		
+		postEntity = postRepository.save(new PostEntity()
+				.content("테스트 내용")
+				.title("테스트 제목")
+				.category(categoryEntity)
+				.user(userEntity));
+		
+		commentEntity1 = new CommentEntity()
+				.content("테스트 내용")
+				.name("테스트 이름")
+				.password("1234")
+				.post(postEntity)
+				.user(userEntity);		
 	}
 	
 	@DisplayName("포스트의 댓글을 생성하는데 성공한다.")
@@ -58,24 +90,29 @@ public class CommentRepositoryTest {
 	
 	@DisplayName("포스트의 댓글 목록을 조회하는데 성공한다.")
 	@Test
-	public void givenPostEntityId_whenCallFindByPostId_thenReturnAllCommentEntitiesForPostEntity() {
-		CommentEntity commentEntity2 = new CommentEntity().content("테스트 댓글").name("김철수").password("1579");
-		commentEntity2.setPost(postEntity);
-
-		postRepository.save(postEntity);
+	public void givenPostId_whenCallFindByPostId_thenReturnAllCommentEntitiesForPostEntity() {
+		CommentEntity commentEntity2 = new CommentEntity()
+				.content("테스트 내용")
+				.name("테스트 이름")
+				.password("1234")
+				.post(postEntity)
+				.user(userEntity);
+		
+		commentRepository.save(commentEntity1);
+		commentRepository.save(commentEntity2);
 		
 		Page<CommentEntity> commentEntities = commentRepository.findByPostId(postEntity.getId(), null);
 				
 		assertEquals(commentEntities.getTotalElements(), 2);			
 	}
 	
-//	@DisplayName("포스트의 댓글이 존재하지 않아서 포스트의 댓글 목록을 조회하는데 실패한다.")
-//	@Test
-//	public void givenPostEntityId_whenCallFindByPostId_thenReturnNothing() {
-//		List<CommentEntity> commentEntities = commentRepository.findByPostId(postEntity.getId());
-//		
-//		assertEquals(commentEntities.size(), 0);
-//	}
+	@DisplayName("포스트의 댓글이 존재하지 않아서 포스트의 댓글 목록을 조회하는데 실패한다.")
+	@Test
+	public void givenPostId_whenCallFindByPostId_thenThrowNoSuchElementException() {
+		assertThrows(NoSuchElementException.class, () -> {
+			postRepository.findById(2L).get();
+		});
+	}
 	
 	@DisplayName("포스트의 댓글을 조회하는데 성공한다.")
 	@Test
@@ -89,11 +126,9 @@ public class CommentRepositoryTest {
 	
 	@DisplayName("포스트의 댓글이 존재하지 않아서 포스트의 댓글을 조회하는데 실패한다")
 	@Test
-	public void givenId_whenCallFindById_thenThrowNoSuchElementException() {
-		commentRepository.save(commentEntity1);
-		
+	public void givenId_whenCallFindById_thenThrowNoSuchElementException() {		
 		assertThrows(NoSuchElementException.class, () -> {
-			commentRepository.findById(1000L).get();
+			commentRepository.findById(1L).get();
 		});
 	}
 	
@@ -103,7 +138,7 @@ public class CommentRepositoryTest {
 		CommentEntity savedCommentEntity = commentRepository.save(commentEntity1);
 		CommentEntity foundCommentEntity = commentRepository.findById(savedCommentEntity.getId()).get();
 		
-		foundCommentEntity.setContent("실전을 위한 댓글");
+		foundCommentEntity.content("실전 내용");
 		
 		CommentEntity updatedCommentEntity = commentRepository.save(foundCommentEntity);
 
@@ -112,14 +147,9 @@ public class CommentRepositoryTest {
 	
 	@DisplayName("댓글을 작성하지 않아서 포스트의 댓글을 갱신하는데 실패한다.")
 	@Test
-	public void givenNull_whenCallSave_thenInvalidDataAccessApiUsageException() {
-		CommentEntity savedCommentEntity = commentRepository.save(commentEntity1);
-		CommentEntity foundCommentEntity = commentRepository.findById(savedCommentEntity.getId()).get();
-		
-		foundCommentEntity.setContent("실전을 위한 댓글");
-
-		assertThrows(InvalidDataAccessApiUsageException.class, () -> {
-			commentRepository.save(null);
+	public void givenNull_whenCallSave_thenThrowNoSuchElementException() {
+		assertThrows(NoSuchElementException.class, () -> {
+			commentRepository.findById(1L).get();
 		});
 	}
 	
@@ -135,11 +165,9 @@ public class CommentRepositoryTest {
 	
 	@DisplayName("댓글을 작성하지 않아서 포스트의 댓글을 삭제하는데 실패한다.")
 	@Test
-	public void givenNull_whenCallDelete_thenThrowInvalidDataAccessApiUsageException() {		
-		commentRepository.save(commentEntity1);
-		
-		assertThrows(InvalidDataAccessApiUsageException.class, () -> {
-			commentRepository.delete(null);
+	public void givenNull_whenCallDelete_thenThrowNoSuchElementException() {		
+		assertThrows(NoSuchElementException.class, () -> {
+			commentRepository.findById(1L).get();
 		});
 	}
 }

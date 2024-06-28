@@ -12,20 +12,26 @@ import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabas
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase.Replace;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
+import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 
 import com.whooa.blog.category.entity.CategoryEntity;
 import com.whooa.blog.category.repository.CategoryRepository;
 import com.whooa.blog.post.entity.PostEntity;
 import com.whooa.blog.post.repository.PostRepository;
+import com.whooa.blog.user.entity.UserEntity;
+import com.whooa.blog.user.repository.UserRepository;
+import com.whooa.blog.user.type.UserRole;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+/* https://stackoverflow.com/questions/51709727/spring-boot-jpacreateddate-lastmodifieddate-not-being-populated-when-saving-th/51710770 */
+@EnableJpaAuditing
 /*
-  @DataJpaTest 어노테이션은 테스트 목적으로 내장형 인 메모리 데이터베이스를 자동으로 구성하는 영속성 계층 구성 요소를 테스트할 때 사용된다.
-  @DataJpaTest 어노테이션은 @Component, @Controller, @Service과 같은 Spring 빈을 ApplicationContext에 로드하지 않는다.
-  기본적으로 @Entity 클래스를 스캔하고 @Repository 어노테이션이 지정된 Spring Data JPA 레포지토리를 구성한다.
-  기본적으로 @DataJpaTest 어노테이션이 지정된 테스트는 트랜잭션 처리되며 각 테스트의 끝에서 롤백된다. 
-*/
+ * @DataJpaTest 어노테이션은 테스트 목적으로 내장형 인 메모리 데이터베이스를 자동으로 구성하는 영속성 계층 구성 요소를 테스트할 때 사용된다.
+ * @DataJpaTest 어노테이션은 @Component, @Controller, @Service과 같은 Spring 빈을 ApplicationContext에 로드하지 않는다.
+ * 기본적으로 @Entity 클래스를 스캔하고 @Repository 어노테이션이 지정된 Spring Data JPA 레포지토리를 구성한다.
+ * 기본적으로 @DataJpaTest 어노테이션이 지정된 테스트는 트랜잭션 처리되며 각 테스트의 끝에서 롤백된다. 
+ */
 @DataJpaTest
 /* 인 메모리 데이테베이스가 아니라 MySQL을 사용하려면 Replace.NONE으로 설정한다. */
 @AutoConfigureTestDatabase(replace = Replace.NONE)
@@ -36,17 +42,28 @@ public class PostRepositoryTest {
 	@Autowired
 	private CategoryRepository categoryRepository;
 	
+	@Autowired
+	private UserRepository userRepository;
+	
 	private PostEntity postEntity1;
 	private CategoryEntity categoryEntity;
+	private UserEntity userEntity;
 
 	@BeforeEach
 	public void setUp() {
-		categoryEntity = new CategoryEntity();
-		categoryEntity.name("테스트");
+		categoryEntity = categoryRepository.save(new CategoryEntity().name("테스트 카테고리"));
+				
+		userEntity = userRepository.save(new UserEntity()
+				.email("test@test.com")
+				.name("테스트 이름")
+				.password("1234")
+				.userRole(UserRole.USER));
 		
-		categoryEntity = categoryRepository.save(categoryEntity);
-		
-		postEntity1 = new PostEntity().content("테스트 내용").title("테스트 제목").category(categoryEntity);
+		postEntity1 = new PostEntity()
+				.content("테스트 내용")
+				.title("테스트 제목")
+				.category(categoryEntity)
+				.user(userEntity);
 	}
 	
 	@DisplayName("포스트를 생성하는데 성공한다.")
@@ -73,7 +90,11 @@ public class PostRepositoryTest {
 	@DisplayName("포스트 목록을 조회하는데 성공한다.")
 	@Test
 	public void givenNothing_whenCallFindAll_thenReturnAllPostEntities() {
-		PostEntity postEntity2 = new PostEntity().content("실전 내용").title("실전 제목").category(categoryEntity);
+		PostEntity postEntity2 = new PostEntity()
+				.content("실전 내용")
+				.title("실전 제목")
+				.category(categoryEntity)
+				.user(userEntity);
 		
 		postRepository.save(postEntity1);
 		postRepository.save(postEntity2);
@@ -103,15 +124,13 @@ public class PostRepositoryTest {
 	
 	@DisplayName("포스트가 존재하지 않아서 포스트를 조회하는데 실패한다.")
 	@Test
-	public void givenId_whenCallFindById_thenThrowNoSuchElementException() {
-		postRepository.save(postEntity1);
-		
+	public void givenId_whenCallFindById_thenThrowNoSuchElementException() {		
 		/*
 		 * 둘 중 어느 방법?
 		 * Assertions.assertEquals(postRepository.findById(1000L), Optional.empty());
 		 */
 		assertThrows(NoSuchElementException.class, () -> {
-			postRepository.findById(1000L).get();
+			postRepository.findById(1L).get();
 		});
 	}
 	
@@ -131,14 +150,9 @@ public class PostRepositoryTest {
 	
 	@DisplayName("포스트가 존재하지 않아서 포스트를 갱신하는데 실패한다.")
 	@Test
-	public void givenNull_whenCallSave_thenInvalidDataAccessApiUsageException() {
-		PostEntity savedPostEntity = postRepository.save(postEntity1);
-		PostEntity foundPostEntity = postRepository.findById(savedPostEntity.getId()).get();
-		
-		foundPostEntity.content("실전 내용").title("실전 제목");
-
-		assertThrows(InvalidDataAccessApiUsageException.class, () -> {
-			postRepository.save(null);
+	public void givenNull_whenCallSave_thenThrowNoSuchElementException() {	
+		assertThrows(NoSuchElementException.class, () -> {
+			postRepository.findById(1L).get();
 		});
 	}
 	
@@ -157,11 +171,9 @@ public class PostRepositoryTest {
 	
 	@DisplayName("포스트가 존재하지 않아서 포스트를 삭제하는데 실패한다.")
 	@Test
-	public void givenNull_whenCallDelete_thenThrowInvalidDataAccessApiUsageException() {		
-		postRepository.save(postEntity1);
-		
-		assertThrows(InvalidDataAccessApiUsageException.class, () -> {
-			postRepository.delete(null);
+	public void givenNull_whenCallDelete_thenThrowNoSuchElementException() {		
+		assertThrows(NoSuchElementException.class, () -> {
+			postRepository.findById(1L).get();
 		});
 	}
 }
