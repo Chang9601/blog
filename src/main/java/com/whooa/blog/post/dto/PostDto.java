@@ -5,6 +5,7 @@ import java.util.List;
 import com.whooa.blog.category.dto.CategoryDto.CategoryResponse;
 import com.whooa.blog.comment.dto.CommentDto.CommentResponse;
 import com.whooa.blog.file.value.File;
+import com.whooa.blog.post.entity.PostEntity;
 
 import jakarta.validation.constraints.NotBlank;
 
@@ -36,6 +37,21 @@ public class PostDto {
 		}
 
 		public PostCreateRequest() {}
+
+		public PostCreateRequest categoryName(String categoryName) {
+			this.categoryName = categoryName;
+			return this;
+		}
+		
+		public PostCreateRequest content(String content) {
+			this.content = content;
+			return this;
+		}
+		
+		public PostCreateRequest title(String title) {
+			this.title = title;
+			return this;
+		}
 		
 		public String getCategoryName() {
 			return categoryName;

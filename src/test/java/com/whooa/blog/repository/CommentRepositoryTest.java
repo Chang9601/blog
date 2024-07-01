@@ -32,13 +32,10 @@ import static org.junit.jupiter.api.Assertions.*;
 public class CommentRepositoryTest {
 	@Autowired
 	private CommentRepository commentRepository;
-	
 	@Autowired
 	private CategoryRepository categoryRepository;
-	
 	@Autowired
 	private PostRepository postRepository;
-
 	@Autowired
 	private UserRepository userRepository;
 	

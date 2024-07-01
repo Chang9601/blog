@@ -9,7 +9,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import com.whooa.blog.user.entity.UserEntity;
 
 public interface UserRepository extends JpaRepository<UserEntity, Long> {
-	public abstract Boolean existsByEmail(String email);
+	public abstract boolean existsByEmail(String email);
 	public abstract Page<UserEntity> findByActiveTrue(Pageable pageable);
 	public abstract Optional<UserEntity> findByEmail(String email);
 	public abstract Optional<UserEntity> findByIdAndActiveTrue(Long id);
