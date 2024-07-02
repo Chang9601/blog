@@ -3,7 +3,7 @@ package com.whooa.blog.category.entity;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.whooa.blog.common.entity.AbstractEntity;
+import com.whooa.blog.common.entity.CoreEntity;
 import com.whooa.blog.post.entity.PostEntity;
 
 import jakarta.persistence.Column;
@@ -13,7 +13,7 @@ import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "category")
-public class CategoryEntity extends AbstractEntity {
+public class CategoryEntity extends CoreEntity {
 	@Column(length = 300, nullable = false)
 	private String name;
 	

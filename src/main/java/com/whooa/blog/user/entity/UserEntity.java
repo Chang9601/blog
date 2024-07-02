@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.whooa.blog.comment.entity.CommentEntity;
-import com.whooa.blog.common.entity.AbstractEntity;
+import com.whooa.blog.common.entity.CoreEntity;
 import com.whooa.blog.post.entity.PostEntity;
 import com.whooa.blog.user.type.UserRole;
 
@@ -18,7 +18,7 @@ import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "user")
-public class UserEntity extends AbstractEntity {
+public class UserEntity extends CoreEntity {
 	@Column(nullable = false)
 	private Boolean active = true;
 	

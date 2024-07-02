@@ -1,6 +1,6 @@
 package com.whooa.blog.comment.entity;
 
-import com.whooa.blog.common.entity.AbstractEntity;
+import com.whooa.blog.common.entity.CoreEntity;
 import com.whooa.blog.post.entity.PostEntity;
 import com.whooa.blog.user.entity.UserEntity;
 
@@ -13,7 +13,7 @@ import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "comment")
-public class CommentEntity extends AbstractEntity {
+public class CommentEntity extends CoreEntity {
 	@Column(length = 500, nullable = false)
 	private String content;
 	

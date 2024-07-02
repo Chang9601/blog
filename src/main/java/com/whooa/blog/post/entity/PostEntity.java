@@ -5,7 +5,7 @@ import java.util.List;
 
 import com.whooa.blog.category.entity.CategoryEntity;
 import com.whooa.blog.comment.entity.CommentEntity;
-import com.whooa.blog.common.entity.AbstractEntity;
+import com.whooa.blog.common.entity.CoreEntity;
 import com.whooa.blog.file.value.File;
 import com.whooa.blog.user.entity.UserEntity;
 
@@ -21,7 +21,7 @@ import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "post")
-public class PostEntity extends AbstractEntity {
+public class PostEntity extends CoreEntity {
 	@Column(length = 2000, nullable = false)
 	private String content;
 	

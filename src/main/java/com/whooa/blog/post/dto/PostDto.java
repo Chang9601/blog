@@ -97,6 +97,21 @@ public class PostDto {
 
 		public PostUpdateRequest() {}
 		
+		public PostUpdateRequest categoryName(String categoryName) {
+			this.categoryName = categoryName;
+			return this;
+		}
+		
+		public PostUpdateRequest content(String content) {
+			this.content = content;
+			return this;
+		}
+		
+		public PostUpdateRequest title(String title) {
+			this.title = title;
+			return this;
+		}
+		
 		public String getCategoryName() {
 			return categoryName;
 		}

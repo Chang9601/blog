@@ -86,7 +86,7 @@ public class PostRepositoryTest {
 		assertTrue(savedPostEntity.getId() > 0);
 	}
 
-	@DisplayName("포스트를 작성하지 않아 생성하는데 실패한다.")
+	@DisplayName("포스트를 생성하는데 실패한다.")
 	@Test
 	public void givenNull_whenCallSave_thenThrowInvalidDataAccessApiUsageException() {	
 		assertThrows(InvalidDataAccessApiUsageException.class, () -> {
@@ -112,7 +112,7 @@ public class PostRepositoryTest {
 		assertEquals(postEntities.size(), 2);	
 	}
 
-	@DisplayName("카테고리 아이디를 기준으로 포스트 목록을 조회하는데 성공한다.")
+	@DisplayName("포스트 목록(카테고리 아이디)을 조회하는데 성공한다.")
 	@Test
 	public void givenCategoryIdAndPagination_whenCallfindByCategoryId_thenReturnPostEntitiesByCategoryId() {
 		CategoryEntity categoryEntity2 = categoryRepository.save(new CategoryEntity().name("실전 카테고리"));
@@ -142,7 +142,7 @@ public class PostRepositoryTest {
 		assertEquals(foundPostEntity.getTitle(), savedPostEntity.getTitle());			
 	}
 	
-	@DisplayName("포스트가 존재하지 않아서 조회하는데 실패한다.")
+	@DisplayName("포스트를 조회하는데 실패한다.")
 	@Test
 	public void givenId_whenCallFindById_thenThrowNoSuchElementException() {		
 		/*

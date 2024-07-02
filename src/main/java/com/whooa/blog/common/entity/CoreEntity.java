@@ -19,7 +19,7 @@ import jakarta.persistence.MappedSuperclass;
  * AuditingEntityListener 클래스는 엔티티를 저장하거나 갱신할 때 자동으로 createdAt 필드와 updatedAt 필드를 채운다.
  */
 @EntityListeners(AuditingEntityListener.class)
-public abstract class AbstractEntity {
+public abstract class CoreEntity {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
@@ -49,7 +49,7 @@ public abstract class AbstractEntity {
 	@Column(name = "deleted_at")
 	private LocalDateTime deletedAt;
 	
-	public AbstractEntity(Long id) {
+	public CoreEntity(Long id) {
 		this.id = id;
 	}
 

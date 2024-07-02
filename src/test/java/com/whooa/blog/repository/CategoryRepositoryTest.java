@@ -56,7 +56,7 @@ public class CategoryRepositoryTest {
 		assertTrue(savedCategoryEntity.getId() > 0);
 	}
 	
-	@DisplayName("카테고리가 존재하지 않아 생성하는데 실패한다.")
+	@DisplayName("카테고리를 생성하는데 실패한다.")
 	@Test
 	public void givenNull_whenCallSave_thenThrowInvalidDataAccessApiUsageException() {	
 		assertThrows(InvalidDataAccessApiUsageException.class, () -> {
@@ -88,7 +88,7 @@ public class CategoryRepositoryTest {
 		assertEquals(foundCategoryEntity.getName(), savedCategoryEntity.getName());			
 	}
 	
-	@DisplayName("카테고리가 존재하지 않아서 조회하는데 실패한다.")
+	@DisplayName("카테고리를 조회하는데 실패한다.")
 	@Test
 	public void givenId_whenCallFindById_thenThrowNoSuchElementException() {
 		assertThrows(NoSuchElementException.class, () -> {
@@ -109,7 +109,7 @@ public class CategoryRepositoryTest {
 		assertEquals(updatedCategoryEntity.getName(), foundCategoryEntity.getName());
 	}
 	
-	@DisplayName("포스트를 삭제하는데 성공한다.")
+	@DisplayName("카테고리를 삭제하는데 성공한다.")
 	@Test
 	public void givenCategoryEntity_whenCallDelete_thenReturnNothing() {		
 		CategoryEntity savedCategoryEntity = categoryRepository.save(categoryEntity1);

@@ -74,7 +74,7 @@ public class UserRepositoryTest {
 		assertEquals(userEntities.size(), 1);	
 	}
 	
-	@DisplayName("사용자가 존재하지 않아 사용자를 생성하는데 실패한다.")
+	@DisplayName("사용자를 생성하는데 실패한다.")
 	@Test
 	public void givenNull_whenCallSave_thenThrowInvalidDataAccessApiUsageException() {	
 		assertThrows(InvalidDataAccessApiUsageException.class, () -> {
@@ -82,7 +82,7 @@ public class UserRepositoryTest {
 		});
 	}
 	
-	@DisplayName("사용자를 조회(아이디)하는데 성공한다.")
+	@DisplayName("사용자를 조회하는데 성공한다.")
 	@Test
 	public void givenId_whenCallFindById_thenReturnUserEntity() {		
 		UserEntity savedUserEntity = userRepository.save(userEntity1);
@@ -102,7 +102,7 @@ public class UserRepositoryTest {
 		assertEquals(foundUserEntity.getEmail(), savedUserEntity.getEmail());			
 	}
 	
-	@DisplayName("사용자가 존재하지 않아서 조회(아이디)하는데 실패한다.")
+	@DisplayName("사용자를 조회하는데 실패한다.")
 	@Test
 	public void givenId_whenCallFindById_thenThrowNoSuchElementException() {		
 		assertThrows(NoSuchElementException.class, () -> {
@@ -110,7 +110,7 @@ public class UserRepositoryTest {
 		});
 	}
 
-	@DisplayName("사용자가 존재하지 않아서 조회(이메일)하는데 실패한다.")
+	@DisplayName("사용자를 조회(이메일)하는데 실패한다.")
 	@Test
 	public void givenEmail_whenCallFindByEmail_thenThrowNoSuchElementException() {		
 		assertThrows(NoSuchElementException.class, () -> {
@@ -137,7 +137,7 @@ public class UserRepositoryTest {
 		assertEquals(userRepository.findByIdAndActiveTrue(savedUserEntity.getId()), Optional.empty());
 	}	
 	
-	@DisplayName("사용자가 존재하기에 성공한다.")
+	@DisplayName("사용자가 존재하다.")
 	@Test
 	public void givenEmail_whenCallExistsByEmail_thenReturnTrue() {		
 		UserEntity savedUserEntity = userRepository.save(userEntity1);
@@ -146,7 +146,7 @@ public class UserRepositoryTest {
 		assertTrue(result);			
 	}
 
-	@DisplayName("사용자가 존재하지 않기에 실패한다.")
+	@DisplayName("사용자가 존재하지 않는다.")
 	@Test
 	public void givenEmail_whenCallExistsByEmail_thenReturnFalse() {
 		boolean result = userRepository.existsByEmail("test@test.com");

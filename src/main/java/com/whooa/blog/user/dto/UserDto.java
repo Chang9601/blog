@@ -42,6 +42,26 @@ public class UserDto {
 		}
 
 		public UserCreateRequest() {}
+		
+		public UserCreateRequest email(String email) {
+			this.email = email;
+			return this;
+		}
+		
+		public UserCreateRequest name(String name) {
+			this.name = name;
+			return this;
+		}
+		
+		public UserCreateRequest password(String password) {
+			this.password = password;
+			return this;
+		}
+		
+		public UserCreateRequest userRole(String userRole) {
+			this.userRole = userRole;
+			return this;
+		}
 
 		public String getEmail() {
 			return email;

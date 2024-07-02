@@ -68,7 +68,7 @@ public class CommentRepositoryTest {
 				.user(userEntity);		
 	}
 	
-	@DisplayName("포스트의 댓글을 생성하는데 성공한다.")
+	@DisplayName("댓글을 생성하는데 성공한다.")
 	@Test
 	public void givenCommentEntity_whenCallSave_thenReturnCommentEntity() {		
 		CommentEntity savedCommentEntity = commentRepository.save(commentEntity1);
@@ -77,7 +77,7 @@ public class CommentRepositoryTest {
 		assertTrue(savedCommentEntity.getId() > 0);
 	}
 
-	@DisplayName("댓글을 작성하지 않아서 포스트의 댓글을 생성하는데 실패한다.")
+	@DisplayName("댓글을 생성하는데 실패한다.")
 	@Test
 	public void givenNull_whenCallSave_thenThrowInvalidDataAccessApiUsageException() {	
 		assertThrows(InvalidDataAccessApiUsageException.class, () -> {
@@ -85,7 +85,7 @@ public class CommentRepositoryTest {
 		});
 	}
 	
-	@DisplayName("포스트의 댓글 목록을 조회하는데 성공한다.")
+	@DisplayName("댓글 목록을 조회하는데 성공한다.")
 	@Test
 	public void givenPostId_whenCallFindByPostId_thenReturnAllCommentEntitiesForPostEntity() {
 		CommentEntity commentEntity2 = new CommentEntity()
@@ -103,7 +103,7 @@ public class CommentRepositoryTest {
 		assertEquals(commentEntities.getTotalElements(), 2);			
 	}
 	
-	@DisplayName("포스트의 댓글이 존재하지 않아서 포스트의 댓글 목록을 조회하는데 실패한다.")
+	@DisplayName("댓글 목록을 조회하는데 실패한다.")
 	@Test
 	public void givenPostId_whenCallFindByPostId_thenThrowNoSuchElementException() {
 		assertThrows(NoSuchElementException.class, () -> {
@@ -111,7 +111,7 @@ public class CommentRepositoryTest {
 		});
 	}
 	
-	@DisplayName("포스트의 댓글을 조회하는데 성공한다.")
+	@DisplayName("댓글을 조회하는데 성공한다.")
 	@Test
 	public void givenId_whenCallFindById_thenReturnCommentEntity() {		
 		CommentEntity savedCommentEntity = commentRepository.save(commentEntity1);
@@ -121,7 +121,7 @@ public class CommentRepositoryTest {
 		assertEquals(foundCommentEntity.getName(), savedCommentEntity.getName());		
 	}
 	
-	@DisplayName("포스트의 댓글이 존재하지 않아서 포스트의 댓글을 조회하는데 실패한다")
+	@DisplayName("댓글을 조회하는데 실패한다")
 	@Test
 	public void givenId_whenCallFindById_thenThrowNoSuchElementException() {		
 		assertThrows(NoSuchElementException.class, () -> {
@@ -129,7 +129,7 @@ public class CommentRepositoryTest {
 		});
 	}
 	
-	@DisplayName("포스트의 댓글을 갱신하는데 성공한다.")
+	@DisplayName("댓글을 갱신하는데 성공한다.")
 	@Test
 	public void givenCommentEntity_whenCallSave_thenReturnUpdatedCommentEntity() {
 		CommentEntity savedCommentEntity = commentRepository.save(commentEntity1);
@@ -142,15 +142,7 @@ public class CommentRepositoryTest {
 		assertEquals(updatedCommentEntity.getName(), foundCommentEntity.getName());
 	}
 	
-	@DisplayName("댓글을 작성하지 않아서 포스트의 댓글을 갱신하는데 실패한다.")
-	@Test
-	public void givenNull_whenCallSave_thenThrowNoSuchElementException() {
-		assertThrows(NoSuchElementException.class, () -> {
-			commentRepository.findById(1L).get();
-		});
-	}
-	
-	@DisplayName("포스트의 댓글을 삭제하는데 성공한다.")
+	@DisplayName("댓글을 삭제하는데 성공한다.")
 	@Test
 	public void givenCommentEntity_whenCallDelete_thenReturnNothing() {
 		CommentEntity savedCommentEntity = commentRepository.save(commentEntity1);
@@ -158,13 +150,5 @@ public class CommentRepositoryTest {
 		commentRepository.delete(savedCommentEntity);
 		
 		assertEquals(commentRepository.findById(savedCommentEntity.getId()), Optional.empty());
-	}
-	
-	@DisplayName("댓글을 작성하지 않아서 포스트의 댓글을 삭제하는데 실패한다.")
-	@Test
-	public void givenNull_whenCallDelete_thenThrowNoSuchElementException() {		
-		assertThrows(NoSuchElementException.class, () -> {
-			commentRepository.findById(1L).get();
-		});
 	}
 }
