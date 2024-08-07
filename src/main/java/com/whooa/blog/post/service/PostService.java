@@ -4,10 +4,10 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.whooa.blog.common.api.PageResponse;
 import com.whooa.blog.common.security.UserDetailsImpl;
-import com.whooa.blog.post.dto.PostDto.PostCreateRequest;
-import com.whooa.blog.post.dto.PostDto.PostUpdateRequest;
+import com.whooa.blog.post.dto.PostDTO.PostCreateRequest;
+import com.whooa.blog.post.dto.PostDTO.PostUpdateRequest;
 import com.whooa.blog.util.PaginationUtil;
-import com.whooa.blog.post.dto.PostDto.PostResponse;
+import com.whooa.blog.post.dto.PostDTO.PostResponse;
 
 public interface PostService {
 	/* 인터페이스의 메서드는 기본적으로 public 접근 제한자를 사용하고 정적이다. */

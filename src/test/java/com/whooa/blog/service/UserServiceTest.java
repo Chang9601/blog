@@ -15,9 +15,11 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.extension.ExtendWith;
+
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -26,8 +28,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 
 import com.whooa.blog.common.api.PageResponse;
 import com.whooa.blog.common.security.UserDetailsImpl;
-import com.whooa.blog.user.dto.UserDto.UserCreateRequest;
-import com.whooa.blog.user.dto.UserDto.UserResponse;
+import com.whooa.blog.user.dto.UserDTO.UserCreateRequest;
+import com.whooa.blog.user.dto.UserDTO.UserResponse;
 import com.whooa.blog.user.entity.UserEntity;
 import com.whooa.blog.user.exception.DuplicateUserException;
 import com.whooa.blog.user.exception.UserNotFoundException;
@@ -94,7 +96,6 @@ public class UserServiceTest {
 	public void givenUserCreate_whenCallCreate_thenReturnUser() {
 		given(userRepository.save(any(UserEntity.class))).willReturn(userEntity1);
 		given(userRepository.existsByEmail(any(String.class))).willReturn(false);
-		given(passwordUtil.hash(any(String.class))).willReturn("12sfar3131rafsa");
 		
 		user = userServiceImpl.create(userCreate);
 				
@@ -102,7 +103,6 @@ public class UserServiceTest {
 
 		then(userRepository).should(times(1)).save(any(UserEntity.class));
 		then(userRepository).should(times(1)).existsByEmail(any(String.class));
-		then(passwordUtil).should(times(1)).hash(any(String.class));
 	}
 	
 	@DisplayName("사용자가 이미 존재하여 생성하는데 실패한다.")
@@ -116,7 +116,6 @@ public class UserServiceTest {
 		
 		then(userRepository).should(times(0)).save(any(UserEntity.class));
 		then(userRepository).should(times(1)).existsByEmail(any(String.class));
-		then(passwordUtil).should(times(0)).hash(any(String.class));
 	}
 	
 	@DisplayName("사용자를 생성하는데 실패한다.")
@@ -128,7 +127,6 @@ public class UserServiceTest {
 		
 		then(userRepository).should(times(0)).save(any(UserEntity.class));
 		then(userRepository).should(times(0)).existsByEmail(any(String.class));
-		then(passwordUtil).should(times(0)).hash(any(String.class));
 	}
 	
 	@DisplayName("사용자를 삭제하는데 성공한다.")

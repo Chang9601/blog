@@ -38,8 +38,8 @@ import org.springframework.web.filter.CharacterEncodingFilter;
 
 import com.jayway.jsonpath.JsonPath;
 
-import com.whooa.blog.category.dto.CategoryDto.CategoryCreateRequest;
-import com.whooa.blog.category.dto.CategoryDto.CategoryUpdateRequest;
+import com.whooa.blog.category.dto.CategoryDTO.CategoryCreateRequest;
+import com.whooa.blog.category.dto.CategoryDTO.CategoryUpdateRequest;
 import com.whooa.blog.category.exception.CategoryNotFoundException;
 import com.whooa.blog.category.exception.DuplicateCategoryException;
 import com.whooa.blog.category.repository.CategoryRepository;
@@ -117,7 +117,7 @@ public class CategoryIntegrationTest {
 	@WithUserDetails(value = "admin@admin.com", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")
 	public void givenCategoryCreate_whenCallCreateCategory_thenReturnCategory() throws Exception {
 		ResultActions action = mockMvc.perform(post("/api/v1/categories")
-										.content(SerializeDeserializeUtil.serialize(categoryCreate1))
+										.content(SerializeDeserializeUtil.serializeToString(categoryCreate1))
 										.characterEncoding(StandardCharsets.UTF_8)
 										.contentType(MediaType.APPLICATION_JSON));
 		action.andDo(print())
@@ -131,7 +131,7 @@ public class CategoryIntegrationTest {
 	public void givenCategoryCreate_whenCallCreateCategory_thenThrowBadRqeustExceptionForName() throws Exception {
 		categoryCreate1.name("테");
 		ResultActions action = mockMvc.perform(post("/api/v1/categories")
-										.content(SerializeDeserializeUtil.serialize(categoryCreate1))
+										.content(SerializeDeserializeUtil.serializeToString(categoryCreate1))
 										.characterEncoding(StandardCharsets.UTF_8)
 										.contentType(MediaType.APPLICATION_JSON));
 		action.andDo(print())
@@ -143,12 +143,12 @@ public class CategoryIntegrationTest {
 	@WithUserDetails(value = "admin@admin.com", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")
 	public void givenCategoryCreate_whenCallCreateCategory_thenThrowDuplicateCategoryException() throws Exception {
 		mockMvc.perform(post("/api/v1/categories")
-				.content(SerializeDeserializeUtil.serialize(categoryCreate1))
+				.content(SerializeDeserializeUtil.serializeToString(categoryCreate1))
 				.characterEncoding(StandardCharsets.UTF_8)
 				.contentType(MediaType.APPLICATION_JSON));
 		
 		ResultActions action = mockMvc.perform(post("/api/v1/categories")
-				.content(SerializeDeserializeUtil.serialize(categoryCreate1))
+				.content(SerializeDeserializeUtil.serializeToString(categoryCreate1))
 				.characterEncoding(StandardCharsets.UTF_8)
 				.contentType(MediaType.APPLICATION_JSON));
 		
@@ -162,7 +162,7 @@ public class CategoryIntegrationTest {
 	@WithUserDetails(value = "test@test.com", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")
 	public void givenCategoryCreate_whenCallCreateCategory_thenThrowUnauthorizedUserException() throws Exception {
 		ResultActions action = mockMvc.perform(post("/api/v1/categories")
-										.content(SerializeDeserializeUtil.serialize(categoryCreate1))
+										.content(SerializeDeserializeUtil.serializeToString(categoryCreate1))
 										.characterEncoding(StandardCharsets.UTF_8)
 										.contentType(MediaType.APPLICATION_JSON));
 		action.andDo(print())
@@ -174,7 +174,7 @@ public class CategoryIntegrationTest {
 	@WithUserDetails(value = "admin@admin.com", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")
 	public void givenId_whenCallDeleteCategory_thenReturnNothing() throws Exception {
 		MvcResult result = mockMvc.perform(post("/api/v1/categories")
-									.content(SerializeDeserializeUtil.serialize(categoryCreate1))
+									.content(SerializeDeserializeUtil.serializeToString(categoryCreate1))
 									.characterEncoding(StandardCharsets.UTF_8)
 									.contentType(MediaType.APPLICATION_JSON))
 									.andExpect(status().isCreated())
@@ -206,7 +206,7 @@ public class CategoryIntegrationTest {
 	public void givenId_whenCallDeleteCategory_thenThrowUnauthorizedUserException() throws Exception {
 		MvcResult result = mockMvc.perform(post("/api/v1/categories")
 									.with(user(userDetailsImpl))
-									.content(SerializeDeserializeUtil.serialize(categoryCreate1))
+									.content(SerializeDeserializeUtil.serializeToString(categoryCreate1))
 									.characterEncoding(StandardCharsets.UTF_8)
 									.contentType(MediaType.APPLICATION_JSON))
 									.andExpect(status().isCreated())
@@ -227,7 +227,7 @@ public class CategoryIntegrationTest {
 		
 		mockMvc.perform(post("/api/v1/categories")
 				.with(user(userDetailsImpl))
-				.content(SerializeDeserializeUtil.serialize(categoryCreate1))
+				.content(SerializeDeserializeUtil.serializeToString(categoryCreate1))
 				.characterEncoding(StandardCharsets.UTF_8)
 				.contentType(MediaType.APPLICATION_JSON))
 				.andExpect(status().isCreated())
@@ -235,7 +235,7 @@ public class CategoryIntegrationTest {
 		
 		mockMvc.perform(post("/api/v1/categories")
 				.with(user(userDetailsImpl))
-				.content(SerializeDeserializeUtil.serialize(categoryCreate2))
+				.content(SerializeDeserializeUtil.serializeToString(categoryCreate2))
 				.characterEncoding(StandardCharsets.UTF_8)
 				.contentType(MediaType.APPLICATION_JSON))
 				.andExpect(status().isCreated())
@@ -261,7 +261,7 @@ public class CategoryIntegrationTest {
 	@WithUserDetails(value = "admin@admin.com", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")
 	public void givenCategoryUpdate_whenCallUpdateCategory_thenReturnCategory() throws Exception {
 		MvcResult result = mockMvc.perform(post("/api/v1/categories")
-									.content(SerializeDeserializeUtil.serialize(categoryCreate1))
+									.content(SerializeDeserializeUtil.serializeToString(categoryCreate1))
 									.characterEncoding(StandardCharsets.UTF_8)
 									.contentType(MediaType.APPLICATION_JSON))
 									.andExpect(status().isCreated())
@@ -270,7 +270,7 @@ public class CategoryIntegrationTest {
 		Integer id = JsonPath.read(result.getResponse().getContentAsString(), "$.data.id");
 
 		ResultActions action = mockMvc.perform(patch("/api/v1/categories/{id}", id)
-										.content(SerializeDeserializeUtil.serialize(categoryUpdate))
+										.content(SerializeDeserializeUtil.serializeToString(categoryUpdate))
 										.characterEncoding(StandardCharsets.UTF_8)
 										.contentType(MediaType.APPLICATION_JSON));
 		
@@ -285,7 +285,7 @@ public class CategoryIntegrationTest {
 	public void givenCategoryUpdate_whenCallUpdateCategory_thenThrowBadRqeustExceptionForName() throws Exception {
 		categoryCreate1.name("테");
 		MvcResult result = mockMvc.perform(post("/api/v1/categories")
-									.content(SerializeDeserializeUtil.serialize(categoryCreate1))
+									.content(SerializeDeserializeUtil.serializeToString(categoryCreate1))
 									.characterEncoding(StandardCharsets.UTF_8)
 									.contentType(MediaType.APPLICATION_JSON))
 									.andExpect(status().isCreated())
@@ -294,7 +294,7 @@ public class CategoryIntegrationTest {
 		Integer id = JsonPath.read(result.getResponse().getContentAsString(), "$.data.id");
 
 		ResultActions action = mockMvc.perform(patch("/api/v1/categories/{id}", id)
-										.content(SerializeDeserializeUtil.serialize(categoryUpdate))
+										.content(SerializeDeserializeUtil.serializeToString(categoryUpdate))
 										.characterEncoding(StandardCharsets.UTF_8)
 										.contentType(MediaType.APPLICATION_JSON));
 		
@@ -307,9 +307,10 @@ public class CategoryIntegrationTest {
 	@WithUserDetails(value = "admin@admin.com", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")
 	public void givenCategoryUpdate_whenCallUpdateCategory_thenThrowCategoryNotFoundException() throws Exception {				
 		ResultActions action = mockMvc.perform(patch("/api/v1/categories/{id}", 100L)
-										.content(SerializeDeserializeUtil.serialize(categoryUpdate))
+										.content(SerializeDeserializeUtil.serializeToString(categoryUpdate))
 										.characterEncoding(StandardCharsets.UTF_8)
 										.contentType(MediaType.APPLICATION_JSON));
+		
 		action.andDo(print())
 				.andExpect(status().isNotFound())
 				.andExpect(output -> assertTrue(output.getResolvedException() instanceof CategoryNotFoundException));
@@ -321,7 +322,7 @@ public class CategoryIntegrationTest {
 	public void givenCategoryUpdate_whenCallUpdateCategory_thenThrowUnauthorizedUserException() throws Exception {
 		MvcResult result = mockMvc.perform(post("/api/v1/categories")
 									.with(user(userDetailsImpl))
-									.content(SerializeDeserializeUtil.serialize(categoryCreate1))
+									.content(SerializeDeserializeUtil.serializeToString(categoryCreate1))
 									.characterEncoding(StandardCharsets.UTF_8)
 									.contentType(MediaType.APPLICATION_JSON))
 									.andExpect(status().isCreated())
@@ -330,7 +331,7 @@ public class CategoryIntegrationTest {
 		Integer id = JsonPath.read(result.getResponse().getContentAsString(), "$.data.id");
 		
 		ResultActions action = mockMvc.perform(patch("/api/v1/categories/{id}", id)
-										.content(SerializeDeserializeUtil.serialize(categoryUpdate))
+										.content(SerializeDeserializeUtil.serializeToString(categoryUpdate))
 										.characterEncoding(StandardCharsets.UTF_8)
 										.contentType(MediaType.APPLICATION_JSON));
 		

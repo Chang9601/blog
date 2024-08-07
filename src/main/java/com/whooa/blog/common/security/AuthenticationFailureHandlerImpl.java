@@ -1,4 +1,4 @@
-package com.whooa.blog.common.security.jwt;
+package com.whooa.blog.common.security;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -24,13 +24,13 @@ import jakarta.servlet.http.HttpServletResponse;
 
 /* AuthenticationFailureHandler 인터페이스는 AccessDeniedException 인터페이스 및 AuthenticationEntryPoint 인터페이스에서 처리되지 않은 다른 인증 예외를 처리한다. */
 @Component
-public class JwtAuthenticationFailureHandler implements AuthenticationFailureHandler {
-	private static Logger logger = LoggerFactory.getLogger(JwtAuthenticationFailureHandler.class);
+public class AuthenticationFailureHandlerImpl implements AuthenticationFailureHandler {
+	private static Logger logger = LoggerFactory.getLogger(AuthenticationFailureHandlerImpl.class);
 	
 	@Override
 	public void onAuthenticationFailure(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse,
 			 AuthenticationException authenticationException) throws IOException, ServletException {
-		logger.error("[JwtAuthFailureHandler] 인증이 실패했습니다.");
+		logger.error("[AuthenticationFailureHandlerImpl] 인증이 실패했습니다.");
 		
 		ApiResponse<?> failure;
 		
@@ -50,6 +50,6 @@ public class JwtAuthenticationFailureHandler implements AuthenticationFailureHan
 		
 		httpServletResponse.setContentType(MediaType.APPLICATION_JSON_VALUE);
 		httpServletResponse.setCharacterEncoding(StandardCharsets.UTF_8.name());
-		httpServletResponse.getWriter().write(SerializeDeserializeUtil.serialize(failure));
+		httpServletResponse.getWriter().write(SerializeDeserializeUtil.serializeToString(failure));
 	}
 }

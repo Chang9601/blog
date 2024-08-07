@@ -1,4 +1,4 @@
-package com.whooa.blog.common.type;
+package com.whooa.blog.common.security.jwt;
 
 public enum JwtType {
 	ACCESS_TOKEN("ACCESS_TOKEN"), REFRESH_TOKEN("REFRESH_TOKEN");

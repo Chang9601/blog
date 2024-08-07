@@ -12,6 +12,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
@@ -38,7 +40,7 @@ import com.jayway.jsonpath.JsonPath;
 
 import com.whooa.blog.common.code.Code;
 import com.whooa.blog.common.security.UserDetailsImpl;
-import com.whooa.blog.user.dto.UserDto.UserCreateRequest;
+import com.whooa.blog.user.dto.UserDTO.UserCreateRequest;
 import com.whooa.blog.user.entity.UserEntity;
 import com.whooa.blog.user.exception.DuplicateUserException;
 import com.whooa.blog.user.repository.UserRepository;
@@ -108,7 +110,7 @@ class UserIntegrationTest {
 	@Test
 	public void givenUserCreate_whenCallCreateUser_thenReturnUser() throws Exception {
 		ResultActions action = mockMvc.perform(post("/api/v1/users")
-								.content(SerializeDeserializeUtil.serialize(userCreate1))
+								.content(SerializeDeserializeUtil.serializeToString(userCreate1))
 								.characterEncoding(StandardCharsets.UTF_8)
 								.contentType(MediaType.APPLICATION_JSON));
 
@@ -123,7 +125,7 @@ class UserIntegrationTest {
 	public void givenUserCreate_whenCallCreateUser_thenThrowBadRequestExceptionForName() throws Exception {
 		userCreate1.name("테");
 		ResultActions action = mockMvc.perform(post("/api/v1/users")
-								.content(SerializeDeserializeUtil.serialize(userCreate1))
+								.content(SerializeDeserializeUtil.serializeToString(userCreate1))
 								.characterEncoding(StandardCharsets.UTF_8)
 								.contentType(MediaType.APPLICATION_JSON));
 
@@ -136,7 +138,7 @@ class UserIntegrationTest {
 	public void givenUserCreate_whenCallCreateUser_thenThrowBadRequestExceptionForEmail() throws Exception {
 		userCreate1.email("testtest.com");
 		ResultActions action = mockMvc.perform(post("/api/v1/users")
-								.content(SerializeDeserializeUtil.serialize(userCreate1))
+								.content(SerializeDeserializeUtil.serializeToString(userCreate1))
 								.characterEncoding(StandardCharsets.UTF_8)
 								.contentType(MediaType.APPLICATION_JSON));
 
@@ -149,7 +151,7 @@ class UserIntegrationTest {
 	public void givenUserCreate_whenCallCreateUser_thenThrowBadRequestExceptionForPassword() throws Exception {
 		userCreate1.password("12341231");
 		ResultActions action = mockMvc.perform(post("/api/v1/users")
-								.content(SerializeDeserializeUtil.serialize(userCreate1))
+								.content(SerializeDeserializeUtil.serializeToString(userCreate1))
 								.characterEncoding(StandardCharsets.UTF_8)
 								.contentType(MediaType.APPLICATION_JSON));
 
@@ -160,13 +162,13 @@ class UserIntegrationTest {
 	@Test
 	public void givenUserCreate_whenCallCreateUser_thenThrowDuplicateUserException() throws Exception {
 		mockMvc.perform(post("/api/v1/users")
-				.content(SerializeDeserializeUtil.serialize(userCreate1))
+				.content(SerializeDeserializeUtil.serializeToString(userCreate1))
 				.characterEncoding(StandardCharsets.UTF_8)
 				.contentType(MediaType.APPLICATION_JSON))
 				.andExpect(status().isCreated());
 		
 		ResultActions action = mockMvc.perform(post("/api/v1/users")
-								.content(SerializeDeserializeUtil.serialize(userCreate1))
+								.content(SerializeDeserializeUtil.serializeToString(userCreate1))
 								.characterEncoding(StandardCharsets.UTF_8)
 								.contentType(MediaType.APPLICATION_JSON));
 		
@@ -179,7 +181,7 @@ class UserIntegrationTest {
 	@Test
 	public void givenId_whenCallDeleteUser_thenReturnNothing() throws Exception {
 		mockMvc.perform(post("/api/v1/users")
-				.content(SerializeDeserializeUtil.serialize(userCreate1))
+				.content(SerializeDeserializeUtil.serializeToString(userCreate1))
 				.characterEncoding(StandardCharsets.UTF_8)
 				.contentType(MediaType.APPLICATION_JSON))
 				.andExpect(status().isCreated());
@@ -198,7 +200,7 @@ class UserIntegrationTest {
 	@Test
 	public void givenId_whenCallDeleteUser_thenThrowUnauthenticatedUserException() throws Exception {
 		mockMvc.perform(post("/api/v1/users")
-				.content(SerializeDeserializeUtil.serialize(userCreate1))
+				.content(SerializeDeserializeUtil.serializeToString(userCreate1))
 				.characterEncoding(StandardCharsets.UTF_8)
 				.contentType(MediaType.APPLICATION_JSON))
 				.andExpect(status().isCreated());
@@ -213,7 +215,7 @@ class UserIntegrationTest {
 	@Test
 	public void givenNothing_whenCallGetMe_thenReturnUser() throws Exception {
 		mockMvc.perform(post("/api/v1/users")
-				.content(SerializeDeserializeUtil.serialize(userCreate1))
+				.content(SerializeDeserializeUtil.serializeToString(userCreate1))
 				.characterEncoding(StandardCharsets.UTF_8)
 				.contentType(MediaType.APPLICATION_JSON))
 				.andExpect(status().isCreated());
@@ -233,7 +235,7 @@ class UserIntegrationTest {
 	@Test
 	public void givenNothing_whenCallGetMe_thenThrowUnauthenticatedUserException() throws Exception {		
 		mockMvc.perform(post("/api/v1/users")
-				.content(SerializeDeserializeUtil.serialize(userCreate1))
+				.content(SerializeDeserializeUtil.serializeToString(userCreate1))
 				.characterEncoding(StandardCharsets.UTF_8)
 				.contentType(MediaType.APPLICATION_JSON))
 				.andExpect(status().isCreated());
@@ -249,7 +251,7 @@ class UserIntegrationTest {
 	@Test
 	public void givenId_whenCallGetUser_thenReturnUser() throws Exception {
 		MvcResult result = mockMvc.perform(post("/api/v1/users")
-				.content(SerializeDeserializeUtil.serialize(userCreate1))
+				.content(SerializeDeserializeUtil.serializeToString(userCreate1))
 				.characterEncoding(StandardCharsets.UTF_8)
 				.contentType(MediaType.APPLICATION_JSON))
 				.andExpect(status().isCreated())
@@ -272,7 +274,7 @@ class UserIntegrationTest {
 	@Test
 	public void givenId_whenCallGetUser_thenThrowUnauthorizedUserException() throws Exception {		
 		MvcResult result = mockMvc.perform(post("/api/v1/users")
-				.content(SerializeDeserializeUtil.serialize(userCreate1))
+				.content(SerializeDeserializeUtil.serializeToString(userCreate1))
 				.characterEncoding(StandardCharsets.UTF_8)
 				.contentType(MediaType.APPLICATION_JSON))
 				.andExpect(status().isCreated())
@@ -294,7 +296,7 @@ class UserIntegrationTest {
 	@Test
 	public void givenPagination_whenCallGetUsers_thenReturnUsers() throws Exception {	
 		mockMvc.perform(post("/api/v1/users")
-				.content(SerializeDeserializeUtil.serialize(userCreate1))
+				.content(SerializeDeserializeUtil.serializeToString(userCreate1))
 				.characterEncoding(StandardCharsets.UTF_8)
 				.contentType(MediaType.APPLICATION_JSON))
 				.andExpect(status().isCreated());
@@ -321,7 +323,7 @@ class UserIntegrationTest {
 	@Test
 	public void givenPagination_whenCallGetUsers_thenThrowUnauthorizedUserException() throws Exception {	
 		mockMvc.perform(post("/api/v1/users")
-				.content(SerializeDeserializeUtil.serialize(userCreate1))
+				.content(SerializeDeserializeUtil.serializeToString(userCreate1))
 				.characterEncoding(StandardCharsets.UTF_8)
 				.contentType(MediaType.APPLICATION_JSON))
 				.andExpect(status().isCreated());
@@ -341,5 +343,32 @@ class UserIntegrationTest {
 		
 		action.andDo(print())
 				.andExpect(status().isForbidden());
-	}	
+	}
+
+	// TODO: 의존성 오류.
+//	@DisplayName("로그인 하는데 성공한다.")
+//	@Test
+//	public void givenEmailAndPassword_whenCallJsonUsernamePasswordAuthenticationFilter_thenReturnUser() throws Exception {
+//		mockMvc.perform(post("/api/v1/users")
+//				.content(SerializeDeserializeUtil.serializeToString(userCreate1))
+//				.characterEncoding(StandardCharsets.UTF_8)
+//				.contentType(MediaType.APPLICATION_JSON))
+//				.andExpect(status().isCreated());
+//
+//		userDetailsImpl = new UserDetailsImpl(userRepository.findByEmail("test@test.com").get());
+//		
+//		Map<String, String> signInDto = new HashMap<>();
+//		
+//		signInDto.put("email", userCreate1.getEmail());
+//		signInDto.put("password", userCreate1.getPassword());
+//
+//		ResultActions action = mockMvc.perform(post("/api/v1/auth/sign-in")
+//										.with(user(userDetailsImpl))
+//										.content(SerializeDeserializeUtil.serializeToString(signInDto))
+//										.characterEncoding(StandardCharsets.UTF_8)
+//										.contentType(MediaType.APPLICATION_JSON));		
+//		action.andDo(print())
+//				.andExpect(status().isOk())
+//				.andExpect(jsonPath("$.data.email", is(userCreate1.getEmail())));
+//	}
 }

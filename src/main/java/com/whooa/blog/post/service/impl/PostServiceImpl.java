@@ -17,9 +17,9 @@ import com.whooa.blog.common.code.Code;
 import com.whooa.blog.common.security.UserDetailsImpl;
 import com.whooa.blog.file.service.FileService;
 import com.whooa.blog.file.value.File;
-import com.whooa.blog.post.dto.PostDto.PostCreateRequest;
-import com.whooa.blog.post.dto.PostDto.PostUpdateRequest;
-import com.whooa.blog.post.dto.PostDto.PostResponse;
+import com.whooa.blog.post.dto.PostDTO.PostCreateRequest;
+import com.whooa.blog.post.dto.PostDTO.PostUpdateRequest;
+import com.whooa.blog.post.dto.PostDTO.PostResponse;
 import com.whooa.blog.post.entity.PostEntity;
 import com.whooa.blog.post.exception.PostNotFoundException;
 import com.whooa.blog.post.mapper.PostMapper;
@@ -29,7 +29,7 @@ import com.whooa.blog.user.entity.UserEntity;
 import com.whooa.blog.user.exception.UserNotFoundException;
 import com.whooa.blog.user.exception.UserNotMatchedException;
 import com.whooa.blog.user.repository.UserRepository;
-import com.whooa.blog.util.NotNullNotEmptyChecker;
+import com.whooa.blog.util.StringUtil;
 import com.whooa.blog.util.PaginationUtil;
 
 @Service
@@ -57,15 +57,20 @@ public class PostServiceImpl implements PostService {
 
 	@Override
 	public PostResponse create(PostCreateRequest postCreate, MultipartFile[] uploadFiles, UserDetailsImpl userDetailsImpl) {
+		String title, content, categoryName;
 		List<File> files = null;
-				
-		String title = postCreate.getTitle();
-		String content = postCreate.getContent();
-		String categoryName = postCreate.getCategoryName();
+		CategoryEntity categoryEntity;
+		UserEntity userEntity;
+		PostEntity postEntity;
+		PostResponse post;
 		
-		CategoryEntity categoryEntity = categoryRepository.findByName(categoryName).orElseThrow(() -> new CategoryNotFoundException(Code.NOT_FOUND, new String[] {"카테고리가 존재하지 않습니다."}));
-		UserEntity userEntity = userRepository.findById(userDetailsImpl.getId()).orElseThrow(() -> new UserNotFoundException(Code.NOT_FOUND, new String[] {"아이디에 해당하는 사용자가 존재하지 않습니다."}));
-		PostEntity postEntity = new PostEntity()
+		title = postCreate.getTitle();
+		content = postCreate.getContent();
+		categoryName = postCreate.getCategoryName();
+		
+		categoryEntity = categoryRepository.findByName(categoryName).orElseThrow(() -> new CategoryNotFoundException(Code.NOT_FOUND, new String[] {"카테고리가 존재하지 않습니다."}));
+		userEntity = userRepository.findById(userDetailsImpl.getId()).orElseThrow(() -> new UserNotFoundException(Code.NOT_FOUND, new String[] {"아이디에 해당하는 사용자가 존재하지 않습니다."}));
+		postEntity = new PostEntity()
 				.content(content)
 				.title(title)
 				.category(categoryEntity)
@@ -80,18 +85,20 @@ public class PostServiceImpl implements PostService {
 					.collect(Collectors.toList());
 		}
 	
-		PostResponse post = PostMapper.INSTANCE.toDto(postRepository.save(postEntity));
+		post = PostMapper.INSTANCE.toDto(postRepository.save(postEntity));
 		post.setFiles(files);
 
 		return post;
 	}
 
 	@Override
-	public void delete(Long id, UserDetailsImpl userDetailsImpl) {		
-		PostEntity postEntity = postRepository.findById(id).orElseThrow(() -> new PostNotFoundException(Code.NOT_FOUND, new String[] {"포스트가 존재하지 않습니다."}));
-		UserEntity userEntity = userRepository.findById(userDetailsImpl.getId()).orElseThrow(() -> new UserNotFoundException(Code.NOT_FOUND, new String[] {"아이디에 해당하는 사용자가 존재하지 않습니다."}));
+	public void delete(Long id, UserDetailsImpl userDetailsImpl) {
+		Long userId;
+		PostEntity postEntity;
 		
-		Long userId = userEntity.getId();
+		postEntity = postRepository.findById(id).orElseThrow(() -> new PostNotFoundException(Code.NOT_FOUND, new String[] {"포스트가 존재하지 않습니다."}));
+		
+		userId = userDetailsImpl.getId();
 		
 		if (!postEntity.getUser().getId().equals(userId)) {
 			throw new UserNotMatchedException(Code.USER_NOT_MATCHED, new String[] {"로그인한 사용자와 포스트를 생성한 사용자가 일치하지 않습니다."});
@@ -109,19 +116,26 @@ public class PostServiceImpl implements PostService {
 
 	@Override
 	public PageResponse<PostResponse> findAll(PaginationUtil pagination) {
-		Pageable pageable = pagination.makePageable();
+		Pageable pageable;
+		Page<PostEntity> page;
+		List<PostEntity> postEntities;
+		List<PostResponse> postResponse;
+		int pageSize, pageNo, totalPages;
+		long totalElements;
+		boolean isLast, isFirst;
 		
-		Page<PostEntity> page = postRepository.findAll(pageable);
+		pageable = pagination.makePageable();
+		page = postRepository.findAll(pageable);
 		
-		List<PostEntity> postEntities = page.getContent();
-		int pageSize = page.getSize();
-		int pageNo = page.getNumber();
-		long totalElements = page.getTotalElements();
-		int totalPages = page.getTotalPages();
-		boolean isLast = page.isLast();
-		boolean isFirst = page.isFirst();
+		postEntities = page.getContent();
+		pageSize = page.getSize();
+		pageNo = page.getNumber();
+		totalElements = page.getTotalElements();
+		totalPages = page.getTotalPages();
+		isLast = page.isLast();
+		isFirst = page.isFirst();
 				
-		List<PostResponse> postResponse = postEntities.stream().map((postEntity) -> PostMapper.INSTANCE.toDto(postEntity)).collect(Collectors.toList());
+		postResponse = postEntities.stream().map((postEntity) -> PostMapper.INSTANCE.toDto(postEntity)).collect(Collectors.toList());
 		
 		return PageResponse.handleResponse(postResponse, pageSize, pageNo, totalElements, totalPages, isLast, isFirst);
 	}
@@ -129,47 +143,56 @@ public class PostServiceImpl implements PostService {
 	@Override
 	public PageResponse<PostResponse> findAllByCategoryId(Long categoryId, PaginationUtil pagination) {
 		//categoryRepository.findById(categoryId).orElseThrow(() -> new CategoryNotFoundException(Code.NOT_FOUND, new String[] {"카테고리가 존재하지 않습니다."}));
-
-		Pageable pageable = pagination.makePageable();
+		Pageable pageable;
+		Page<PostEntity> page;
+		List<PostEntity> postEntities;
+		List<PostResponse> postResponse;
+		int pageSize, pageNo, totalPages;
+		long totalElements;
+		boolean isLast, isFirst;
 		
-		Page<PostEntity> page = postRepository.findByCategoryId(categoryId, pageable);
+		pageable = pagination.makePageable();
+		page = postRepository.findByCategoryId(categoryId, pageable);
 		
-		List<PostEntity> postEntities = page.getContent();
-		int pageSize = page.getSize();
-		int pageNo = page.getNumber();
-		long totalElements = page.getTotalElements();
-		int totalPages = page.getTotalPages();
-		boolean isLast = page.isLast();
-		boolean isFirst = page.isFirst();
+		postEntities = page.getContent();
+		pageSize = page.getSize();
+		pageNo = page.getNumber();
+		totalElements = page.getTotalElements();
+		totalPages = page.getTotalPages();
+		isLast = page.isLast();
+		isFirst = page.isFirst();
 		
-		List<PostResponse> postResponse = postEntities.stream().map((postEntity) -> PostMapper.INSTANCE.toDto(postEntity)).collect(Collectors.toList());
+		postResponse = postEntities.stream().map((postEntity) -> PostMapper.INSTANCE.toDto(postEntity)).collect(Collectors.toList());
 		
 		return PageResponse.handleResponse(postResponse, pageSize, pageNo, totalElements, totalPages, isLast, isFirst);
 	}
 
 	@Override
 	public PostResponse update(Long id, PostUpdateRequest postUpdate, MultipartFile[] uploadFiles, UserDetailsImpl userDetailsImpl) {
+		Long userId;
 		List<File> files = null;
+		PostEntity postEntity;
+		CategoryEntity categoryEntity;
+		PostResponse post;
+		
+		postEntity = postRepository.findById(id).orElseThrow(() -> new PostNotFoundException(Code.NOT_FOUND, new String[] {"포스트가 존재하지 않습니다."}));
+		categoryEntity = categoryRepository.findByName(postUpdate.getCategoryName()).orElseThrow(() -> new CategoryNotFoundException(Code.NOT_FOUND, new String[] {"카테고리가 존재하지 않습니다."}));
 
-		PostEntity postEntity = postRepository.findById(id).orElseThrow(() -> new PostNotFoundException(Code.NOT_FOUND, new String[] {"포스트가 존재하지 않습니다."}));
-		CategoryEntity categoryEntity = categoryRepository.findByName(postUpdate.getCategoryName()).orElseThrow(() -> new CategoryNotFoundException(Code.NOT_FOUND, new String[] {"카테고리가 존재하지 않습니다."}));
-		UserEntity userEntity = userRepository.findById(userDetailsImpl.getId()).orElseThrow(() -> new UserNotFoundException(Code.NOT_FOUND, new String[] {"아이디에 해당하는 사용자가 존재하지 않습니다."}));
-
-		Long userId = userEntity.getId();
+		userId = userDetailsImpl.getId();
 				
 		if (!postEntity.getUser().getId().equals(userId)) {
 			throw new UserNotMatchedException(Code.USER_NOT_MATCHED, new String[] {"로그인한 사용자와 포스트를 생성한 사용자가 일치하지 않습니다."});
 		}
 		
-		if (NotNullNotEmptyChecker.check(postUpdate.getTitle())) {
+		if (StringUtil.notEmpty(postUpdate.getTitle())) {
 			postEntity.title(postUpdate.getTitle());
 		}
 				
-		if (NotNullNotEmptyChecker.check(postUpdate.getContent())) {
+		if (StringUtil.notEmpty(postUpdate.getContent())) {
 			postEntity.content(postUpdate.getContent());
 		}
 		
-		if (NotNullNotEmptyChecker.check(postUpdate.getCategoryName())) {
+		if (StringUtil.notEmpty(postUpdate.getCategoryName())) {
 			postEntity.category(categoryEntity);
 		}
 		
@@ -179,7 +202,7 @@ public class PostServiceImpl implements PostService {
 					.collect(Collectors.toList());
 		}
 		
-		PostResponse post = PostMapper.INSTANCE.toDto(postRepository.save(postEntity));
+		post = PostMapper.INSTANCE.toDto(postRepository.save(postEntity));
 		post.setFiles(files);
 		
 		return post;

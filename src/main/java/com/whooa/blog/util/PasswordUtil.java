@@ -1,21 +1,19 @@
 package com.whooa.blog.util;
 
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.stereotype.Component;
 
-@Component
 public class PasswordUtil {
-	private BCryptPasswordEncoder bCryptPasswordEncoder;
+	private static BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();
 	
-	public PasswordUtil(BCryptPasswordEncoder bCryptPasswordEncoder) {
-		this.bCryptPasswordEncoder = bCryptPasswordEncoder;
+	public static BCryptPasswordEncoder bCryptPasswordEncoder() {
+		return bCryptPasswordEncoder;
 	}
 
-	public String hash(String password) {
-		return bCryptPasswordEncoder.encode(password);
+	public static String hash(String password) {
+		return bCryptPasswordEncoder().encode(password);
 	}
 	
-	public boolean match(String plainPassword, String hashedPassword) {
-		return bCryptPasswordEncoder.matches(plainPassword, hashedPassword);
+	public static boolean match(String plainPassword, String hashedPassword) {
+		return bCryptPasswordEncoder().matches(plainPassword, hashedPassword);
 	}
 }

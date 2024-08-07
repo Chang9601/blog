@@ -26,6 +26,6 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 			UserEntity userEntity = userRepository.findByEmail(email)
 												.orElseThrow(() -> new UsernameNotFoundException("이메일과 일치하는 사용자가 존재하지 않습니다."));
 
-			return new UserDetailsImpl(userEntity);
+			return UserDetailsImpl.create(userEntity);
 		}
 }

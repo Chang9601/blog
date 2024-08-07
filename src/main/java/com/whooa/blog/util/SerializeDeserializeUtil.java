@@ -1,5 +1,7 @@
 package com.whooa.blog.util;
 
+import java.io.IOException;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -15,19 +17,37 @@ public class SerializeDeserializeUtil {
 		return objectMapper;
 	}
 	
-	public static String serialize(Object object) {
+	public static String serializeToString(Object object) {
 		try {
 			return objectMapper().writeValueAsString(object);
 		} catch (JsonProcessingException exception) {
-			logger.error("SerializeDeserializeUtil.serialize(): {}", exception.getMessage());
+			logger.error("SerializeDeserializeUtil.serializeToString(): {}", exception.getMessage());
 			throw new InternalError();
 		}
 	}
 	
-	public static <T> T deserialize(String json, Class<T> className) {
+	public static byte[] serializeToByte(Object object) {
 		try {
-			return objectMapper().readValue(json, className);
+			return objectMapper().writeValueAsBytes(object);
 		} catch (JsonProcessingException exception) {
+			logger.error("SerializeDeserializeUtil.serializeToByte(): {}", exception.getMessage());
+			throw new InternalError();
+		}
+	}
+	
+	public static <T> T deserializeFromJson(String json, Class<T> clazz) {
+		try {
+			return objectMapper().readValue(json, clazz);
+		} catch (JsonProcessingException exception) {
+			logger.error("SerializeDeserializeUtil.deserialize(): {}", exception.getMessage());
+			throw new InternalError();
+		}
+	}
+	
+	public static <T> T deserializeFromByte(byte[] bytes, Class<T> clazz) {
+		try {
+			return objectMapper().readValue(bytes, clazz);
+		} catch (IOException exception) {
 			logger.error("SerializeDeserializeUtil.deserialize(): {}", exception.getMessage());
 			throw new InternalError();
 		}

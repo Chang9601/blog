@@ -10,8 +10,8 @@ import org.springframework.stereotype.Service;
 import com.whooa.blog.common.api.PageResponse;
 import com.whooa.blog.common.code.Code;
 import com.whooa.blog.common.security.UserDetailsImpl;
-import com.whooa.blog.user.dto.UserDto.UserCreateRequest;
-import com.whooa.blog.user.dto.UserDto.UserResponse;
+import com.whooa.blog.user.dto.UserDTO.UserCreateRequest;
+import com.whooa.blog.user.dto.UserDTO.UserResponse;
 import com.whooa.blog.user.entity.UserEntity;
 import com.whooa.blog.user.exception.DuplicateUserException;
 import com.whooa.blog.user.exception.UserNotFoundException;
@@ -25,24 +25,27 @@ import com.whooa.blog.util.UserRoleMapper;
 @Service
 public class UserServiceImpl implements UserService {
 	private UserRepository userRepository;
-	private PasswordUtil passwordUtil;
 	
-	public UserServiceImpl(UserRepository userRepository, PasswordUtil passwordUtil) {
+	public UserServiceImpl(UserRepository userRepository) {
 		this.userRepository = userRepository;
-		this.passwordUtil = passwordUtil;
 	}
 	
 	@Override
 	public UserResponse create(UserCreateRequest userCreate) {
-		if (userRepository.existsByEmail(userCreate.getEmail())) {
+		String email, plainPassword, hashedPassword, userRole;
+		UserEntity userEntity;
+		
+		email = userCreate.getEmail();
+		
+		if (userRepository.existsByEmail(email)) {
 			throw new DuplicateUserException(Code.CONFLICT, new String[] {"이메일을 사용하는 사용자가 존재합니다."});
 		}
 		
-		String userRole = userCreate.getUserRole();
-		UserEntity userEntity = UserMapper.INSTANCE.toEntity(userCreate);
+		userRole = userCreate.getUserRole();
+		userEntity = UserMapper.INSTANCE.toEntity(userCreate);
 				
-		String plainPassword = userEntity.getPassword();
-		String hashedPassword = passwordUtil.hash(plainPassword);
+		plainPassword = userEntity.getPassword();
+		hashedPassword = PasswordUtil.hash(plainPassword);
 		
 		userEntity.password(hashedPassword).userRole(UserRoleMapper.map(userRole));
 		
@@ -51,10 +54,12 @@ public class UserServiceImpl implements UserService {
 	
 	@Override
 	public void delete(UserDetailsImpl userDetailsImpl) {
-		Long id = userDetailsImpl.getId();
-
-		UserEntity userEntity = userRepository.findById(id).orElseThrow(() -> new UserNotFoundException(Code.NOT_FOUND, new String[] {"아이디에 해당하는 사용자가 존재하지 않습니다."}));
+		Long id;
+		UserEntity userEntity;
 		
+		id = userDetailsImpl.getId();
+		
+		userEntity = userRepository.findById(id).orElseThrow(() -> new UserNotFoundException(Code.NOT_FOUND, new String[] {"아이디에 해당하는 사용자가 존재하지 않습니다."}));
 		userEntity.active(false);
 		
 		userRepository.save(userEntity);
@@ -62,27 +67,37 @@ public class UserServiceImpl implements UserService {
 	
 	@Override
 	public UserResponse find(UserDetailsImpl userDetailsImpl) {
-		Long id = userDetailsImpl.getId();		
-		UserEntity userEntity = userRepository.findByIdAndActiveTrue(id).orElseThrow(() -> new UserNotFoundException(Code.NOT_FOUND, new String[] {"아이디에 해당하는 사용자가 존재하지 않습니다."}));
+		Long id;
+		UserEntity userEntity;	
+		
+		id = userDetailsImpl.getId();		
+		userEntity = userRepository.findByIdAndActiveTrue(id).orElseThrow(() -> new UserNotFoundException(Code.NOT_FOUND, new String[] {"아이디에 해당하는 사용자가 존재하지 않습니다."}));
 		
 		return UserMapper.INSTANCE.toDto(userEntity);
 	}
 	
 	@Override
 	public PageResponse<UserResponse> findAll(PaginationUtil paginationUtil) {
-		Pageable pageable = paginationUtil.makePageable();
+		Pageable pageable;
+		Page<UserEntity> page;
+		List<UserEntity> userEntities;
+		List<UserResponse> userResponse;
+		int pageSize, pageNo, totalPages;
+		long totalElements;
+		boolean isLast, isFirst;
 		
-		Page<UserEntity> users = userRepository.findByActiveTrue(pageable);
+		pageable = paginationUtil.makePageable();
+		page = userRepository.findByActiveTrue(pageable);
 		
-		List<UserEntity> userEntities = users.getContent();
-		int pageSize = users.getSize();
-		int pageNo = users.getNumber();
-		long totalElements = users.getTotalElements();
-		int totalPages = users.getTotalPages();
-		boolean isLast = users.isLast();
-		boolean isFirst = users.isFirst();
+		userEntities = page.getContent();
+		pageSize = page.getSize();
+		pageNo = page.getNumber();
+		totalElements = page.getTotalElements();
+		totalPages = page.getTotalPages();
+		isLast = page.isLast();
+		isFirst = page.isFirst();
 				
-		List<UserResponse> userResponse = userEntities.stream().map((userEntity) -> UserMapper.INSTANCE.toDto(userEntity)).collect(Collectors.toList());
+		userResponse = userEntities.stream().map((userEntity) -> UserMapper.INSTANCE.toDto(userEntity)).collect(Collectors.toList());
 		
 		return PageResponse.handleResponse(userResponse, pageSize, pageNo, totalElements, totalPages, isLast, isFirst);
 	}

@@ -18,15 +18,16 @@ import com.whooa.blog.common.api.ApiResponse;
 import com.whooa.blog.common.api.PageResponse;
 import com.whooa.blog.common.code.Code;
 import com.whooa.blog.common.security.UserDetailsImpl;
-import com.whooa.blog.post.dto.PostDto.PostResponse;
-import com.whooa.blog.post.dto.PostDto.PostCreateRequest;
-import com.whooa.blog.post.dto.PostDto.PostUpdateRequest;
+import com.whooa.blog.post.dto.PostDTO.PostResponse;
+import com.whooa.blog.post.dto.PostDTO.PostCreateRequest;
+import com.whooa.blog.post.dto.PostDTO.PostUpdateRequest;
 import com.whooa.blog.post.service.PostService;
 import com.whooa.blog.util.PaginationUtil;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+
 import jakarta.validation.Valid;
 
 @Tag(

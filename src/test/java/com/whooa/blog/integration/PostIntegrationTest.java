@@ -42,8 +42,8 @@ import com.whooa.blog.category.entity.CategoryEntity;
 import com.whooa.blog.category.repository.CategoryRepository;
 import com.whooa.blog.common.code.Code;
 import com.whooa.blog.common.security.UserDetailsImpl;
-import com.whooa.blog.post.dto.PostDto.PostCreateRequest;
-import com.whooa.blog.post.dto.PostDto.PostUpdateRequest;
+import com.whooa.blog.post.dto.PostDTO.PostCreateRequest;
+import com.whooa.blog.post.dto.PostDTO.PostUpdateRequest;
 import com.whooa.blog.post.exception.PostNotFoundException;
 import com.whooa.blog.post.repository.PostRepository;
 import com.whooa.blog.user.entity.UserEntity;
@@ -128,7 +128,7 @@ public class PostIntegrationTest {
 	@Test
 	@WithUserDetails(value = "test@test.com", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")
 	public void givenPostCreate_whenCallCreatePost_thenReturnPost() throws Exception {
-		MockMultipartFile postCreateFile = new MockMultipartFile("post", null, MediaType.APPLICATION_JSON_VALUE, SerializeDeserializeUtil.serialize(postCreate).getBytes(StandardCharsets.UTF_8));
+		MockMultipartFile postCreateFile = new MockMultipartFile("post", null, MediaType.APPLICATION_JSON_VALUE, SerializeDeserializeUtil.serializeToString(postCreate).getBytes(StandardCharsets.UTF_8));
 					
 		ResultActions action = mockMvc.perform(multipart(HttpMethod.POST, "/api/v1/posts")
 										.file(postCreateFile)
@@ -146,7 +146,7 @@ public class PostIntegrationTest {
 	public void givenPostCreate_whenCallCreatePost_thenReturnPostWithFiles() throws Exception {
 		MockMultipartFile postFile1 = new MockMultipartFile("files", "test1.txt", MediaType.TEXT_PLAIN_VALUE, "test1".getBytes(StandardCharsets.UTF_8));
 		MockMultipartFile postFile2 = new MockMultipartFile("files", "test2.txt", MediaType.TEXT_PLAIN_VALUE, "test2".getBytes(StandardCharsets.UTF_8));
-		MockMultipartFile postCreateFile = new MockMultipartFile("post", null, MediaType.APPLICATION_JSON_VALUE, SerializeDeserializeUtil.serialize(postCreate).getBytes(StandardCharsets.UTF_8));
+		MockMultipartFile postCreateFile = new MockMultipartFile("post", null, MediaType.APPLICATION_JSON_VALUE, SerializeDeserializeUtil.serializeToString(postCreate).getBytes(StandardCharsets.UTF_8));
 					
 		ResultActions action = mockMvc.perform(multipart(HttpMethod.POST, "/api/v1/posts")
 										.file(postCreateFile)
@@ -166,7 +166,7 @@ public class PostIntegrationTest {
 	@WithUserDetails(value = "test@test.com", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")
 	public void givenPostCreate_whenCallCreatePost_thenThrowBadRequestExceptionForCategoryName() throws Exception {
 		postCreate.categoryName("테");
-		MockMultipartFile postCreateFile = new MockMultipartFile("post", null, MediaType.APPLICATION_JSON_VALUE, SerializeDeserializeUtil.serialize(postCreate).getBytes(StandardCharsets.UTF_8));
+		MockMultipartFile postCreateFile = new MockMultipartFile("post", null, MediaType.APPLICATION_JSON_VALUE, SerializeDeserializeUtil.serializeToString(postCreate).getBytes(StandardCharsets.UTF_8));
 					
 		ResultActions action = mockMvc.perform(multipart(HttpMethod.POST, "/api/v1/posts")
 										.file(postCreateFile)
@@ -181,7 +181,7 @@ public class PostIntegrationTest {
 	@WithUserDetails(value = "test@test.com", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")
 	public void givenPostCreate_whenCallCreatePost_thenThrowBadRequestExceptionForTitle() throws Exception {
 		postCreate.title("테");
-		MockMultipartFile postCreateFile = new MockMultipartFile("post", null, MediaType.APPLICATION_JSON_VALUE, SerializeDeserializeUtil.serialize(postCreate).getBytes(StandardCharsets.UTF_8));
+		MockMultipartFile postCreateFile = new MockMultipartFile("post", null, MediaType.APPLICATION_JSON_VALUE, SerializeDeserializeUtil.serializeToString(postCreate).getBytes(StandardCharsets.UTF_8));
 					
 		ResultActions action = mockMvc.perform(multipart(HttpMethod.POST, "/api/v1/posts")
 										.file(postCreateFile)
@@ -196,7 +196,7 @@ public class PostIntegrationTest {
 	@WithUserDetails(value = "test@test.com", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")
 	public void givenPostCreate_whenCallCreatePost_thenThrowBadRequestExceptionForContent() throws Exception {
 		postCreate.content("테스트 내용");
-		MockMultipartFile postCreateFile = new MockMultipartFile("post", null, MediaType.APPLICATION_JSON_VALUE, SerializeDeserializeUtil.serialize(postCreate).getBytes(StandardCharsets.UTF_8));
+		MockMultipartFile postCreateFile = new MockMultipartFile("post", null, MediaType.APPLICATION_JSON_VALUE, SerializeDeserializeUtil.serializeToString(postCreate).getBytes(StandardCharsets.UTF_8));
 					
 		ResultActions action = mockMvc.perform(multipart(HttpMethod.POST, "/api/v1/posts")
 										.file(postCreateFile)
@@ -209,7 +209,7 @@ public class PostIntegrationTest {
 	@DisplayName("인증되어 있지 않아 포스트를 생성하는데 실패한다.")
 	@Test
 	public void givenPostCreate_whenCallCreatePost_thenThrowUnauthenticatedUserException() throws Exception {
-		MockMultipartFile postCreateFile = new MockMultipartFile("post", null, MediaType.APPLICATION_JSON_VALUE, SerializeDeserializeUtil.serialize(postCreate).getBytes(StandardCharsets.UTF_8));
+		MockMultipartFile postCreateFile = new MockMultipartFile("post", null, MediaType.APPLICATION_JSON_VALUE, SerializeDeserializeUtil.serializeToString(postCreate).getBytes(StandardCharsets.UTF_8));
 
 		ResultActions action = mockMvc.perform(multipart(HttpMethod.POST, "/api/v1/posts")
 										.file(postCreateFile)
@@ -224,7 +224,7 @@ public class PostIntegrationTest {
 	@Test
 	@WithUserDetails(value = "test@test.com", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")
 	public void givenId_whenCallDeletePost_thenReturnNothing() throws Exception {
-		MockMultipartFile postCreateFile = new MockMultipartFile("post", null, MediaType.APPLICATION_JSON_VALUE, SerializeDeserializeUtil.serialize(postCreate).getBytes(StandardCharsets.UTF_8));
+		MockMultipartFile postCreateFile = new MockMultipartFile("post", null, MediaType.APPLICATION_JSON_VALUE, SerializeDeserializeUtil.serializeToString(postCreate).getBytes(StandardCharsets.UTF_8));
 
 		MvcResult result = mockMvc.perform(multipart(HttpMethod.POST, "/api/v1/posts")
 									.file(postCreateFile)
@@ -265,7 +265,7 @@ public class PostIntegrationTest {
 	@DisplayName("포스트를 조회하는데 성공한다")
 	@Test
 	public void givenId_whenCallGetPost_thenReturnPost() throws Exception {
-		MockMultipartFile postCreateFile = new MockMultipartFile("post", null, MediaType.APPLICATION_JSON_VALUE, SerializeDeserializeUtil.serialize(postCreate).getBytes(StandardCharsets.UTF_8));
+		MockMultipartFile postCreateFile = new MockMultipartFile("post", null, MediaType.APPLICATION_JSON_VALUE, SerializeDeserializeUtil.serializeToString(postCreate).getBytes(StandardCharsets.UTF_8));
 		
 		MvcResult result = mockMvc.perform(multipart(HttpMethod.POST, "/api/v1/posts")
 									.file(postCreateFile)
@@ -300,8 +300,8 @@ public class PostIntegrationTest {
 	@DisplayName("포스트 목록을 조회하는데 성공한다.")
 	@Test
 	public void givenPagination_whenCallGetPosts_thenReturnPosts() throws Exception {
-		MockMultipartFile postCreateFile1 = new MockMultipartFile("post", null, MediaType.APPLICATION_JSON_VALUE, SerializeDeserializeUtil.serialize(postCreate).getBytes(StandardCharsets.UTF_8));
-		MockMultipartFile postCreateFile2 = new MockMultipartFile("post", null, MediaType.APPLICATION_JSON_VALUE, SerializeDeserializeUtil.serialize(postCreate).getBytes(StandardCharsets.UTF_8));
+		MockMultipartFile postCreateFile1 = new MockMultipartFile("post", null, MediaType.APPLICATION_JSON_VALUE, SerializeDeserializeUtil.serializeToString(postCreate).getBytes(StandardCharsets.UTF_8));
+		MockMultipartFile postCreateFile2 = new MockMultipartFile("post", null, MediaType.APPLICATION_JSON_VALUE, SerializeDeserializeUtil.serializeToString(postCreate).getBytes(StandardCharsets.UTF_8));
 
 		mockMvc.perform(multipart(HttpMethod.POST, "/api/v1/posts")
 				.file(postCreateFile1)
@@ -336,8 +336,8 @@ public class PostIntegrationTest {
 	@Test
 	@WithUserDetails(value = "test@test.com", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")
 	public void givenPostUpdate_whenCallUpdatePost_thenReturnPost() throws Exception {
-		MockMultipartFile postCreateFile = new MockMultipartFile("post", null, MediaType.APPLICATION_JSON_VALUE, SerializeDeserializeUtil.serialize(postCreate).getBytes(StandardCharsets.UTF_8));
-		MockMultipartFile postUpdateFile = new MockMultipartFile("post", null, MediaType.APPLICATION_JSON_VALUE, SerializeDeserializeUtil.serialize(postUpdate).getBytes(StandardCharsets.UTF_8));
+		MockMultipartFile postCreateFile = new MockMultipartFile("post", null, MediaType.APPLICATION_JSON_VALUE, SerializeDeserializeUtil.serializeToString(postCreate).getBytes(StandardCharsets.UTF_8));
+		MockMultipartFile postUpdateFile = new MockMultipartFile("post", null, MediaType.APPLICATION_JSON_VALUE, SerializeDeserializeUtil.serializeToString(postUpdate).getBytes(StandardCharsets.UTF_8));
 
 		MvcResult result = mockMvc.perform(multipart(HttpMethod.POST, "/api/v1/posts")
 									.file(postCreateFile)
@@ -365,8 +365,8 @@ public class PostIntegrationTest {
 	@WithUserDetails(value = "test@test.com", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")
 	public void givenPostUpdate_whenCallUpdatePost_thenReturnPostWithFiles() throws Exception {
 		MockMultipartFile postFile = new MockMultipartFile("files", "test1.txt", MediaType.TEXT_PLAIN_VALUE, "test1".getBytes(StandardCharsets.UTF_8));
-		MockMultipartFile postCreateFile = new MockMultipartFile("post", null, MediaType.APPLICATION_JSON_VALUE, SerializeDeserializeUtil.serialize(postCreate).getBytes(StandardCharsets.UTF_8));
-		MockMultipartFile postUpdateFile = new MockMultipartFile("post", null, MediaType.APPLICATION_JSON_VALUE, SerializeDeserializeUtil.serialize(postUpdate).getBytes(StandardCharsets.UTF_8));
+		MockMultipartFile postCreateFile = new MockMultipartFile("post", null, MediaType.APPLICATION_JSON_VALUE, SerializeDeserializeUtil.serializeToString(postCreate).getBytes(StandardCharsets.UTF_8));
+		MockMultipartFile postUpdateFile = new MockMultipartFile("post", null, MediaType.APPLICATION_JSON_VALUE, SerializeDeserializeUtil.serializeToString(postUpdate).getBytes(StandardCharsets.UTF_8));
 
 		MvcResult result = mockMvc.perform(multipart(HttpMethod.POST, "/api/v1/posts")
 									.file(postCreateFile)
@@ -395,8 +395,8 @@ public class PostIntegrationTest {
 	@WithUserDetails(value = "test@test.com", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")
 	public void givenPostUpdate_whenCallUpdatePost_thenThrowBadRequestExceptionForCategoryName() throws Exception {
 		postUpdate.categoryName("테");
-		MockMultipartFile postCreateFile = new MockMultipartFile("post", null, MediaType.APPLICATION_JSON_VALUE, SerializeDeserializeUtil.serialize(postCreate).getBytes(StandardCharsets.UTF_8));
-		MockMultipartFile postUpdateFile = new MockMultipartFile("post", null, MediaType.APPLICATION_JSON_VALUE, SerializeDeserializeUtil.serialize(postUpdate).getBytes(StandardCharsets.UTF_8));
+		MockMultipartFile postCreateFile = new MockMultipartFile("post", null, MediaType.APPLICATION_JSON_VALUE, SerializeDeserializeUtil.serializeToString(postCreate).getBytes(StandardCharsets.UTF_8));
+		MockMultipartFile postUpdateFile = new MockMultipartFile("post", null, MediaType.APPLICATION_JSON_VALUE, SerializeDeserializeUtil.serializeToString(postUpdate).getBytes(StandardCharsets.UTF_8));
 
 		MvcResult result = mockMvc.perform(multipart(HttpMethod.POST, "/api/v1/posts")
 									.file(postCreateFile)
@@ -421,8 +421,8 @@ public class PostIntegrationTest {
 	@WithUserDetails(value = "test@test.com", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")
 	public void givenPostUpdate_whenCallUpdatePost_thenThrowBadRequestExceptionForTitle() throws Exception {
 		postUpdate.title("테");
-		MockMultipartFile postCreateFile = new MockMultipartFile("post", null, MediaType.APPLICATION_JSON_VALUE, SerializeDeserializeUtil.serialize(postCreate).getBytes(StandardCharsets.UTF_8));
-		MockMultipartFile postUpdateFile = new MockMultipartFile("post", null, MediaType.APPLICATION_JSON_VALUE, SerializeDeserializeUtil.serialize(postUpdate).getBytes(StandardCharsets.UTF_8));
+		MockMultipartFile postCreateFile = new MockMultipartFile("post", null, MediaType.APPLICATION_JSON_VALUE, SerializeDeserializeUtil.serializeToString(postCreate).getBytes(StandardCharsets.UTF_8));
+		MockMultipartFile postUpdateFile = new MockMultipartFile("post", null, MediaType.APPLICATION_JSON_VALUE, SerializeDeserializeUtil.serializeToString(postUpdate).getBytes(StandardCharsets.UTF_8));
 
 		MvcResult result = mockMvc.perform(multipart(HttpMethod.POST, "/api/v1/posts")
 									.file(postCreateFile)
@@ -447,8 +447,8 @@ public class PostIntegrationTest {
 	@WithUserDetails(value = "test@test.com", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")
 	public void givenPostUpdate_whenCallUpdatePost_thenThrowBadRequestExceptionForContent() throws Exception {
 		postUpdate.content("실전 내용");
-		MockMultipartFile postCreateFile = new MockMultipartFile("post", null, MediaType.APPLICATION_JSON_VALUE, SerializeDeserializeUtil.serialize(postCreate).getBytes(StandardCharsets.UTF_8));
-		MockMultipartFile postUpdateFile = new MockMultipartFile("post", null, MediaType.APPLICATION_JSON_VALUE, SerializeDeserializeUtil.serialize(postUpdate).getBytes(StandardCharsets.UTF_8));
+		MockMultipartFile postCreateFile = new MockMultipartFile("post", null, MediaType.APPLICATION_JSON_VALUE, SerializeDeserializeUtil.serializeToString(postCreate).getBytes(StandardCharsets.UTF_8));
+		MockMultipartFile postUpdateFile = new MockMultipartFile("post", null, MediaType.APPLICATION_JSON_VALUE, SerializeDeserializeUtil.serializeToString(postUpdate).getBytes(StandardCharsets.UTF_8));
 
 		MvcResult result = mockMvc.perform(multipart(HttpMethod.POST, "/api/v1/posts")
 									.file(postCreateFile)
@@ -472,7 +472,7 @@ public class PostIntegrationTest {
 	@Test
 	@WithUserDetails(value = "test@test.com", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")
 	public void givenPostUpdate_whenCallUpdatePost_thenThrowPostNotFoundException() throws Exception {
-		MockMultipartFile postUpdateFile = new MockMultipartFile("post", null, MediaType.APPLICATION_JSON_VALUE, SerializeDeserializeUtil.serialize(postUpdate).getBytes(StandardCharsets.UTF_8));
+		MockMultipartFile postUpdateFile = new MockMultipartFile("post", null, MediaType.APPLICATION_JSON_VALUE, SerializeDeserializeUtil.serializeToString(postUpdate).getBytes(StandardCharsets.UTF_8));
 
 		ResultActions action = mockMvc.perform(multipart(HttpMethod.PATCH, "/api/v1/posts/{id}", 100L)
 										.file(postUpdateFile)
@@ -487,8 +487,8 @@ public class PostIntegrationTest {
 	@DisplayName("인증되어 있지 않아 포스트를 수정하는데 실패한다.")
 	@Test
 	public void givenPostUpdate_whenCallUpdatePost_thenThrowUnauthenticatedUserException() throws Exception {
-		MockMultipartFile postCreateFile = new MockMultipartFile("post", null, MediaType.APPLICATION_JSON_VALUE, SerializeDeserializeUtil.serialize(postCreate).getBytes(StandardCharsets.UTF_8));
-		MockMultipartFile postUpdateFile = new MockMultipartFile("post", null, MediaType.APPLICATION_JSON_VALUE, SerializeDeserializeUtil.serialize(postUpdate).getBytes(StandardCharsets.UTF_8));
+		MockMultipartFile postCreateFile = new MockMultipartFile("post", null, MediaType.APPLICATION_JSON_VALUE, SerializeDeserializeUtil.serializeToString(postCreate).getBytes(StandardCharsets.UTF_8));
+		MockMultipartFile postUpdateFile = new MockMultipartFile("post", null, MediaType.APPLICATION_JSON_VALUE, SerializeDeserializeUtil.serializeToString(postUpdate).getBytes(StandardCharsets.UTF_8));
 
 		MvcResult result = mockMvc.perform(multipart("/api/v1/posts")
 									.file(postCreateFile)

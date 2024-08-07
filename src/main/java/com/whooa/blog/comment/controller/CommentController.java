@@ -12,9 +12,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.whooa.blog.comment.dto.CommentDto.CommentCreateRequest;
-import com.whooa.blog.comment.dto.CommentDto.CommentUpdateRequest;
-import com.whooa.blog.comment.dto.CommentDto.CommentResponse;
+import com.whooa.blog.comment.dto.CommentDTO.CommentCreateRequest;
+import com.whooa.blog.comment.dto.CommentDTO.CommentUpdateRequest;
+import com.whooa.blog.comment.dto.CommentDTO.CommentResponse;
 import com.whooa.blog.comment.service.CommentService;
 import com.whooa.blog.common.api.ApiResponse;
 import com.whooa.blog.common.api.PageResponse;
@@ -56,7 +56,7 @@ public class CommentController {
 	)
 	@SecurityRequirement(
 		name = "JWT Cookie Authentication"
-	)	
+	)
 	@ResponseStatus(value = HttpStatus.OK)
 	@DeleteMapping("/posts/{post-id}/comments/{id}")
 	public ApiResponse<CommentResponse> deleteComment(@PathVariable("id") Long id, @PathVariable("post-id") Long postId, @AuthenticationPrincipal UserDetailsImpl userDetailsImpl) {

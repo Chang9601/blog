@@ -20,9 +20,17 @@ public enum Code {
 	FILE_NOT_SAVED(2002, "파일을 저장할 수 없습니다."),
 	FILE_NOT_DOWNLOADED(2003, "파일을 다운로드할 수 없습니다."),
 	
-	INVALID_JWT(3000, "JWT 토큰이 유효하지 않습니다."),
+	INVALID_JWT_ACCESS_TOKEN(3000, "JWT 접근 토큰이 유효하지 않습니다."),
+	INVALID_JWT_REFRESH_TOKEN(3001, "JWT 새로고침 토큰이 유효하지 않습니다."),
+	JWT_REFRESH_TOKEN_NOT_MATCHED(3002, "JWT 새로고침 토큰이 일치하지 않습니다."),
+
+	USER_NOT_MATCHED(4000, "사용자가 일치하지 않습니다."),
 	
-	USER_NOT_MATCHED(4000, "사용자가 일치하지 않습니다.");
+	OAUTH2_INVALID_PROVIDER(5000, "OAuth 2이 지원되지 않습니다."),
+	OAUTH2_INVALID_EMAIL(5001, "OAuth 2 로그인이 제공하는 이메일이 아닙니다."),
+	OAUTH2_LOCAL_SIGNUP(5002, "이미 회원가입을 통해서 가입했습니다."),
+	OAUTH2_SIGNUP_FAILURE(5003, "OAuth 2 로그인에 실패했습니다.");
+	
 
 	private int code;
 	private String message;

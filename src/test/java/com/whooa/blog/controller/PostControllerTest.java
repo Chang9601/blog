@@ -45,9 +45,9 @@ import com.whooa.blog.common.exception.AllExceptionHandler;
 import com.whooa.blog.common.security.UserDetailsImpl;
 import com.whooa.blog.file.value.File;
 import com.whooa.blog.post.controller.PostController;
-import com.whooa.blog.post.dto.PostDto.PostCreateRequest;
-import com.whooa.blog.post.dto.PostDto.PostUpdateRequest;
-import com.whooa.blog.post.dto.PostDto.PostResponse;
+import com.whooa.blog.post.dto.PostDTO.PostCreateRequest;
+import com.whooa.blog.post.dto.PostDTO.PostUpdateRequest;
+import com.whooa.blog.post.dto.PostDTO.PostResponse;
 import com.whooa.blog.post.entity.PostEntity;
 import com.whooa.blog.post.exception.PostNotFoundException;
 import com.whooa.blog.post.mapper.PostMapper;
@@ -140,7 +140,7 @@ public class PostControllerTest {
 	@Test
 	@WithMockCustomUser
 	public void givenPostCreate_whenCallCreatePost_thenReturnPost() throws Exception {
-		MockMultipartFile postCreateFile = new MockMultipartFile("post", null, MediaType.APPLICATION_JSON_VALUE, SerializeDeserializeUtil.serialize(postCreate).getBytes(StandardCharsets.UTF_8));
+		MockMultipartFile postCreateFile = new MockMultipartFile("post", null, MediaType.APPLICATION_JSON_VALUE, SerializeDeserializeUtil.serializeToString(postCreate).getBytes(StandardCharsets.UTF_8));
 
 		given(postService.create(any(PostCreateRequest.class), any(MultipartFile[].class), any(UserDetailsImpl.class))).willAnswer((answer) -> { 
 			post1 = PostMapper.INSTANCE.toDto(postEntity);
@@ -173,7 +173,7 @@ public class PostControllerTest {
 	public void givenPostCreate_whenCallCreatePost_thenReturnPostWithFiles() throws Exception {
 		MockMultipartFile postFile1 = new MockMultipartFile("files", "test1.txt", MediaType.TEXT_PLAIN_VALUE, "test1".getBytes(StandardCharsets.UTF_8));
 		MockMultipartFile postFile2 = new MockMultipartFile("files", "test2.txt", MediaType.TEXT_PLAIN_VALUE, "test2".getBytes(StandardCharsets.UTF_8));
-		MockMultipartFile postCreateFile = new MockMultipartFile("post", null, MediaType.APPLICATION_JSON_VALUE, SerializeDeserializeUtil.serialize(postCreate).getBytes(StandardCharsets.UTF_8));
+		MockMultipartFile postCreateFile = new MockMultipartFile("post", null, MediaType.APPLICATION_JSON_VALUE, SerializeDeserializeUtil.serializeToString(postCreate).getBytes(StandardCharsets.UTF_8));
 
 		given(postService.create(any(PostCreateRequest.class), any(MultipartFile[].class), any(UserDetailsImpl.class))).willAnswer((answer) -> {
 			File file1 = new File(".txt", MediaType.TEXT_PLAIN_VALUE, postFile1.getName(), "D:\\spring-workspace\\whooa-blog\\upload\\test1.txt", postFile1.getSize());
@@ -203,7 +203,7 @@ public class PostControllerTest {
 	@WithMockCustomUser
 	public void givenPostCreate_whenCallCreatePost_thenThrowBadRequestExceptionForCategoryName() throws Exception {
 		postCreate.categoryName("테");
-		MockMultipartFile postCreateFile = new MockMultipartFile("post", null, MediaType.APPLICATION_JSON_VALUE, SerializeDeserializeUtil.serialize(postCreate).getBytes(StandardCharsets.UTF_8));
+		MockMultipartFile postCreateFile = new MockMultipartFile("post", null, MediaType.APPLICATION_JSON_VALUE, SerializeDeserializeUtil.serializeToString(postCreate).getBytes(StandardCharsets.UTF_8));
 
 		given(postService.create(any(PostCreateRequest.class), any(MultipartFile[].class), any(UserDetailsImpl.class))).willAnswer((answer) -> { 
 			post1 = PostMapper.INSTANCE.toDto(postEntity);
@@ -225,7 +225,7 @@ public class PostControllerTest {
 	@WithMockCustomUser
 	public void givenPostCreate_whenCallCreatePost_thenThrowBadRequestExceptionForTitle() throws Exception {
 		postCreate.title("테");
-		MockMultipartFile postCreateFile = new MockMultipartFile("post", null, MediaType.APPLICATION_JSON_VALUE, SerializeDeserializeUtil.serialize(postCreate).getBytes(StandardCharsets.UTF_8));
+		MockMultipartFile postCreateFile = new MockMultipartFile("post", null, MediaType.APPLICATION_JSON_VALUE, SerializeDeserializeUtil.serializeToString(postCreate).getBytes(StandardCharsets.UTF_8));
 
 		given(postService.create(any(PostCreateRequest.class), any(MultipartFile[].class), any(UserDetailsImpl.class))).willAnswer((answer) -> { 
 			post1 = PostMapper.INSTANCE.toDto(postEntity);
@@ -247,7 +247,7 @@ public class PostControllerTest {
 	@WithMockCustomUser
 	public void givenPostCreate_whenCallCreatePost_thenThrowBadRequestExceptionForContent() throws Exception {
 		postCreate.content("테스트 내용");
-		MockMultipartFile postCreateFile = new MockMultipartFile("post", null, MediaType.APPLICATION_JSON_VALUE, SerializeDeserializeUtil.serialize(postCreate).getBytes(StandardCharsets.UTF_8));
+		MockMultipartFile postCreateFile = new MockMultipartFile("post", null, MediaType.APPLICATION_JSON_VALUE, SerializeDeserializeUtil.serializeToString(postCreate).getBytes(StandardCharsets.UTF_8));
 
 		given(postService.create(any(PostCreateRequest.class), any(MultipartFile[].class), any(UserDetailsImpl.class))).willAnswer((answer) -> { 
 			post1 = PostMapper.INSTANCE.toDto(postEntity);
@@ -267,7 +267,7 @@ public class PostControllerTest {
 	@DisplayName("인증되어 있지 않아 포스트를 생성하는데 실패한다.")
 	@Test
 	public void givenPostCreate_whenCallCreatePost_thenThrowUnauthenticatedUserException() throws Exception {
-		MockMultipartFile postCreateFile = new MockMultipartFile("post", null, MediaType.APPLICATION_JSON_VALUE, SerializeDeserializeUtil.serialize(postCreate).getBytes(StandardCharsets.UTF_8));
+		MockMultipartFile postCreateFile = new MockMultipartFile("post", null, MediaType.APPLICATION_JSON_VALUE, SerializeDeserializeUtil.serializeToString(postCreate).getBytes(StandardCharsets.UTF_8));
 
 		given(postService.create(any(PostCreateRequest.class), any(MultipartFile[].class), any(UserDetailsImpl.class))).willAnswer((answer) -> { 
 			post1 = PostMapper.INSTANCE.toDto(postEntity);
@@ -379,7 +379,7 @@ public class PostControllerTest {
 	@WithMockCustomUser
 	public void givenPostUpdate_whenCallUpdatePost_thenThrowBadRequestExceptionForCategoryName() throws Exception {
 		postUpdate.categoryName("테");
-		MockMultipartFile postUpdateFile = new MockMultipartFile("post", null, MediaType.APPLICATION_JSON_VALUE, SerializeDeserializeUtil.serialize(postUpdate).getBytes(StandardCharsets.UTF_8));
+		MockMultipartFile postUpdateFile = new MockMultipartFile("post", null, MediaType.APPLICATION_JSON_VALUE, SerializeDeserializeUtil.serializeToString(postUpdate).getBytes(StandardCharsets.UTF_8));
 		
 		given(postService.update(any(Long.class), any(PostUpdateRequest.class), any(MultipartFile[].class), any(UserDetailsImpl.class))).willAnswer((answer) -> {
 			postEntity
@@ -407,7 +407,7 @@ public class PostControllerTest {
 	@WithMockCustomUser
 	public void givenPostUpdate_whenCallUpdatePost_thenThrowBadRequestExceptionForTitle() throws Exception {
 		postUpdate.title("테");
-		MockMultipartFile postUpdateFile = new MockMultipartFile("post", null, MediaType.APPLICATION_JSON_VALUE, SerializeDeserializeUtil.serialize(postUpdate).getBytes(StandardCharsets.UTF_8));
+		MockMultipartFile postUpdateFile = new MockMultipartFile("post", null, MediaType.APPLICATION_JSON_VALUE, SerializeDeserializeUtil.serializeToString(postUpdate).getBytes(StandardCharsets.UTF_8));
 		
 		given(postService.update(any(Long.class), any(PostUpdateRequest.class), any(MultipartFile[].class), any(UserDetailsImpl.class))).willAnswer((answer) -> {
 			postEntity
@@ -433,7 +433,7 @@ public class PostControllerTest {
 	@WithMockCustomUser
 	public void givenPostUpdate_whenCallUpdatePost_thenThrowBadRequestExceptionForContent() throws Exception {
 		postUpdate.content("실전 내용");
-		MockMultipartFile postUpdateFile = new MockMultipartFile("post", null, MediaType.APPLICATION_JSON_VALUE, SerializeDeserializeUtil.serialize(postUpdate).getBytes(StandardCharsets.UTF_8));
+		MockMultipartFile postUpdateFile = new MockMultipartFile("post", null, MediaType.APPLICATION_JSON_VALUE, SerializeDeserializeUtil.serializeToString(postUpdate).getBytes(StandardCharsets.UTF_8));
 		
 		given(postService.update(any(Long.class), any(PostUpdateRequest.class), any(MultipartFile[].class), any(UserDetailsImpl.class))).willAnswer((answer) -> {
 			postEntity
@@ -459,7 +459,7 @@ public class PostControllerTest {
 	@WithMockCustomUser
 	public void givenPostUpdate_whenCallUpdatePost_thenReturnPostWithFiles() throws Exception {
 		MockMultipartFile postFile = new MockMultipartFile("files", "test.txt", MediaType.TEXT_PLAIN_VALUE, "test".getBytes(StandardCharsets.UTF_8));
-		MockMultipartFile postUpdateFile = new MockMultipartFile("post", null, MediaType.APPLICATION_JSON_VALUE, SerializeDeserializeUtil.serialize(postUpdate).getBytes(StandardCharsets.UTF_8));
+		MockMultipartFile postUpdateFile = new MockMultipartFile("post", null, MediaType.APPLICATION_JSON_VALUE, SerializeDeserializeUtil.serializeToString(postUpdate).getBytes(StandardCharsets.UTF_8));
 
 		given(postService.update(any(Long.class), any(PostUpdateRequest.class), any(MultipartFile[].class), any(UserDetailsImpl.class))).willAnswer((answer) -> {
 			File file = new File(".txt", MediaType.TEXT_PLAIN_VALUE, postFile.getName(), "D:\\spring-workspace\\whooa-blog\\upload\\test1.txt", postFile.getSize());
@@ -491,7 +491,7 @@ public class PostControllerTest {
 	@Test
 	@WithMockCustomUser
 	public void givenPostUpdate_whenCallUpdatePost_thenReturnPost() throws Exception {
-		MockMultipartFile postUpdateFile = new MockMultipartFile("post", null, MediaType.APPLICATION_JSON_VALUE, SerializeDeserializeUtil.serialize(postUpdate).getBytes(StandardCharsets.UTF_8));
+		MockMultipartFile postUpdateFile = new MockMultipartFile("post", null, MediaType.APPLICATION_JSON_VALUE, SerializeDeserializeUtil.serializeToString(postUpdate).getBytes(StandardCharsets.UTF_8));
 		
 		given(postService.update(any(Long.class), any(PostUpdateRequest.class), any(MultipartFile[].class), any(UserDetailsImpl.class))).willAnswer((answer) -> {
 			postEntity
@@ -520,7 +520,7 @@ public class PostControllerTest {
 	@Test
 	@WithMockCustomUser
 	public void givenPostUpdate_whenCallUpdatePost_thenThrowPostNotFoundException() throws Exception {				
-		MockMultipartFile postUpdateFile = new MockMultipartFile("post", null, MediaType.APPLICATION_JSON_VALUE, SerializeDeserializeUtil.serialize(postUpdate).getBytes(StandardCharsets.UTF_8));
+		MockMultipartFile postUpdateFile = new MockMultipartFile("post", null, MediaType.APPLICATION_JSON_VALUE, SerializeDeserializeUtil.serializeToString(postUpdate).getBytes(StandardCharsets.UTF_8));
 		
 		given(postService.update(any(Long.class), any(PostUpdateRequest.class), any(MultipartFile[].class), any(UserDetailsImpl.class))).willThrow(new PostNotFoundException(Code.NOT_FOUND, new String[] {"포스트가 존재하지 않습니다."}));
 
@@ -537,7 +537,7 @@ public class PostControllerTest {
 	@DisplayName("인증되어 있지 않아 포스트를 수정하는데 실패한다.")
 	@Test
 	public void givenPostUpdate_whenCallUpdatePost_thenThrowUnauthenticatedUserException() throws Exception {
-		MockMultipartFile postUpdateFile = new MockMultipartFile("post", null, MediaType.APPLICATION_JSON_VALUE, SerializeDeserializeUtil.serialize(postUpdate).getBytes(StandardCharsets.UTF_8));
+		MockMultipartFile postUpdateFile = new MockMultipartFile("post", null, MediaType.APPLICATION_JSON_VALUE, SerializeDeserializeUtil.serializeToString(postUpdate).getBytes(StandardCharsets.UTF_8));
 
 		given(postService.update(any(Long.class), any(PostUpdateRequest.class), any(MultipartFile[].class), any(UserDetailsImpl.class))).willAnswer((answer) -> {
 			postEntity

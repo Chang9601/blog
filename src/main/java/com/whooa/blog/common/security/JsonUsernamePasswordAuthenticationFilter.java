@@ -1,4 +1,4 @@
-package com.whooa.blog.common.security.jwt;
+package com.whooa.blog.common.security;
 
 import java.io.IOException;
 
@@ -22,7 +22,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 /*
- * AbstractAuthenticationProcessingFilter 클래스에서 시작하면 기본적으로 form(x-www-form-urlencoded) 로그인을 지원한다.
+ * AbstractAuthenticationProcessingFilter 클래스를 상속한 UsernamePasswordAuthenticationFilter 클래스는 기본적으로 form(x-www-form-urlencoded) 로그인을 지원한다.
  * JsonUsernamePasswordAuthFilter 클래스는 JSON(application/json) 로그인을 지원한다.
  * 
  * AbstractAuthenticationProcessingFilter 클래스는는 사용자의 자격 증명을 인증하기 위한 기본 필터로 사용된다. 
@@ -62,6 +62,11 @@ public class JsonUsernamePasswordAuthenticationFilter extends AbstractAuthentica
 	@Override
 	public Authentication attemptAuthentication(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse)
 			throws AuthenticationException, IOException, ServletException {
+		String password, username;
+		ServletInputStream servletInputStream;
+		SignInDto signInDto;
+		UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken;
+		
 		if (this.postOnly && !httpServletRequest.getMethod().equals("POST")) {
 			throw new AuthenticationServiceException("[JsonUsernamePasswordAuthenticationFilter] 지원되지 않는 인증 메서드입니다: " + httpServletRequest.getMethod());
 		}
@@ -70,13 +75,13 @@ public class JsonUsernamePasswordAuthenticationFilter extends AbstractAuthentica
 			throw new AuthenticationServiceException("[JsonUsernamePasswordAuthenticationFilter] 지원되지 않는 인증 MIME 타입입니다: " + httpServletRequest.getContentType());	
 		}
 		
-		ServletInputStream servletInputStream = httpServletRequest.getInputStream();
-		SignInDto signInDto = SerializeDeserializeUtil.deserialize(StreamUtils.copyToString(servletInputStream, StandardCharsets.UTF_8), SignInDto.class);
+		servletInputStream = httpServletRequest.getInputStream();
+		signInDto = SerializeDeserializeUtil.deserializeFromJson(StreamUtils.copyToString(servletInputStream, StandardCharsets.UTF_8), SignInDto.class);
 		
-		String username = signInDto.getEmail();
-		String password = signInDto.getPassword();
+		username = signInDto.getEmail();
+		password = signInDto.getPassword();
 		
-		UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken = UsernamePasswordAuthenticationToken.unauthenticated(username, password);
+		usernamePasswordAuthenticationToken = UsernamePasswordAuthenticationToken.unauthenticated(username, password);
 		
 		/* Allow subclasses to set the "details" property */
 		setDetails(httpServletRequest, usernamePasswordAuthenticationToken);

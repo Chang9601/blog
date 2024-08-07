@@ -37,9 +37,9 @@ import com.whooa.blog.common.api.PageResponse;
 import com.whooa.blog.common.security.UserDetailsImpl;
 import com.whooa.blog.file.service.FileService;
 import com.whooa.blog.file.value.File;
-import com.whooa.blog.post.dto.PostDto.PostCreateRequest;
-import com.whooa.blog.post.dto.PostDto.PostUpdateRequest;
-import com.whooa.blog.post.dto.PostDto.PostResponse;
+import com.whooa.blog.post.dto.PostDTO.PostCreateRequest;
+import com.whooa.blog.post.dto.PostDTO.PostUpdateRequest;
+import com.whooa.blog.post.dto.PostDTO.PostResponse;
 import com.whooa.blog.post.entity.PostEntity;
 import com.whooa.blog.post.exception.PostNotFoundException;
 import com.whooa.blog.post.repository.PostRepository;
@@ -226,13 +226,11 @@ public class PostServiceTest {
 		/* void 반환타입을 가지는 메서드를 스텁할 경우 willDoNothing() 메서드를 사용한다. */
 		willDoNothing().given(postRepository).delete(any(PostEntity.class));
 		given(postRepository.findById(any(Long.class))).willReturn(Optional.of(postEntity1));
-		given(userRepository.findById(any(Long.class))).willReturn(Optional.of(userEntity1));
 		
 		postServiceImpl.delete(postEntity1.getId(), userDetailsImpl);
 
 		then(postRepository).should(times(1)).delete(any(PostEntity.class));				
 		then(postRepository).should(times(1)).findById(any(Long.class));
-		then(userRepository).should(times(1)).findById(any(Long.class));
 	}
 
 	@DisplayName("포스트가 존재하지 않아 삭제하는데 실패한다.")
@@ -246,7 +244,6 @@ public class PostServiceTest {
 
 		then(postRepository).should(times(0)).delete(any(PostEntity.class));				
 		then(postRepository).should(times(1)).findById(any(Long.class));
-		then(userRepository).should(times(0)).findById(any(Long.class));
 	}
 
 	@DisplayName("로그인한 사용자와 포스트를 작성한 사용자가 일치하지 않아 삭제하는데 실패한다.")
@@ -260,7 +257,6 @@ public class PostServiceTest {
 		userEntity2.setId(2L);
 		
 		given(postRepository.findById(any(Long.class))).willReturn(Optional.of(postEntity1));
-		given(userRepository.findById(any(Long.class))).willReturn(Optional.of(userEntity2));
 		
 		assertThrows(UserNotMatchedException.class, () -> {
 			postServiceImpl.delete(postEntity1.getId(), userDetailsImpl);
@@ -268,7 +264,6 @@ public class PostServiceTest {
 		
 		then(postRepository).should(times(0)).delete(any(PostEntity.class));				
 		then(postRepository).should(times(1)).findById(any(Long.class));
-		then(userRepository).should(times(1)).findById(any(Long.class));
 	}
 
 	@DisplayName("포스트를 조회하는데 성공한다.")
@@ -347,7 +342,6 @@ public class PostServiceTest {
 		given(postRepository.save(any(PostEntity.class))).willReturn(postEntity2);
 		given(postRepository.findById(any(Long.class))).willReturn(Optional.of(postEntity1));
 		given(categoryRepository.findByName(any(String.class))).willReturn(Optional.of(categoryEntity1));
-		given(userRepository.findById(any(Long.class))).willReturn(Optional.of(userEntity1));
 
 		post = postServiceImpl.update(postEntity1.getId(), postUpdate, null, userDetailsImpl);
 		
@@ -358,7 +352,6 @@ public class PostServiceTest {
 		then(postRepository).should(times(1)).save(any(PostEntity.class));
 		then(postRepository).should(times(1)).findById(any(Long.class));
 		then(categoryRepository).should(times(1)).findByName(any(String.class));
-		then(userRepository).should(times(1)).findById(any(Long.class));
 		then(fileService).should(times(0)).upload(any(PostEntity.class), any(MultipartFile.class));
 	}
 	
@@ -375,7 +368,6 @@ public class PostServiceTest {
 		given(postRepository.save(any(PostEntity.class))).willReturn(postEntity2);
 		given(postRepository.findById(any(Long.class))).willReturn(Optional.of(postEntity1));
 		given(categoryRepository.findByName(any(String.class))).willReturn(Optional.of(categoryEntity1));
-		given(userRepository.findById(any(Long.class))).willReturn(Optional.of(userEntity1));
 		given(fileService.upload(any(PostEntity.class), any(MultipartFile.class))).willReturn(file);
 
 		post = postServiceImpl.update(postEntity1.getId(), postUpdate, uploadFiles, userDetailsImpl);
@@ -387,7 +379,6 @@ public class PostServiceTest {
 		then(postRepository).should(times(1)).save(any(PostEntity.class));
 		then(postRepository).should(times(1)).findById(any(Long.class));
 		then(categoryRepository).should(times(1)).findByName(any(String.class));
-		then(userRepository).should(times(1)).findById(any(Long.class));
 		then(fileService).should(times(1)).upload(any(PostEntity.class), any(MultipartFile.class));
 	}
 	
@@ -403,7 +394,6 @@ public class PostServiceTest {
 		then(postRepository).should(times(0)).save(any(PostEntity.class));
 		then(postRepository).should(times(1)).findById(any(Long.class));
 		then(categoryRepository).should(times(0)).findByName(any(String.class));
-		then(userRepository).should(times(0)).findById(any(Long.class));
 		then(fileService).should(times(0)).upload(any(PostEntity.class), any(MultipartFile.class));
 	}
 	
@@ -420,7 +410,6 @@ public class PostServiceTest {
 		then(postRepository).should(times(0)).save(any(PostEntity.class));
 		then(postRepository).should(times(1)).findById(any(Long.class));
 		then(categoryRepository).should(times(1)).findByName(any(String.class));
-		then(userRepository).should(times(0)).findById(any(Long.class));
 		then(fileService).should(times(0)).upload(any(PostEntity.class), any(MultipartFile.class));
 	}
 	
@@ -436,7 +425,6 @@ public class PostServiceTest {
 		
 		given(postRepository.findById(any(Long.class))).willReturn(Optional.of(postEntity1));
 		given(categoryRepository.findByName(any(String.class))).willReturn(Optional.of(categoryEntity1));
-		given(userRepository.findById(any(Long.class))).willReturn(Optional.of(userEntity2));
 
 		assertThrows(UserNotMatchedException.class, () -> {
 			postServiceImpl.update(postEntity1.getId(), postUpdate, null, userDetailsImpl);			
@@ -445,7 +433,6 @@ public class PostServiceTest {
 		then(postRepository).should(times(0)).save(any(PostEntity.class));
 		then(postRepository).should(times(1)).findById(any(Long.class));
 		then(categoryRepository).should(times(1)).findByName(any(String.class));
-		then(userRepository).should(times(1)).findById(any(Long.class));
 		then(fileService).should(times(0)).upload(any(PostEntity.class), any(MultipartFile.class));
 	}	
 }

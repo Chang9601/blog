@@ -8,7 +8,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
-public class UserDto {
+public class UserDTO {
 
 	@Schema(
 		description = "사용자 생성 DTO"

@@ -1,11 +1,13 @@
 package com.whooa.blog.user.entity;
 
 import java.time.LocalDateTime;
+
 import java.util.ArrayList;
 import java.util.List;
 
 import com.whooa.blog.comment.entity.CommentEntity;
 import com.whooa.blog.common.entity.CoreEntity;
+import com.whooa.blog.common.security.oauth2.OAuth2Provider;
 import com.whooa.blog.post.entity.PostEntity;
 import com.whooa.blog.user.type.UserRole;
 
@@ -31,11 +33,18 @@ public class UserEntity extends CoreEntity {
 	@Column(length = 500, nullable = false)
 	private String password;
 	
-	@Column(name= "password_reset_token", length = 500)
+	@Column(name = "password_reset_token", length = 500)
 	private String passwordResetToken;
 	
 	@Column(name = "password_reset_token_expiration")
 	private LocalDateTime passwordResetTokenExpiration;
+	
+	@Enumerated(EnumType.STRING)
+	@Column(nullable = false, name = "oauth2_provider")
+	private OAuth2Provider oAuth2Provider = OAuth2Provider.LOCAL;
+	
+	@Column(name = "oauth2_provider_id", length = 500)
+	private String oAuth2ProviderId;
 	
 	@Column(name = "refresh_token", length = 500)
 	private String refreshToken;
@@ -83,8 +92,23 @@ public class UserEntity extends CoreEntity {
 		return this;
 	}
 	
+	public UserEntity oAuth2Provider(OAuth2Provider oAuth2Provider) {
+		this.oAuth2Provider = oAuth2Provider;
+		return this;
+	}
+	
+	public UserEntity oAuth2ProviderId(String oAuth2ProviderId) {
+		this.oAuth2ProviderId = oAuth2ProviderId;
+		return this;
+	}
+	
 	public UserEntity password(String password) {
 		this.password = password;
+		return this;
+	}
+	
+	public UserEntity refreshToken(String refreshToken) {
+		this.refreshToken = refreshToken;
 		return this;
 	}
 	
@@ -141,6 +165,22 @@ public class UserEntity extends CoreEntity {
 		this.passwordResetTokenExpiration = passwordResetTokenExpiration;
 	}
 	
+	public OAuth2Provider getOAuth2Provider() {
+		return oAuth2Provider;
+	}
+
+	public void setOAuth2Provider(OAuth2Provider oAuth2Provider) {
+		this.oAuth2Provider = oAuth2Provider;
+	}
+
+	public String getOAuth2ProviderId() {
+		return oAuth2ProviderId;
+	}
+
+	public void setOAuth2ProviderId(String oAuth2ProviderId) {
+		this.oAuth2ProviderId = oAuth2ProviderId;
+	}
+	
 	public String getRefreshToken() {
 		return refreshToken;
 	}
@@ -177,7 +217,8 @@ public class UserEntity extends CoreEntity {
 	public String toString() {
 		return "UserEntity [id=" + super.getId() + ", active=" + active + ", email=" + email + ", name=" + name + ", password=" + password
 				+ ", passwordResetToken=" + passwordResetToken + ", passwordResetTokenExpiration="
-				+ passwordResetTokenExpiration + ", refreshToken=" + refreshToken + ", userRole=" + userRole
-				+ ", comments=" + comments + ", posts=" + posts + "]";
+				+ passwordResetTokenExpiration + ", oAuth2Provider=" + oAuth2Provider + ", oAuth2ProviderId="
+				+ oAuth2ProviderId + ", refreshToken=" + refreshToken + ", userRole=" + userRole + ", comments="
+				+ comments + ", posts=" + posts + "]";
 	}
 }
