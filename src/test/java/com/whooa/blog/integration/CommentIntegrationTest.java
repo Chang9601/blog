@@ -39,8 +39,8 @@ import com.jayway.jsonpath.JsonPath;
 
 import com.whooa.blog.category.entity.CategoryEntity;
 import com.whooa.blog.category.repository.CategoryRepository;
-import com.whooa.blog.comment.dto.CommentDto.CommentCreateRequest;
-import com.whooa.blog.comment.dto.CommentDto.CommentUpdateRequest;
+import com.whooa.blog.comment.dto.CommentDTO.CommentCreateRequest;
+import com.whooa.blog.comment.dto.CommentDTO.CommentUpdateRequest;
 import com.whooa.blog.comment.exception.CommentNotFoundException;
 import com.whooa.blog.comment.repository.CommentRepository;
 import com.whooa.blog.common.code.Code;
@@ -138,7 +138,7 @@ public class CommentIntegrationTest {
 	@WithUserDetails(value = "test@test.com", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")
 	public void givenCommentCreate_whenCallCreateComment_thenReturnComment() throws Exception {
 		ResultActions action = mockMvc.perform(post("/api/v1/posts/{post-id}/comments", postEntity.getId())
-										.content(SerializeDeserializeUtil.serialize(commentCreate1))
+										.content(SerializeDeserializeUtil.serializeToString(commentCreate1))
 										.characterEncoding(StandardCharsets.UTF_8)
 										.contentType(MediaType.APPLICATION_JSON));
 
@@ -152,7 +152,7 @@ public class CommentIntegrationTest {
 	@WithUserDetails(value = "test@test.com", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")
 	public void givenCommentCreate_whenCallCreateComment_thenThrowPostNotFoundException() throws Exception {				
 		ResultActions action = mockMvc.perform(post("/api/v1/posts/{post-id}/comments", 100L)
-										.content(SerializeDeserializeUtil.serialize(commentCreate1))
+										.content(SerializeDeserializeUtil.serializeToString(commentCreate1))
 										.characterEncoding(StandardCharsets.UTF_8)
 										.contentType(MediaType.APPLICATION_JSON));
 
@@ -165,7 +165,7 @@ public class CommentIntegrationTest {
 	@Test
 	public void givenCommentCreate_whenCallCreateComment_thenThrowUnauthenticatedUserException() throws Exception {
 		ResultActions action = mockMvc.perform(post("/api/v1/posts/{post-id}/comments", postEntity.getId())
-				.content(SerializeDeserializeUtil.serialize(commentCreate1))
+				.content(SerializeDeserializeUtil.serializeToString(commentCreate1))
 				.characterEncoding(StandardCharsets.UTF_8)
 				.contentType(MediaType.APPLICATION_JSON));
 
@@ -178,7 +178,7 @@ public class CommentIntegrationTest {
 	@WithUserDetails(value = "test@test.com", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")
 	public void givenId_whenCallDeleteComment_thenReturnNothing() throws Exception {
 		MvcResult result = mockMvc.perform(post("/api/v1/posts/{post-id}/comments", postEntity.getId())
-										.content(SerializeDeserializeUtil.serialize(commentCreate1))
+										.content(SerializeDeserializeUtil.serializeToString(commentCreate1))
 										.characterEncoding(StandardCharsets.UTF_8)
 										.contentType(MediaType.APPLICATION_JSON))
 										.andExpect(status().isCreated())
@@ -198,7 +198,7 @@ public class CommentIntegrationTest {
 	@WithUserDetails(value = "test@test.com", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")
 	public void givenId_whenCallDeleteComment_thenThrowPostNotFoundException() throws Exception {
 		MvcResult result = mockMvc.perform(post("/api/v1/posts/{post-id}/comments", postEntity.getId())
-									.content(SerializeDeserializeUtil.serialize(commentCreate1))
+									.content(SerializeDeserializeUtil.serializeToString(commentCreate1))
 									.characterEncoding(StandardCharsets.UTF_8)
 									.contentType(MediaType.APPLICATION_JSON))
 									.andExpect(status().isCreated())
@@ -232,7 +232,7 @@ public class CommentIntegrationTest {
 
 		MvcResult result = mockMvc.perform(post("/api/v1/posts/{post-id}/comments", postEntity.getId())
 									.with(user(userDetailsImpl))
-									.content(SerializeDeserializeUtil.serialize(commentCreate1))
+									.content(SerializeDeserializeUtil.serializeToString(commentCreate1))
 									.characterEncoding(StandardCharsets.UTF_8)
 									.contentType(MediaType.APPLICATION_JSON))
 									.andExpect(status().isCreated())
@@ -251,7 +251,7 @@ public class CommentIntegrationTest {
 	public void givenId_whenCallDeleteComment_thenThrowUnauthenticatedUserException() throws Exception {
 		MvcResult result = mockMvc.perform(post("/api/v1/posts/{post-id}/comments", postEntity.getId())
 										.with(user(userDetailsImpl))
-										.content(SerializeDeserializeUtil.serialize(commentCreate1))
+										.content(SerializeDeserializeUtil.serializeToString(commentCreate1))
 										.characterEncoding(StandardCharsets.UTF_8)
 										.contentType(MediaType.APPLICATION_JSON))
 										.andExpect(status().isCreated())
@@ -272,14 +272,14 @@ public class CommentIntegrationTest {
 
 		mockMvc.perform(post("/api/v1/posts/{post-id}/comments", postEntity.getId())
 				.with(user(userDetailsImpl))
-				.content(SerializeDeserializeUtil.serialize(commentCreate1))
+				.content(SerializeDeserializeUtil.serializeToString(commentCreate1))
 				.characterEncoding(StandardCharsets.UTF_8)
 				.contentType(MediaType.APPLICATION_JSON))
 				.andExpect(status().isCreated());
 		 
 		mockMvc.perform(post("/api/v1/posts/{post-id}/comments", postEntity.getId())
 				.with(user(userDetailsImpl))
-				.content(SerializeDeserializeUtil.serialize(commentCreate2))
+				.content(SerializeDeserializeUtil.serializeToString(commentCreate2))
 				.characterEncoding(StandardCharsets.UTF_8)
 				.contentType(MediaType.APPLICATION_JSON))
 				.andExpect(status().isCreated());
@@ -304,7 +304,7 @@ public class CommentIntegrationTest {
 	@WithUserDetails(value = "test@test.com", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")
 	public void givenCommentUpdate_whenCallUpdateComment_thenReturnComment() throws Exception {
 		MvcResult result = mockMvc.perform(post("/api/v1/posts/{post-id}/comments", postEntity.getId())
-									.content(SerializeDeserializeUtil.serialize(commentCreate1))
+									.content(SerializeDeserializeUtil.serializeToString(commentCreate1))
 									.characterEncoding(StandardCharsets.UTF_8)
 									.contentType(MediaType.APPLICATION_JSON))
 									.andExpect(status().isCreated())
@@ -313,7 +313,7 @@ public class CommentIntegrationTest {
 		Integer id = JsonPath.read(result.getResponse().getContentAsString(), "$.data.id");
 
 		ResultActions action = mockMvc.perform(patch("/api/v1/posts/{post-id}/comments/{id}", postEntity.getId(), id)
-										.content(SerializeDeserializeUtil.serialize(commentUpdate))
+										.content(SerializeDeserializeUtil.serializeToString(commentUpdate))
 										.characterEncoding(StandardCharsets.UTF_8)
 										.contentType(MediaType.APPLICATION_JSON));
 
@@ -328,7 +328,7 @@ public class CommentIntegrationTest {
 	public void givenCommentUpdate_whenCallUpdateComment_thenThrowPostNotFoundException() throws Exception {		
 		MvcResult result = mockMvc.perform(post("/api/v1/posts/{post-id}/comments", postEntity.getId())
 									.with(user(userDetailsImpl))
-									.content(SerializeDeserializeUtil.serialize(commentCreate1))
+									.content(SerializeDeserializeUtil.serializeToString(commentCreate1))
 									.characterEncoding(StandardCharsets.UTF_8)
 									.contentType(MediaType.APPLICATION_JSON))
 									.andExpect(status().isCreated())
@@ -337,7 +337,7 @@ public class CommentIntegrationTest {
 		Integer id = JsonPath.read(result.getResponse().getContentAsString(), "$.data.id");
 
 		ResultActions action = mockMvc.perform(patch("/api/v1/posts/{post-id}/comments/{id}", 100L, id)
-										.content(SerializeDeserializeUtil.serialize(commentUpdate))
+										.content(SerializeDeserializeUtil.serializeToString(commentUpdate))
 										.characterEncoding(StandardCharsets.UTF_8)
 										.contentType(MediaType.APPLICATION_JSON));
 		
@@ -352,7 +352,7 @@ public class CommentIntegrationTest {
 	public void givenCommentUpdate_whenCallUpdateComment_thenThrowCommentNotFoundException() throws Exception {
 		ResultActions action = mockMvc.perform(patch("/api/v1/posts/{post-id}/comments/{id}", postEntity.getId(), 100L)
 										.contentType(MediaType.APPLICATION_JSON)
-										.content(SerializeDeserializeUtil.serialize(commentUpdate))
+										.content(SerializeDeserializeUtil.serializeToString(commentUpdate))
 										.characterEncoding(StandardCharsets.UTF_8)
 										.contentType(MediaType.APPLICATION_JSON));
 		
@@ -369,7 +369,7 @@ public class CommentIntegrationTest {
 
 		MvcResult result = mockMvc.perform(post("/api/v1/posts/{post-id}/comments", postEntity.getId())
 									.with(user(userDetailsImpl))
-									.content(SerializeDeserializeUtil.serialize(commentCreate1))
+									.content(SerializeDeserializeUtil.serializeToString(commentCreate1))
 									.characterEncoding(StandardCharsets.UTF_8)
 									.contentType(MediaType.APPLICATION_JSON))
 									.andExpect(status().isCreated())
@@ -378,7 +378,7 @@ public class CommentIntegrationTest {
 		Integer id = JsonPath.read(result.getResponse().getContentAsString(), "$.data.id");
 
 		ResultActions action = mockMvc.perform(patch("/api/v1/posts/{post-id}/comments/{id}", postEntity.getId(), id)
-										.content(SerializeDeserializeUtil.serialize(commentUpdate))
+										.content(SerializeDeserializeUtil.serializeToString(commentUpdate))
 										.characterEncoding(StandardCharsets.UTF_8)
 										.contentType(MediaType.APPLICATION_JSON));
 				
@@ -393,7 +393,7 @@ public class CommentIntegrationTest {
 	public void givenCommentUpdate_whenCallUpdateComment_thenThrowUnauthenticatedUserException() throws Exception {
 		MvcResult result = mockMvc.perform(post("/api/v1/posts/{post-id}/comments", postEntity.getId())
 									.with(user(userDetailsImpl))
-									.content(SerializeDeserializeUtil.serialize(commentCreate1))
+									.content(SerializeDeserializeUtil.serializeToString(commentCreate1))
 									.characterEncoding(StandardCharsets.UTF_8)
 									.contentType(MediaType.APPLICATION_JSON))
 									.andExpect(status().isCreated())
@@ -402,7 +402,7 @@ public class CommentIntegrationTest {
 		Integer id = JsonPath.read(result.getResponse().getContentAsString(), "$.data.id");
 		
 		ResultActions action = mockMvc.perform(patch("/api/v1/posts/{post-id}/comments/{id}", postEntity.getId(), id)
-										.content(SerializeDeserializeUtil.serialize(commentUpdate))
+										.content(SerializeDeserializeUtil.serializeToString(commentUpdate))
 										.characterEncoding(StandardCharsets.UTF_8)
 										.contentType(MediaType.APPLICATION_JSON));
 

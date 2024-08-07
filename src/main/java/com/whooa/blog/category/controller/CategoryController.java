@@ -11,9 +11,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.whooa.blog.category.dto.CategoryDto.CategoryCreateRequest;
-import com.whooa.blog.category.dto.CategoryDto.CategoryResponse;
-import com.whooa.blog.category.dto.CategoryDto.CategoryUpdateRequest;
+import com.whooa.blog.category.dto.CategoryDTO.CategoryCreateRequest;
+import com.whooa.blog.category.dto.CategoryDTO.CategoryResponse;
+import com.whooa.blog.category.dto.CategoryDTO.CategoryUpdateRequest;
 import com.whooa.blog.category.service.CategoryService;
 import com.whooa.blog.common.api.ApiResponse;
 import com.whooa.blog.common.api.PageResponse;

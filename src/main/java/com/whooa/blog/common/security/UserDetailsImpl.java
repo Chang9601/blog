@@ -2,10 +2,12 @@ package com.whooa.blog.common.security;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Map;
 
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 
 import com.whooa.blog.user.entity.UserEntity;
 import com.whooa.blog.user.type.UserRole;
@@ -14,13 +16,25 @@ import com.whooa.blog.user.type.UserRole;
  * UserDetails는 UserDetailsService가 반환한다. 
  * DaoAuthenticationProvider는 UserDetails를 검증한 후 구성된 UserDetailsService가 반환한 UserDetails를 주체(principal)로 하는 Authentication을 반환한다. 
  */
-public class UserDetailsImpl implements UserDetails {
+public class UserDetailsImpl implements UserDetails, OAuth2User {
 	private static final long serialVersionUID = 1L;
 	
 	private UserEntity userEntity;
-	
+    private Map<String, Object> attributes;
+
 	public UserDetailsImpl(UserEntity userEntity) {
 		this.userEntity = userEntity;
+	}
+	
+	public static UserDetailsImpl create(UserEntity userEntity) {
+		return new UserDetailsImpl(userEntity);
+	}
+	
+	public static UserDetailsImpl create(UserEntity userEntity, Map<String, Object> attributes) {
+		UserDetailsImpl userDetailsImpl = new UserDetailsImpl(userEntity);
+		userDetailsImpl.setAttributes(attributes);
+		
+		return userDetailsImpl;
 	}
 
 	/*
@@ -71,5 +85,20 @@ public class UserDetailsImpl implements UserDetails {
 	@Override
 	public boolean isEnabled() {
 		return true;
+	}
+
+	@Override
+	public Map<String, Object> getAttributes() {
+		return attributes;
+	}
+	
+	public void setAttributes(Map<String, Object> attributes) {
+		this.attributes = attributes;
+	}
+
+	@Override
+	public String getName() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }

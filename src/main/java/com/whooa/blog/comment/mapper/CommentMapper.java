@@ -4,8 +4,8 @@ import org.mapstruct.Mapper;
 
 import org.mapstruct.factory.Mappers;
 
-import com.whooa.blog.comment.dto.CommentDto.CommentCreateRequest;
-import com.whooa.blog.comment.dto.CommentDto.CommentResponse;
+import com.whooa.blog.comment.dto.CommentDTO.CommentCreateRequest;
+import com.whooa.blog.comment.dto.CommentDTO.CommentResponse;
 import com.whooa.blog.comment.entity.CommentEntity;
 
 @Mapper

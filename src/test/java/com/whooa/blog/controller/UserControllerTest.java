@@ -26,7 +26,6 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
@@ -42,8 +41,8 @@ import com.whooa.blog.common.code.Code;
 import com.whooa.blog.common.exception.AllExceptionHandler;
 import com.whooa.blog.common.security.UserDetailsImpl;
 import com.whooa.blog.user.controller.UserController;
-import com.whooa.blog.user.dto.UserDto.UserCreateRequest;
-import com.whooa.blog.user.dto.UserDto.UserResponse;
+import com.whooa.blog.user.dto.UserDTO.UserCreateRequest;
+import com.whooa.blog.user.dto.UserDTO.UserResponse;
 import com.whooa.blog.user.entity.UserEntity;
 import com.whooa.blog.user.exception.DuplicateUserException;
 import com.whooa.blog.user.mapper.UserMapper;
@@ -73,7 +72,6 @@ public class UserControllerTest {
 	private UserResponse user1;
 	
 	private PaginationUtil pagination;
-	private PasswordUtil passwordUtil;
 	
 	@BeforeAll
 	public void setUpAll() {		
@@ -81,8 +79,6 @@ public class UserControllerTest {
 				.webAppContextSetup(webApplicationContext)
 				.addFilter(new CharacterEncodingFilter("utf-8", true))
 				.apply(springSecurity()).build();
-		
-		passwordUtil = new PasswordUtil(new BCryptPasswordEncoder());
 		
 		pagination = new PaginationUtil();
 	}
@@ -115,14 +111,14 @@ public class UserControllerTest {
 	@Test
 	public void givenUserCreate_whenCallCreateUser_thenReturnUser() throws Exception {
 		given(userService.create(any(UserCreateRequest.class))).willAnswer((answer) -> {
-			userEntity.password(passwordUtil.hash(userEntity.getPassword())).userRole(UserRoleMapper.map(userCreate.getUserRole()));
+			userEntity.password(PasswordUtil.hash(userEntity.getPassword())).userRole(UserRoleMapper.map(userCreate.getUserRole()));
 			user1 = UserMapper.INSTANCE.toDto(userEntity);
 			
 			return user1;
 		});
 
 		ResultActions action = mockMvc.perform(post("/api/v1/users")
-										.content(SerializeDeserializeUtil.serialize(userCreate))
+										.content(SerializeDeserializeUtil.serializeToString(userCreate))
 										.characterEncoding(StandardCharsets.UTF_8)
 										.contentType(MediaType.APPLICATION_JSON));
 				
@@ -136,7 +132,7 @@ public class UserControllerTest {
 	@Test
 	public void givenUserCreate_whenCallCreateUser_thenThrowBadRequestExceptionForName() throws Exception {
 		given(userService.create(any(UserCreateRequest.class))).willAnswer((answer) -> {
-			userEntity.password(passwordUtil.hash(userEntity.getPassword())).userRole(UserRoleMapper.map(userCreate.getUserRole()));
+			userEntity.password(PasswordUtil.hash(userEntity.getPassword())).userRole(UserRoleMapper.map(userCreate.getUserRole()));
 			user1 = UserMapper.INSTANCE.toDto(userEntity);
 			
 			return user1;
@@ -144,7 +140,7 @@ public class UserControllerTest {
 
 		userCreate.name("테");
 		ResultActions action = mockMvc.perform(post("/api/v1/users")
-										.content(SerializeDeserializeUtil.serialize(userCreate))
+										.content(SerializeDeserializeUtil.serializeToString(userCreate))
 										.characterEncoding(StandardCharsets.UTF_8)
 										.contentType(MediaType.APPLICATION_JSON));
 				
@@ -156,7 +152,7 @@ public class UserControllerTest {
 	@Test
 	public void givenUserCreate_whenCallCreateUser_thenThrowBadRequestExceptionForEmail() throws Exception {
 		given(userService.create(any(UserCreateRequest.class))).willAnswer((answer) -> {
-			userEntity.password(passwordUtil.hash(userEntity.getPassword())).userRole(UserRoleMapper.map(userCreate.getUserRole()));
+			userEntity.password(PasswordUtil.hash(userEntity.getPassword())).userRole(UserRoleMapper.map(userCreate.getUserRole()));
 			user1 = UserMapper.INSTANCE.toDto(userEntity);
 			
 			return user1;
@@ -164,7 +160,7 @@ public class UserControllerTest {
 
 		userCreate.email("ttesttest.com");
 		ResultActions action = mockMvc.perform(post("/api/v1/users")
-										.content(SerializeDeserializeUtil.serialize(userCreate))
+										.content(SerializeDeserializeUtil.serializeToString(userCreate))
 										.characterEncoding(StandardCharsets.UTF_8)
 										.contentType(MediaType.APPLICATION_JSON));
 				
@@ -176,7 +172,7 @@ public class UserControllerTest {
 	@Test
 	public void givenUserCreate_whenCallCreateUser_thenThrowBadRequestExceptionForPassword() throws Exception {
 		given(userService.create(any(UserCreateRequest.class))).willAnswer((answer) -> {
-			userEntity.password(passwordUtil.hash(userEntity.getPassword())).userRole(UserRoleMapper.map(userCreate.getUserRole()));
+			userEntity.password(PasswordUtil.hash(userEntity.getPassword())).userRole(UserRoleMapper.map(userCreate.getUserRole()));
 			user1 = UserMapper.INSTANCE.toDto(userEntity);
 			
 			return user1;
@@ -184,7 +180,7 @@ public class UserControllerTest {
 
 		userCreate.password("12314241");
 		ResultActions action = mockMvc.perform(post("/api/v1/users")
-										.content(SerializeDeserializeUtil.serialize(userCreate))
+										.content(SerializeDeserializeUtil.serializeToString(userCreate))
 										.characterEncoding(StandardCharsets.UTF_8)
 										.contentType(MediaType.APPLICATION_JSON));
 				
@@ -198,7 +194,7 @@ public class UserControllerTest {
 		given(userService.create(any(UserCreateRequest.class))).willThrow(new DuplicateUserException(Code.CONFLICT, new String[] {"이메일을 사용하는 사용자가 존재합니다."}));
 
 		ResultActions action = mockMvc.perform(post("/api/v1/users")
-										.content(SerializeDeserializeUtil.serialize(userCreate))
+										.content(SerializeDeserializeUtil.serializeToString(userCreate))
 										.characterEncoding(StandardCharsets.UTF_8)
 										.contentType(MediaType.APPLICATION_JSON));
 		action.andDo(print())

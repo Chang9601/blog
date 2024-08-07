@@ -1,8 +1,8 @@
 package com.whooa.blog.category.service;
 
-import com.whooa.blog.category.dto.CategoryDto.CategoryCreateRequest;
-import com.whooa.blog.category.dto.CategoryDto.CategoryResponse;
-import com.whooa.blog.category.dto.CategoryDto.CategoryUpdateRequest;
+import com.whooa.blog.category.dto.CategoryDTO.CategoryCreateRequest;
+import com.whooa.blog.category.dto.CategoryDTO.CategoryResponse;
+import com.whooa.blog.category.dto.CategoryDTO.CategoryUpdateRequest;
 import com.whooa.blog.common.api.PageResponse;
 import com.whooa.blog.util.PaginationUtil;
 

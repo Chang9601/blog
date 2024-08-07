@@ -2,20 +2,23 @@ package com.whooa.blog.common.security.jwt;
 
 import java.io.IOException;
 
+import java.util.Optional;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import com.whooa.blog.common.type.JwtType;
+import com.whooa.blog.common.security.UserDetailsServiceImpl;
+import com.whooa.blog.util.CookieUtil;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -32,34 +35,58 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 	private static Logger logger = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
 
 	private JwtUtil jwtUtil;
-	// ERROR: 순환 오류 발생.
-	// private UserService userService;
-	private UserDetailsService userDetailsService;
+	private UserDetailsServiceImpl userDetailsServiceImpl;
 	
-	public JwtAuthenticationFilter(JwtUtil jwtUtil, UserDetailsService userDetailsService) {
+	public JwtAuthenticationFilter(JwtUtil jwtUtil, UserDetailsServiceImpl userDetailsServiceImpl) {
 		this.jwtUtil = jwtUtil;
-		this.userDetailsService = userDetailsService;
+		this.userDetailsServiceImpl = userDetailsServiceImpl;
 	}
 
 	@Override
 	protected void doFilterInternal(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse, FilterChain filterChain)
 			throws ServletException, IOException {
-
-		String accessToken = null;
-		Cookie[] cookies = httpServletRequest.getCookies();
+		String jwtAccessToken, email, jwtRefreshToken;
+		Cookie cookie;
+		JwtBundle jwt;
+		Optional<Cookie> optionalCookie;
+		SecurityContext securityContext;
+		UserDetails userDetails;
+		UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken;
 		
-		if (cookies != null) {
-			for (Cookie cookie: httpServletRequest.getCookies()) {
-				String name = cookie.getName();
+		// TODO: 재발급 과정
+//		optionalCookie = CookieUtil.get(httpServletRequest, JWTTokenType.REFRESH_TOKEN.getType());
+//		
+//		if (optionalCookie.isPresent()) {
+//			cookie = optionalCookie.get();
+//			jwtRefreshToken = cookie.getValue();
+//			
+//			if (jwtRefreshToken != null && jwtUtil.verify(jwtRefreshToken)) {
+//				try {
+//					jwt = jwtUtil.reissue(jwtRefreshToken);
+//				
+//					CookieUtil.set(httpServletResponse, JWTTokenType.ACCESS_TOKEN.getType(), jwt.getAccessToken(), true, 60 * 60, "/", "Strict", false);
+//					CookieUtil.set(httpServletResponse, JWTTokenType.REFRESH_TOKEN.getType(), jwt.getRefreshToken(), true, 60 * 60 * 24 * 30, "/", "Strict", false);
+//			
+//				} catch (InvalidJWTRefreshTokenException exception) {
+//					logger.error("[JWTAuthenticationFilter] InvalidJWTRefreshTokenException: {}", exception.getMessage());
+//
+//				} catch (UserNotFoundException exception) {
+//					logger.error("[JWTAuthenticationFilter] UserNotFoundException: {}", exception.getMessage());
+//
+//				} catch (JWTRefreshTokenNotMatched exception) {
+//					logger.error("[JWTAuthenticationFilter] JWTRefreshTokenNotMatched: {}", exception.getMessage());
+//				}
+//			}		
+//		}
 				
-				if (name.equals(JwtType.ACCESS_TOKEN.getType())) {
-					accessToken = cookie.getValue();
-				}
-			}
+		optionalCookie = CookieUtil.get(httpServletRequest, JwtType.ACCESS_TOKEN.getType());
+		
+		if (optionalCookie.isPresent()) {
+			cookie = optionalCookie.get();
+			jwtAccessToken = cookie.getValue();
 			
-			// TODO: verify() 메서드가 오류를 던질 경우 코드 수정 필요.
-			if (accessToken != null && jwtUtil.verify(accessToken)) {
-				String email = jwtUtil.parseEmail(accessToken);
+			if (jwtAccessToken != null & jwtUtil.verify(jwtAccessToken)) {
+				email = jwtUtil.parseEmail(jwtAccessToken);
 				
 				/*
 				 * try-catch 문이 필요한 이유.  
@@ -74,7 +101,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 					 * 이렇게 해서 데이터베이스 조회 쿼리를 사용할 필요가 없지만 데이터베이스에서 사용자의 정보를 로드하는 것이 유용할 수 있다.
 					 * 예를 들어, 사용자의 역할이 변경되었거나 사용자가 JWT를 생성한 후에 비밀번호를 갱신했다면 JWT로 로그인을 금지할 수 있다.
 					 */
-					UserDetails userDetails = userDetailsService.loadUserByUsername(email);
+					userDetails = userDetailsServiceImpl.loadUserByUsername(email);
 					// UserResponse user = userService.findByEmail(email);
 					
 					/*
@@ -84,7 +111,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 					 * 
 					 * SecurityContext는 Authentication 객체를 포함한다.
 					 */
-					SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
+					securityContext = SecurityContextHolder.createEmptyContext();
 					
 					/*
 					 * Authentication 인터페이스의 목적.
@@ -100,18 +127,22 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 					 * 이러한 역할은 웹 권한 부여, 메서드 권한 부여 및 도메인 객체 권한 부여를 위해 나중에 설정된다. 사용자 이름/비밀번호 기반 인증을 사용할 때 GrantedAuthority 인스턴스는 보통 UserDetailsService에 의해 로드된다.
 					 * 대개 GrantedAuthority 객체는 애플리케이션 전역의 권한을 나타낸다. 즉, 특정 도메인 객체에 한정되지 않는다.
 					 */
-					UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+					usernamePasswordAuthenticationToken = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
 					usernamePasswordAuthenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(httpServletRequest));
 					
 					securityContext.setAuthentication(usernamePasswordAuthenticationToken);
 					
 					SecurityContextHolder.setContext(securityContext);
 				} catch (UsernameNotFoundException exception) {
-					logger.error("UsernameNotFoundException: {}", exception.getMessage());
+					logger.error("[JwtAuthenticationFilter] UsernameNotFoundException: {}", exception.getMessage());
+				} catch (AuthenticationException exception) {
+					logger.error("[JwtAuthenticationFilter] AuthenticationException: {}", exception.getMessage());
+				} catch (Exception exception) {
+					logger.error("[JwtAuthenticationFilter] Exception: {}", exception.getMessage());
 				}
 			}
 		}
-		
+
 		filterChain.doFilter(httpServletRequest, httpServletResponse);
 	}
 }

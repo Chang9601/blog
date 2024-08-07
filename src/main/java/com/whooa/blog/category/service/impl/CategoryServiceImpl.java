@@ -7,9 +7,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import com.whooa.blog.category.dto.CategoryDto.CategoryCreateRequest;
-import com.whooa.blog.category.dto.CategoryDto.CategoryResponse;
-import com.whooa.blog.category.dto.CategoryDto.CategoryUpdateRequest;
+import com.whooa.blog.category.dto.CategoryDTO.CategoryCreateRequest;
+import com.whooa.blog.category.dto.CategoryDTO.CategoryResponse;
+import com.whooa.blog.category.dto.CategoryDTO.CategoryUpdateRequest;
 import com.whooa.blog.category.entity.CategoryEntity;
 import com.whooa.blog.category.exception.CategoryNotFoundException;
 import com.whooa.blog.category.exception.DuplicateCategoryException;
@@ -18,7 +18,7 @@ import com.whooa.blog.category.repository.CategoryRepository;
 import com.whooa.blog.category.service.CategoryService;
 import com.whooa.blog.common.api.PageResponse;
 import com.whooa.blog.common.code.Code;
-import com.whooa.blog.util.NotNullNotEmptyChecker;
+import com.whooa.blog.util.StringUtil;
 import com.whooa.blog.util.PaginationUtil;
 
 @Service
@@ -56,34 +56,43 @@ public class CategoryServiceImpl implements CategoryService {
 
 	@Override
 	public PageResponse<CategoryResponse> findAll(PaginationUtil pagination) {
-		Pageable pageable = pagination.makePageable();
+		Pageable pageable;
+		Page<CategoryEntity> page;
+		List<CategoryEntity> categoryEntities;
+		List<CategoryResponse> categoryResponse;
+		int pageSize, pageNo, totalPages;
+		long totalElements;
+		boolean isLast, isFirst;
 		
-		Page<CategoryEntity> page = categoryRepository.findAll(pageable);
+		pageable = pagination.makePageable();
+		page = categoryRepository.findAll(pageable);
 		
-		List<CategoryEntity> categoryEntities = page.getContent();
-		int pageSize = page.getSize();
-		int pageNo = page.getNumber();
-		long totalElements = page.getTotalElements();
-		int totalPages = page.getTotalPages();
-		boolean isLast = page.isLast();
-		boolean isFirst = page.isFirst();
+		categoryEntities = page.getContent();
+		pageSize = page.getSize();
+		pageNo = page.getNumber();
+		totalElements = page.getTotalElements();
+		totalPages = page.getTotalPages();
+		isLast = page.isLast();
+		isFirst = page.isFirst();
 				
-		List<CategoryResponse> categoryResponse = categoryEntities.stream().map((categoryEntity) -> CategoryMapper.INSTANCE.toDto(categoryEntity)).collect(Collectors.toList());
+		categoryResponse = categoryEntities.stream().map((categoryEntity) -> CategoryMapper.INSTANCE.toDto(categoryEntity)).collect(Collectors.toList());
 		
 		return PageResponse.handleResponse(categoryResponse, pageSize, pageNo, totalElements, totalPages, isLast, isFirst);
 	}
 
 	@Override
 	public CategoryResponse update(Long id, CategoryUpdateRequest categoryUpdate) {
-		CategoryEntity categoryEntity = categoryRepository.findById(id).orElseThrow(() -> new CategoryNotFoundException(Code.NOT_FOUND, new String[] {"카테고리가 존재하지 않습니다."}));
+		CategoryEntity categoryEntity;
+		String name;
 		
-		String name = categoryUpdate.getName();
+		categoryEntity = categoryRepository.findById(id).orElseThrow(() -> new CategoryNotFoundException(Code.NOT_FOUND, new String[] {"카테고리가 존재하지 않습니다."}));
+
+		name = categoryUpdate.getName();
 		
-		if (NotNullNotEmptyChecker.check(name)) {
+		if (StringUtil.notEmpty(name)) {
 			categoryEntity.name(name);
 		}
 		
 		return CategoryMapper.INSTANCE.toDto(categoryRepository.save(categoryEntity));
 	}
-
 }

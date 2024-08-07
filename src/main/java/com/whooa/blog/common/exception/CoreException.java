@@ -3,6 +3,7 @@ package com.whooa.blog.common.exception;
 import com.whooa.blog.common.code.Code;
 
 public abstract class CoreException extends RuntimeException {
+	private static final long serialVersionUID = 1L;
 	private Code code;
 	private String[] detail;
 	

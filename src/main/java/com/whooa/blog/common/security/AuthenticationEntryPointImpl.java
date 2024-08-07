@@ -1,4 +1,4 @@
-package com.whooa.blog.common.security.jwt;
+package com.whooa.blog.common.security;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -34,20 +34,20 @@ import jakarta.servlet.http.HttpServletResponse;
  * 2. 유효한 JWT가 아니다(e.g., 토큰 만료).
  */
 @Component
-public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
-	private static Logger logger = LoggerFactory.getLogger(JwtAuthenticationEntryPoint.class);
+public class AuthenticationEntryPointImpl implements AuthenticationEntryPoint {
+	private static Logger logger = LoggerFactory.getLogger(AuthenticationEntryPointImpl.class);
 
 	// TODO: 경우에 따른 예외 처리.
 	@Override
 	public void commence(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse,
 			 AuthenticationException authenticationException) throws IOException, ServletException {
-		logger.error("[JwtAuthEntryPoint] 인증되지 않은 사용자입니다.");
+		logger.error("[AuthenticationEntryPointImpl] 인증되지 않은 사용자입니다.");
 				
 		ApiResponse<UnauthenticatedUserException> failure = ApiResponse.handleFailure(Code.UNAUTHORIZED.getCode(), Code.UNAUTHORIZED.getMessage(), null, new String[] {"로그인을 하셔야 합니다."});
 
 		httpServletResponse.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
 		httpServletResponse.setContentType(MediaType.APPLICATION_JSON_VALUE);
 		httpServletResponse.setCharacterEncoding(StandardCharsets.UTF_8.name());
-		httpServletResponse.getWriter().write( SerializeDeserializeUtil.serialize(failure));
+		httpServletResponse.getWriter().write( SerializeDeserializeUtil.serializeToString(failure));
 	}
 }

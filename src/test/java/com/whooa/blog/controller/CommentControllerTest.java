@@ -37,9 +37,9 @@ import org.springframework.web.filter.CharacterEncodingFilter;
 
 import com.whooa.blog.category.entity.CategoryEntity;
 import com.whooa.blog.comment.controller.CommentController;
-import com.whooa.blog.comment.dto.CommentDto.CommentCreateRequest;
-import com.whooa.blog.comment.dto.CommentDto.CommentUpdateRequest;
-import com.whooa.blog.comment.dto.CommentDto.CommentResponse;
+import com.whooa.blog.comment.dto.CommentDTO.CommentCreateRequest;
+import com.whooa.blog.comment.dto.CommentDTO.CommentUpdateRequest;
+import com.whooa.blog.comment.dto.CommentDTO.CommentResponse;
 import com.whooa.blog.comment.entity.CommentEntity;
 import com.whooa.blog.comment.exception.CommentNotFoundException;
 import com.whooa.blog.comment.mapper.CommentMapper;
@@ -135,7 +135,7 @@ public class CommentControllerTest {
 		});
 
 		ResultActions action = mockMvc.perform(post("/api/v1/posts/{post-id}/comments", postEntity.getId())
-										.content(SerializeDeserializeUtil.serialize(commentCreate))
+										.content(SerializeDeserializeUtil.serializeToString(commentCreate))
 										.characterEncoding(StandardCharsets.UTF_8)
 										.contentType(MediaType.APPLICATION_JSON));
 
@@ -156,7 +156,7 @@ public class CommentControllerTest {
 		
 		commentCreate.content(null);
 		ResultActions action = mockMvc.perform(post("/api/v1/posts/{post-id}/comments", postEntity.getId())
-										.content(SerializeDeserializeUtil.serialize(commentCreate))
+										.content(SerializeDeserializeUtil.serializeToString(commentCreate))
 										.characterEncoding(StandardCharsets.UTF_8)
 										.contentType(MediaType.APPLICATION_JSON));
 
@@ -171,7 +171,7 @@ public class CommentControllerTest {
 		given(commentService.create(any(Long.class), any(CommentCreateRequest.class), any(UserDetailsImpl.class))).willThrow(new PostNotFoundException(Code.NOT_FOUND, new String[] {"포스트가 존재하지 않습니다."}));	
 		
 		ResultActions action = mockMvc.perform(post("/api/v1/posts/{post-id}/comments", postEntity.getId())
-										.content(SerializeDeserializeUtil.serialize(commentCreate))
+										.content(SerializeDeserializeUtil.serializeToString(commentCreate))
 										.characterEncoding(StandardCharsets.UTF_8)
 										.contentType(MediaType.APPLICATION_JSON));
 
@@ -190,7 +190,7 @@ public class CommentControllerTest {
 		});
 		
 		ResultActions action = mockMvc.perform(post("/api/v1/posts/{post-id}/comments", postEntity.getId())
-										.content(SerializeDeserializeUtil.serialize(commentCreate))
+										.content(SerializeDeserializeUtil.serializeToString(commentCreate))
 										.characterEncoding(StandardCharsets.UTF_8)
 										.contentType(MediaType.APPLICATION_JSON));
 
@@ -297,7 +297,7 @@ public class CommentControllerTest {
 		});
 	
 		ResultActions action = mockMvc.perform(patch("/api/v1/posts/{post-id}/comments/{id}", postEntity.getId(), commentEntity.getId())
-										.content(SerializeDeserializeUtil.serialize(commentUpdate))
+										.content(SerializeDeserializeUtil.serializeToString(commentUpdate))
 										.characterEncoding(StandardCharsets.UTF_8)
 										.contentType(MediaType.APPLICATION_JSON));
 
@@ -318,7 +318,7 @@ public class CommentControllerTest {
 	
 		commentUpdate.content(null);
 		ResultActions action = mockMvc.perform(patch("/api/v1/posts/{post-id}/comments/{id}", postEntity.getId(), commentEntity.getId())
-										.content(SerializeDeserializeUtil.serialize(commentUpdate))
+										.content(SerializeDeserializeUtil.serializeToString(commentUpdate))
 										.characterEncoding(StandardCharsets.UTF_8)
 										.contentType(MediaType.APPLICATION_JSON));
 
@@ -333,7 +333,7 @@ public class CommentControllerTest {
 		given(commentService.update(any(Long.class), any(Long.class), any(CommentUpdateRequest.class), any(UserDetailsImpl.class))).willThrow(new PostNotFoundException(Code.NOT_FOUND, new String[] {"포스트가 존재하지 않습니다."}));
 
 		ResultActions action = mockMvc.perform(patch("/api/v1/posts/{post-id}/comments/{id}", postEntity.getId(), commentEntity.getId())
-										.content(SerializeDeserializeUtil.serialize(commentUpdate))
+										.content(SerializeDeserializeUtil.serializeToString(commentUpdate))
 										.characterEncoding(StandardCharsets.UTF_8)
 										.contentType(MediaType.APPLICATION_JSON));
 		
@@ -350,7 +350,7 @@ public class CommentControllerTest {
 
 		ResultActions action = mockMvc.perform(patch("/api/v1/posts/{post-id}/comments/{id}", postEntity.getId(), commentEntity.getId())
 										.contentType(MediaType.APPLICATION_JSON)
-										.content(SerializeDeserializeUtil.serialize(commentUpdate))
+										.content(SerializeDeserializeUtil.serializeToString(commentUpdate))
 										.characterEncoding(StandardCharsets.UTF_8)
 										.contentType(MediaType.APPLICATION_JSON));
 				
@@ -366,7 +366,7 @@ public class CommentControllerTest {
 
 		ResultActions action = mockMvc.perform(patch("/api/v1/posts/{post-id}/comments/{id}", postEntity.getId(), commentEntity.getId())
 										.contentType(MediaType.APPLICATION_JSON)
-										.content(SerializeDeserializeUtil.serialize(commentUpdate))
+										.content(SerializeDeserializeUtil.serializeToString(commentUpdate))
 										.characterEncoding(StandardCharsets.UTF_8)
 										.contentType(MediaType.APPLICATION_JSON));
 		
@@ -385,7 +385,7 @@ public class CommentControllerTest {
 		});
 	
 		ResultActions action = mockMvc.perform(patch("/api/v1/posts/{post-id}/comments/{id}", postEntity.getId(), commentEntity.getId())
-										.content(SerializeDeserializeUtil.serialize(commentUpdate))
+										.content(SerializeDeserializeUtil.serializeToString(commentUpdate))
 										.characterEncoding(StandardCharsets.UTF_8)
 										.contentType(MediaType.APPLICATION_JSON));
 

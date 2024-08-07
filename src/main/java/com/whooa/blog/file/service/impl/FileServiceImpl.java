@@ -1,11 +1,14 @@
 package com.whooa.blog.file.service.impl;
 
 import java.io.IOException;
+
 import java.net.MalformedURLException;
+
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.time.Instant;
 
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
@@ -59,34 +62,41 @@ public class FileServiceImpl implements FileService {
 
 	@Override
 	public File upload(PostEntity postEntity, MultipartFile uploadFile) {
-		/* 정규화된 경로를 생성하여 "path/.."과 내부 단순 점과 같은 시퀀스를 제거한다. */	
-		String originalFilename = StringUtils.cleanPath(uploadFile.getOriginalFilename());
+		String originalFilename, filename, filePath, fileExtension, mimeType;
+		Path uploadPath;
+		Long fileSize;
+		File file;
 		
+		/* 정규화된 경로를 생성하여 "path/.."과 내부 단순 점과 같은 시퀀스를 제거한다. */	
+		originalFilename = StringUtils.cleanPath(uploadFile.getOriginalFilename());
+				
 		try {
 			
 			if (originalFilename.contains("..")) {
 				throw new InvalidFilePathException(Code.INVALID_PATH_SEQUENCE, new String[] {"파일 이름 " + originalFilename + "이 유효하지 않습니다."});
 			}
 		
+			fileExtension = getExtension(originalFilename);
+			filename = "post" + postEntity.getId() + "-" + Instant.now().toEpochMilli() + "." + fileExtension;
+			fileSize = uploadFile.getSize();
+			mimeType = uploadFile.getContentType();
+			
 			/*
 			 * resolve() 메서드는 주어진 경로 문자열을 Path로 변환하고 Path에 대해 resolve() 메서드에서 정확하게 지정된 방식으로 해결한다.
 			 * 예를 들어, 이름 분리자가 "/"이고 경로가 "foo/bar"를 나타내는 경우 이 메서드를 "gus" 경로 문자열과 함께 호출하면 Path "foo/bar/gus"가 생성된다.
-			 */
-			Path uploadPath = this.path.resolve(originalFilename);
+			 */	
+			uploadPath = this.path.resolve(filename);
+			
+			filePath = uploadPath.toString();
+
 			/*
 			 * 입력 스트림에서 파일로 모든 바이트를 복사하며 반환되면 입력 스트림은 스트림의 끝에 위치한다.
 			 * 기본적으로 대상 파일이 이미 존재하거나 심볼릭 링크인 경우 복사가 실패하지만 REPLACE_EXISTING 옵션이 지정된 경우 대상 파일이 이미 존재하면 그 파일이 비어있는 디렉터리가 아닌 경우에만 대상 파일이 교체된다. 
 			 * 대상 파일이 이미 존재하고 심볼릭 링크인 경우 심볼릭 링크가 교체된다.
 			 */
 			Files.copy(uploadFile.getInputStream(), uploadPath, StandardCopyOption.REPLACE_EXISTING);
-			
-			String filename = uploadPath.getFileName().toString();
-			String filePath = uploadPath.toString();
-			Long fileSize = uploadFile.getSize();
-			String fileExtension = getExtension(filename);
-			String mimeType = uploadFile.getContentType();
-			
-			File file =  new File(fileExtension, mimeType, filename, filePath, fileSize);
+						
+			file =  new File(fileExtension, mimeType, filename, filePath, fileSize);
 			postEntity.getFiles().add(file);
 						
 			return file;
@@ -98,8 +108,11 @@ public class FileServiceImpl implements FileService {
 	@Override
 	public Resource downalod(String filename) {
 		try {
-			Path downloadPath = this.path.resolve(filename).normalize();
-			Resource resource = new UrlResource(downloadPath.toUri());
+			Path downloadPath; 
+			Resource resource;
+			
+			downloadPath = this.path.resolve(filename).normalize();
+			resource = new UrlResource(downloadPath.toUri());
 			
 			if (resource.exists()) {
 				return resource;

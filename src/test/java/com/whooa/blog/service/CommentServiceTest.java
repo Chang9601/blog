@@ -27,9 +27,9 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import com.whooa.blog.category.entity.CategoryEntity;
-import com.whooa.blog.comment.dto.CommentDto.CommentCreateRequest;
-import com.whooa.blog.comment.dto.CommentDto.CommentUpdateRequest;
-import com.whooa.blog.comment.dto.CommentDto.CommentResponse;
+import com.whooa.blog.comment.dto.CommentDTO.CommentCreateRequest;
+import com.whooa.blog.comment.dto.CommentDTO.CommentUpdateRequest;
+import com.whooa.blog.comment.dto.CommentDTO.CommentResponse;
 import com.whooa.blog.comment.entity.CommentEntity;
 import com.whooa.blog.comment.exception.CommentNotBelongingToPostException;
 import com.whooa.blog.comment.exception.CommentNotFoundException;
@@ -45,7 +45,6 @@ import com.whooa.blog.user.exception.UserNotMatchedException;
 import com.whooa.blog.user.repository.UserRepository;
 import com.whooa.blog.user.type.UserRole;
 import com.whooa.blog.util.PaginationUtil;
-
 
 @ExtendWith(MockitoExtension.class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -162,14 +161,12 @@ public class CommentServiceTest {
 		willDoNothing().given(commentRepository).delete(any(CommentEntity.class));
 		given(commentRepository.findById(any(Long.class))).willReturn(Optional.of(commentEntity1));
 		given(postRepository.findById(any(Long.class))).willReturn(Optional.of(postEntity1));
-		given(userRepository.findById(any(Long.class))).willReturn(Optional.of(userEntity1));
 
 		commentServiceImpl.delete(commentEntity1.getId(), postEntity1.getId(), userDetailsImpl);
 
 		then(commentRepository).should(times(1)).delete(any(CommentEntity.class));
 		then(commentRepository).should(times(1)).findById(any(Long.class));
 		then(postRepository).should(times(1)).findById(any(Long.class));
-		then(userRepository).should(times(1)).findById(any(Long.class));
 	}
 	
 	@DisplayName("포스트가 존재하지 않아 댓글을 삭제하는데 실패한다.")
@@ -215,7 +212,6 @@ public class CommentServiceTest {
 		
 		given(commentRepository.findById(any(Long.class))).willReturn(Optional.of(commentEntity1));
 		given(postRepository.findById(any(Long.class))).willReturn(Optional.of(postEntity2));
-		given(userRepository.findById(any(Long.class))).willReturn(Optional.of(userEntity1));
 
 		assertThrows(CommentNotBelongingToPostException.class, () -> {
 			commentServiceImpl.delete(commentEntity1.getId(), postEntity1.getId(), userDetailsImpl);
@@ -224,7 +220,6 @@ public class CommentServiceTest {
 		then(commentRepository).should(times(0)).delete(any(CommentEntity.class));
 		then(commentRepository).should(times(1)).findById(any(Long.class));
 		then(postRepository).should(times(1)).findById(any(Long.class));
-		then(userRepository).should(times(1)).findById(any(Long.class));
 	}		
 
 	@DisplayName("로그인한 사용자와 댓글을 작성한 사용자가 일치하지 않아 삭제하는데 실패한다.")
@@ -239,7 +234,6 @@ public class CommentServiceTest {
 		
 		given(commentRepository.findById(any(Long.class))).willReturn(Optional.of(commentEntity1));
 		given(postRepository.findById(any(Long.class))).willReturn(Optional.of(postEntity1));
-		given(userRepository.findById(any(Long.class))).willReturn(Optional.of(userEntity2));
 
 		assertThrows(UserNotMatchedException.class, () -> {
 			commentServiceImpl.delete(commentEntity1.getId(), postEntity1.getId(), userDetailsImpl);
@@ -248,7 +242,6 @@ public class CommentServiceTest {
 		then(commentRepository).should(times(0)).delete(any(CommentEntity.class));
 		then(commentRepository).should(times(1)).findById(any(Long.class));
 		then(postRepository).should(times(1)).findById(any(Long.class));
-		then(userRepository).should(times(1)).findById(any(Long.class));
 	}		
 
 	@DisplayName("댓글 목록을 조회하는데 성공한다.")
@@ -364,7 +357,6 @@ public class CommentServiceTest {
 		given(commentRepository.save(any(CommentEntity.class))).willReturn(commentEntity2);
 		given(commentRepository.findById(any(Long.class))).willReturn(Optional.of(commentEntity1));
 		given(postRepository.findById(any(Long.class))).willReturn(Optional.of(postEntity1));
-		given(userRepository.findById(any(Long.class))).willReturn(Optional.of(userEntity1));
 
 		comment = commentServiceImpl.update(commentEntity1.getId(), postEntity1.getId(), commentUpdate, userDetailsImpl);
 
@@ -373,7 +365,6 @@ public class CommentServiceTest {
 		then(commentRepository).should(times(1)).save(any(CommentEntity.class));
 		then(commentRepository).should(times(1)).findById(any(Long.class));
 		then(postRepository).should(times(1)).findById(any(Long.class));
-		then(userRepository).should(times(1)).findById(any(Long.class));
 	}
 	
 	@DisplayName("포스트가 존재하지 않아 댓글을 수정하는데 실패한다.")
@@ -386,7 +377,6 @@ public class CommentServiceTest {
 		then(commentRepository).should(times(0)).save(any(CommentEntity.class));
 		then(commentRepository).should(times(0)).findById(any(Long.class));
 		then(postRepository).should(times(1)).findById(any(Long.class));
-		then(userRepository).should(times(0)).findById(any(Long.class));
 	}
 	
 	@DisplayName("댓글이 존재하지 않아 수정하는데 실패한다.")
@@ -401,7 +391,6 @@ public class CommentServiceTest {
 		then(commentRepository).should(times(0)).save(any(CommentEntity.class));
 		then(commentRepository).should(times(1)).findById(any(Long.class));
 		then(postRepository).should(times(1)).findById(any(Long.class));
-		then(userRepository).should(times(0)).findById(any(Long.class));
 	}
 	
 	@DisplayName("댓글이 포스트에 속하지 않아 수정하는데 실패한다.")
@@ -416,7 +405,6 @@ public class CommentServiceTest {
 		
 		given(commentRepository.findById(any(Long.class))).willReturn(Optional.of(commentEntity1));
 		given(postRepository.findById(any(Long.class))).willReturn(Optional.of(postEntity2));
-		given(userRepository.findById(any(Long.class))).willReturn(Optional.of(userEntity1));
 
 		assertThrows(CommentNotBelongingToPostException.class, () -> {
 			commentServiceImpl.update(commentEntity1.getId(), postEntity1.getId(), commentUpdate, userDetailsImpl);
@@ -425,7 +413,6 @@ public class CommentServiceTest {
 		then(commentRepository).should(times(0)).save(any(CommentEntity.class));
 		then(commentRepository).should(times(1)).findById(any(Long.class));
 		then(postRepository).should(times(1)).findById(any(Long.class));
-		then(userRepository).should(times(1)).findById(any(Long.class));
 	}
 	
 	@DisplayName("로그인한 사용자와 댓글을 작성한 사용자가 일치하지 않아 수정하는데 실패한다.")
@@ -440,7 +427,6 @@ public class CommentServiceTest {
 		
 		given(commentRepository.findById(any(Long.class))).willReturn(Optional.of(commentEntity1));
 		given(postRepository.findById(any(Long.class))).willReturn(Optional.of(postEntity1));
-		given(userRepository.findById(any(Long.class))).willReturn(Optional.of(userEntity2));
 
 		assertThrows(UserNotMatchedException.class, () -> {
 			commentServiceImpl.update(commentEntity1.getId(), postEntity1.getId(), commentUpdate, userDetailsImpl);
@@ -449,6 +435,5 @@ public class CommentServiceTest {
 		then(commentRepository).should(times(0)).save(any(CommentEntity.class));
 		then(commentRepository).should(times(1)).findById(any(Long.class));
 		then(postRepository).should(times(1)).findById(any(Long.class));
-		then(userRepository).should(times(1)).findById(any(Long.class));
 	}
 }
