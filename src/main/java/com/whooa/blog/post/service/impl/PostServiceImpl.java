@@ -17,9 +17,9 @@ import com.whooa.blog.common.code.Code;
 import com.whooa.blog.common.security.UserDetailsImpl;
 import com.whooa.blog.file.service.FileService;
 import com.whooa.blog.file.value.File;
-import com.whooa.blog.post.dto.PostDTO.PostCreateRequest;
-import com.whooa.blog.post.dto.PostDTO.PostUpdateRequest;
-import com.whooa.blog.post.dto.PostDTO.PostResponse;
+import com.whooa.blog.post.dto.PostDto.PostCreateRequest;
+import com.whooa.blog.post.dto.PostDto.PostUpdateRequest;
+import com.whooa.blog.post.dto.PostDto.PostResponse;
 import com.whooa.blog.post.entity.PostEntity;
 import com.whooa.blog.post.exception.PostNotFoundException;
 import com.whooa.blog.post.mapper.PostMapper;
@@ -34,8 +34,8 @@ import com.whooa.blog.util.PaginationUtil;
 
 @Service
 public class PostServiceImpl implements PostService {
-	private CategoryRepository categoryRepository;
 	private PostRepository postRepository;
+	private CategoryRepository categoryRepository;
 	private UserRepository userRepository;
 	private FileService fileService;
 	
@@ -101,7 +101,7 @@ public class PostServiceImpl implements PostService {
 		userId = userDetailsImpl.getId();
 		
 		if (!postEntity.getUser().getId().equals(userId)) {
-			throw new UserNotMatchedException(Code.USER_NOT_MATCHED, new String[] {"로그인한 사용자와 포스트를 생성한 사용자가 일치하지 않습니다."});
+			throw new UserNotMatchedException(Code.FORBIDDEN, new String[] {"로그인한 사용자와 포스트를 생성한 사용자가 일치하지 않습니다."});
 		}
 		
 		postRepository.delete(postEntity);
@@ -169,33 +169,38 @@ public class PostServiceImpl implements PostService {
 
 	@Override
 	public PostResponse update(Long id, PostUpdateRequest postUpdate, MultipartFile[] uploadFiles, UserDetailsImpl userDetailsImpl) {
-		Long userId;
-		List<File> files = null;
-		PostEntity postEntity;
 		CategoryEntity categoryEntity;
+		String categoryName, content, title;
+		List<File> files = null;
 		PostResponse post;
-		
+		PostEntity postEntity;
+		Long userId;
+
 		postEntity = postRepository.findById(id).orElseThrow(() -> new PostNotFoundException(Code.NOT_FOUND, new String[] {"포스트가 존재하지 않습니다."}));
 		categoryEntity = categoryRepository.findByName(postUpdate.getCategoryName()).orElseThrow(() -> new CategoryNotFoundException(Code.NOT_FOUND, new String[] {"카테고리가 존재하지 않습니다."}));
 
 		userId = userDetailsImpl.getId();
 				
 		if (!postEntity.getUser().getId().equals(userId)) {
-			throw new UserNotMatchedException(Code.USER_NOT_MATCHED, new String[] {"로그인한 사용자와 포스트를 생성한 사용자가 일치하지 않습니다."});
+			throw new UserNotMatchedException(Code.FORBIDDEN, new String[] {"로그인한 사용자와 포스트를 생성한 사용자가 일치하지 않습니다."});
 		}
 		
-		if (StringUtil.notEmpty(postUpdate.getTitle())) {
-			postEntity.title(postUpdate.getTitle());
-		}
-				
-		if (StringUtil.notEmpty(postUpdate.getContent())) {
-			postEntity.content(postUpdate.getContent());
-		}
-		
-		if (StringUtil.notEmpty(postUpdate.getCategoryName())) {
+		categoryName = postUpdate.getCategoryName();
+		content = postUpdate.getTitle();
+		title = postUpdate.getContent();
+
+		if (StringUtil.notEmpty(categoryName)) {
 			postEntity.category(categoryEntity);
 		}
 		
+		if (StringUtil.notEmpty(content)) {
+			postEntity.content(postUpdate.getContent());
+		}
+		
+		if (StringUtil.notEmpty(title)) {
+			postEntity.title(postUpdate.getTitle());
+		}
+
 		if (uploadFiles != null && uploadFiles.length > 0) {
 			files = Arrays.stream(uploadFiles)
 					.map(uploadFile -> fileService.upload(postEntity, uploadFile))

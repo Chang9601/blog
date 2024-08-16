@@ -1,7 +1,7 @@
 package com.whooa.blog.common.security.jwt;
 
 public enum JwtType {
-	ACCESS_TOKEN("ACCESS_TOKEN"), REFRESH_TOKEN("REFRESH_TOKEN");
+	ACCESS_TOKEN("access_token"), REFRESH_TOKEN("refresh_token");
 	
 	private String type;
 	

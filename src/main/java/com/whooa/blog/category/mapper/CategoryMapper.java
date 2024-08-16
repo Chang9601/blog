@@ -3,8 +3,8 @@ package com.whooa.blog.category.mapper;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
 
-import com.whooa.blog.category.dto.CategoryDTO.CategoryCreateRequest;
-import com.whooa.blog.category.dto.CategoryDTO.CategoryResponse;
+import com.whooa.blog.category.dto.CategoryDto.CategoryCreateRequest;
+import com.whooa.blog.category.dto.CategoryDto.CategoryResponse;
 import com.whooa.blog.category.entity.CategoryEntity;
 
 @Mapper

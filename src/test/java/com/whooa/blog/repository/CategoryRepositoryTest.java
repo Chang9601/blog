@@ -8,6 +8,7 @@ import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase.Replace;
@@ -36,7 +37,7 @@ public class CategoryRepositoryTest {
 	
 	@BeforeEach
 	public void setUp() {
-		categoryEntity1 = new CategoryEntity().name("테스트 카테고리");
+		categoryEntity1 = new CategoryEntity().name("카테고리1");
 		
 		pagination = new PaginationUtil();
 		pageable = pagination.makePageable();
@@ -45,7 +46,9 @@ public class CategoryRepositoryTest {
 	@DisplayName("카테고리를 생성하는데 성공한다.")
 	@Test
 	public void givenCategoryEntity_whenCallSaveForCreate_thenReturnCategoryEntity() {
-		CategoryEntity savedCategoryEntity = categoryRepository.save(categoryEntity1);
+		CategoryEntity savedCategoryEntity;
+		
+		savedCategoryEntity = categoryRepository.save(categoryEntity1);
 		
 		assertTrue(savedCategoryEntity.getId() > 0);
 	}
@@ -61,7 +64,9 @@ public class CategoryRepositoryTest {
 	@DisplayName("카테고리를 삭제하는데 성공한다.")
 	@Test
 	public void givenCategoryEntity_whenCallDelete_thenReturnNothing() {		
-		CategoryEntity savedCategoryEntity = categoryRepository.save(categoryEntity1);
+		CategoryEntity savedCategoryEntity;
+		
+		savedCategoryEntity = categoryRepository.save(categoryEntity1);
 		
 		categoryRepository.delete(savedCategoryEntity);
 		
@@ -79,8 +84,10 @@ public class CategoryRepositoryTest {
 	@DisplayName("카테고리를 조회하는데 성공한다.")
 	@Test
 	public void givenId_whenCallFindById_thenReturnCategoryEntity() {		
-		CategoryEntity savedCategoryEntity = categoryRepository.save(categoryEntity1);
-		CategoryEntity foundCategoryEntity = categoryRepository.findById(savedCategoryEntity.getId()).get();
+		CategoryEntity foundCategoryEntity, savedCategoryEntity;
+		
+		savedCategoryEntity = categoryRepository.save(categoryEntity1);
+		foundCategoryEntity = categoryRepository.findById(savedCategoryEntity.getId()).get();
 
 		assertEquals(foundCategoryEntity.getName(), savedCategoryEntity.getName());			
 	}
@@ -89,19 +96,22 @@ public class CategoryRepositoryTest {
 	@Test
 	public void givenId_whenCallFindById_thenThrowNoSuchElementException() {
 		assertThrows(NoSuchElementException.class, () -> {
-			categoryRepository.findById(1L).get();
+			categoryRepository.findById(100L).get();
 		});
 	}
 	
 	@DisplayName("카테고리의 목록을 조회하는데 성공한다.")
 	@Test
 	public void givenPagination_whenCallFindAll_thenReturnCategoryEntities() {
-		CategoryEntity categoryEntity2 = new CategoryEntity().name("실전 카테고리");
+		CategoryEntity categoryEntity2;
+		Page<CategoryEntity> page;
+		
+		categoryEntity2 = new CategoryEntity().name("카테고리2");
 		
 		categoryRepository.save(categoryEntity1);
 		categoryRepository.save(categoryEntity2);
 		
-		Page<CategoryEntity> page = categoryRepository.findAll(pageable);
+		page = categoryRepository.findAll(pageable);
 
 		assertEquals(page.getTotalElements(), 2);			
 	}
@@ -109,12 +119,14 @@ public class CategoryRepositoryTest {
 	@DisplayName("카테고리를 수정하는데 성공한다.")
 	@Test
 	public void givenCategoryEntity_whenCallSaveForUpdate_thenReturnUpdatedCategoryEntity() {		
-		CategoryEntity savedCategoryEntity = categoryRepository.save(categoryEntity1);
-		CategoryEntity foundCategoryEntity = categoryRepository.findById(savedCategoryEntity.getId()).get();
+		CategoryEntity  foundCategoryEntity, savedCategoryEntity, updatedCategoryEntity; 
 		
-		foundCategoryEntity.name("실전 카테고리");
+		savedCategoryEntity = categoryRepository.save(categoryEntity1);
+		foundCategoryEntity = categoryRepository.findById(savedCategoryEntity.getId()).get();
+		
+		foundCategoryEntity.name("카테고리2");
 
-		CategoryEntity updatedCategoryEntity = categoryRepository.save(foundCategoryEntity);
+		updatedCategoryEntity = categoryRepository.save(foundCategoryEntity);
 
 		assertEquals(updatedCategoryEntity.getName(), foundCategoryEntity.getName());
 	}

@@ -17,7 +17,7 @@ import com.whooa.blog.common.code.Code;
 import com.whooa.blog.common.security.jwt.JwtBundle;
 import com.whooa.blog.common.security.jwt.JwtType;
 import com.whooa.blog.common.security.jwt.JwtUtil;
-import com.whooa.blog.user.dto.UserDTO.UserResponse;
+import com.whooa.blog.user.dto.UserDto.UserResponse;
 import com.whooa.blog.user.entity.UserEntity;
 import com.whooa.blog.user.repository.UserRepository;
 import com.whooa.blog.user.type.UserRole;
@@ -68,7 +68,7 @@ public class AuthenticationSuccessHandlerImpl implements AuthenticationSuccessHa
 		CookieUtil.set(httpServletResponse, JwtType.ACCESS_TOKEN.getType(), jwt.getAccessToken(), true, 60 * 60, "/", "Strict", false);
 		CookieUtil.set(httpServletResponse, JwtType.REFRESH_TOKEN.getType(), jwt.getRefreshToken(), true, 60 * 60 * 24 * 30, "/", "Strict", false);
 		
-		userEntity = userRepository.findById(id).get();
+		userEntity = userRepository.findByIdAndActiveTrue(id).get();
 		setRefreshToken(userEntity, jwt.getRefreshToken());
 
 		httpServletResponse.setStatus(HttpServletResponse.SC_OK);

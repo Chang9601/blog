@@ -24,6 +24,7 @@ import com.whooa.blog.common.security.exception.InvalidJwtRefreshTokenException;
 import com.whooa.blog.post.exception.PostNotFoundException;
 import com.whooa.blog.user.exception.DuplicateUserException;
 import com.whooa.blog.user.exception.InvalidCredentialsException;
+import com.whooa.blog.user.exception.SamePasswordException;
 import com.whooa.blog.user.exception.UnauthenticatedUserException;
 import com.whooa.blog.user.exception.UserNotFoundException;
 import com.whooa.blog.user.exception.UserNotMatchedException;
@@ -128,6 +129,13 @@ public class AllExceptionHandler {
 		return ApiResponse.handleFailure(exception.getCode().getCode(), exception.getCode().getMessage(), null, exception.getDetail());
 	}
 	
+	@ExceptionHandler(SamePasswordException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+	public ApiResponse<SamePasswordException> handleException(SamePasswordException exception) {
+		logger.error("[SamePasswordException]: {}", exception.getCode().getMessage());
+		return ApiResponse.handleFailure(exception.getCode().getCode(), exception.getCode().getMessage(), null, exception.getDetail());
+	}
+	
 	@ExceptionHandler(UnauthenticatedUserException.class)
     @ResponseStatus(HttpStatus.UNAUTHORIZED)
 	public ApiResponse<UnauthenticatedUserException> handleException(UnauthenticatedUserException exception) {
@@ -143,7 +151,7 @@ public class AllExceptionHandler {
 	}
 	
 	@ExceptionHandler(UserNotMatchedException.class)
-    @ResponseStatus(HttpStatus.NOT_FOUND)
+    @ResponseStatus(HttpStatus.FORBIDDEN)
 	public ApiResponse<UserNotMatchedException> handleException(UserNotMatchedException exception) {
 		logger.error("[UserNotMatchedException]: {}", exception.getCode().getMessage());
 		return ApiResponse.handleFailure(exception.getCode().getCode(), exception.getCode().getMessage(), null, exception.getDetail());

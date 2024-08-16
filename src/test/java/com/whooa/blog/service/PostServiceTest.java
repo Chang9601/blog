@@ -25,9 +25,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.mock.web.MockMultipartFile;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.whooa.blog.category.entity.CategoryEntity;
@@ -37,9 +34,9 @@ import com.whooa.blog.common.api.PageResponse;
 import com.whooa.blog.common.security.UserDetailsImpl;
 import com.whooa.blog.file.service.FileService;
 import com.whooa.blog.file.value.File;
-import com.whooa.blog.post.dto.PostDTO.PostCreateRequest;
-import com.whooa.blog.post.dto.PostDTO.PostUpdateRequest;
-import com.whooa.blog.post.dto.PostDTO.PostResponse;
+import com.whooa.blog.post.dto.PostDto.PostCreateRequest;
+import com.whooa.blog.post.dto.PostDto.PostUpdateRequest;
+import com.whooa.blog.post.dto.PostDto.PostResponse;
 import com.whooa.blog.post.entity.PostEntity;
 import com.whooa.blog.post.exception.PostNotFoundException;
 import com.whooa.blog.post.repository.PostRepository;
@@ -49,7 +46,6 @@ import com.whooa.blog.user.exception.UserNotMatchedException;
 import com.whooa.blog.user.repository.UserRepository;
 import com.whooa.blog.user.type.UserRole;
 import com.whooa.blog.util.PaginationUtil;
-
 
 /* Mockito 클래스를 확장해서 의존성을 모의하기 위해 주석을 사용하는 것을 이해한다. */
 @ExtendWith(MockitoExtension.class)
@@ -65,6 +61,7 @@ public class PostServiceTest {
 	private CategoryRepository categoryRepository;
 	@Mock
 	private UserRepository userRepository;
+	
 	@Mock	
 	private FileService fileService;
 
@@ -92,18 +89,15 @@ public class PostServiceTest {
 	
 	@BeforeAll
 	public void setUpAll() {		
-		userEntity1 = new UserEntity()
-				.email("test@test.com")
-				.name("테스트 이름")
-				.password("1234")
-				.userRole(UserRole.USER);
-
 		pagination = new PaginationUtil();
 		
-		userDetailsImpl = new UserDetailsImpl(userEntity1);
-		SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
-		securityContext.setAuthentication(new UsernamePasswordAuthenticationToken(userDetailsImpl, null, userDetailsImpl.getAuthorities()));
-		SecurityContextHolder.setContext(securityContext);
+		userDetailsImpl = new UserDetailsImpl(
+			new UserEntity()
+			.email("user1@user1.com")
+			.name("사용자1 이름")
+			.password("12345678Aa!@#$%")
+			.userRole(UserRole.USER)
+		);
 	}
 	
 	@BeforeEach
@@ -113,32 +107,34 @@ public class PostServiceTest {
 	     * postRepository = Mockito.mock(PostRepository.class);
 		 * postServiceImpl = new PostServiceImpl(postRepository);
 		 */
-		String title = "테스트 제목";
-		String content = "테스트 내용";
+		String title, content;
 		
-		categoryEntity1 = new CategoryEntity().name("테스트 카테고리");
+		title = "포스트1";
+		content = "포스트1";
+		
+		categoryEntity1 = new CategoryEntity().name("카테고리1");
 		
 		userEntity1 = new UserEntity()
-				.email("test@test.com")
-				.name("테스트 이름")
-				.password("1234")
-				.userRole(UserRole.USER);
-		
+					.email("user2@user2.com")
+					.name("사용자2 이름")
+					.password("12345678Aa!@#$%")
+					.userRole(UserRole.USER);
+			
 		postEntity1 = new PostEntity()
-				.content(content)
-				.title(title)
-				.category(categoryEntity1)
-				.user(userEntity1);
+					.content(content)
+					.title(title)
+					.category(categoryEntity1)
+					.user(userEntity1);
 
 		postCreate = new PostCreateRequest()
-				.categoryName(categoryEntity1.getName())
-				.content(content)
-				.title(title);
+					.categoryName(categoryEntity1.getName())
+					.content(content)
+					.title(title);
 		
 		postUpdate = new PostUpdateRequest()
-				.categoryName("실전 카테고리")
-				.content("실전 내용")
-				.title("실전 제목");
+					.categoryName("카테고리2")
+					.content("포스트2")
+					.title("포스트2");
 
 		uploadFiles = new MockMultipartFile[] {
 				new MockMultipartFile("test1", "test1.txt", "text/plain", "테스트 파일1".getBytes(StandardCharsets.UTF_8)),
@@ -246,20 +242,22 @@ public class PostServiceTest {
 		then(postRepository).should(times(1)).findById(any(Long.class));
 	}
 
-	@DisplayName("로그인한 사용자와 포스트를 작성한 사용자가 일치하지 않아 삭제하는데 실패한다.")
+	@DisplayName("포스트를 작성한 사용자와 일치하지 않아 삭제하는데 실패한다.")
 	@Test
 	public void givenId_whenCallDelete_thenThrowUserNotMatchedException() {
-		UserEntity userEntity2 = new UserEntity()
-				.email("real@real.com")
-				.name("실전 이름")
-				.password("1234")
-				.userRole(UserRole.USER);
-		userEntity2.setId(2L);
+		UserEntity userEntity2;
 		
+		userEntity2 = new UserEntity()
+					.email("user2@user2.com")	
+					.name("사용자2")
+					.password("12345678Aa!@#$%")
+					.userRole(UserRole.USER);
+		userEntity2.setId(2L);
+				
 		given(postRepository.findById(any(Long.class))).willReturn(Optional.of(postEntity1));
 		
 		assertThrows(UserNotMatchedException.class, () -> {
-			postServiceImpl.delete(postEntity1.getId(), userDetailsImpl);
+			postServiceImpl.delete(postEntity1.getId(), new UserDetailsImpl(userEntity2));
 		});
 		
 		then(postRepository).should(times(0)).delete(any(PostEntity.class));				
@@ -293,15 +291,18 @@ public class PostServiceTest {
 	@DisplayName("포스트 목록을 조회하는데 성공한다.")
 	@Test
 	public void givenPagination_whenCallFindAll_thenReturnPosts() {
-		PostEntity postEntity2 = new PostEntity()
-				.content("실전 내용")
-				.title("실전 제목")
-				.category(new CategoryEntity().name("실전 카테고리"))
-				.user(userEntity1);
+		PageResponse<PostResponse> page;
+		PostEntity postEntity2;
 		
+		postEntity2 = new PostEntity()
+					.content("포스트2")
+					.title("포스트2")
+					.category(new CategoryEntity().name("카테고리2"))
+					.user(userEntity1);
+
 		given(postRepository.findAll(any(Pageable.class))).willReturn(new PageImpl<PostEntity>(List.of(postEntity1, postEntity2)));
 
-		PageResponse<PostResponse> page = postServiceImpl.findAll(pagination);
+		page = postServiceImpl.findAll(pagination);
 					
 		assertEquals(page.getTotalElements(), 2);
 		
@@ -311,17 +312,22 @@ public class PostServiceTest {
 	@DisplayName("포스트 목록을 조회(카테고리 아이디)하는데 성공한다.")
 	@Test
 	public void givenPagination_whenCallFindAllByCategoryId_thenReturnPosts() {
-		CategoryEntity categoryEntity2 = new CategoryEntity().name("실전 카테고리");
-		PostEntity postEntity2 = new PostEntity()
-				.content("실전 내용")
-				.title("실전 제목")
-				.category(categoryEntity2)
-				.user(userEntity1);
+		CategoryEntity categoryEntity2;
+		PageResponse<PostResponse> page;
+		PostEntity postEntity2;
 		
+		categoryEntity2 = new CategoryEntity().name("카테고리2");
+		
+		postEntity2 = new PostEntity()
+					.content("포스트2")
+					.title("포스트2")
+					.category(categoryEntity2)
+					.user(userEntity1);
+			
 		given(postRepository.findByCategoryId(any(Long.class), any(Pageable.class))).willReturn(new PageImpl<PostEntity>(List.of(postEntity2)));
 		//given(categoryRepository.findById(any(Long.class))).willReturn(Optional.of(categoryEntity1));
 
-		PageResponse<PostResponse> page = postServiceImpl.findAllByCategoryId(categoryEntity2.getId(), pagination);
+		page = postServiceImpl.findAllByCategoryId(categoryEntity2.getId(), pagination);
 					
 		assertEquals(page.getTotalElements(), 1);
 		
@@ -332,12 +338,16 @@ public class PostServiceTest {
 	@DisplayName("포스트(파일 X)를 수정하는데 성공한다.")
 	@Test
 	public void givenPostUpdate_whenCallUpdate_thenReturnPost() {
-		CategoryEntity categoryEntity2 = new CategoryEntity().name("실전 카테고리");
-		PostEntity postEntity2 = new PostEntity()
-				.content(postUpdate.getContent())
-				.title(postUpdate.getTitle())
-				.category(categoryEntity2)
-				.user(userEntity1);
+		CategoryEntity categoryEntity2;
+		PostEntity postEntity2;
+		
+		categoryEntity2 = new CategoryEntity().name("카테고리2");
+		
+		postEntity2 = new PostEntity()
+					.content(postUpdate.getContent())
+					.title(postUpdate.getTitle())
+					.category(categoryEntity2)
+					.user(userEntity1);
 		
 		given(postRepository.save(any(PostEntity.class))).willReturn(postEntity2);
 		given(postRepository.findById(any(Long.class))).willReturn(Optional.of(postEntity1));
@@ -358,12 +368,16 @@ public class PostServiceTest {
 	@DisplayName("포스트(파일 O)를 수정하는데 성공한다.")
 	@Test
 	public void givenPostUpdate_whenCallUpdate_thenReturnPostWithFiles() {
-		CategoryEntity categoryEntity2 = new CategoryEntity().name("실전 카테고리");
-		PostEntity postEntity2 = new PostEntity()
-				.content(postUpdate.getContent())
-				.title(postUpdate.getTitle())
-				.category(categoryEntity2)
-				.user(userEntity1);
+		CategoryEntity categoryEntity2;
+		PostEntity postEntity2;
+		
+		categoryEntity2 = new CategoryEntity().name("카테고리2");
+		
+		postEntity2 = new PostEntity()
+					.content(postUpdate.getContent())
+					.title(postUpdate.getTitle())
+					.category(categoryEntity2)
+					.user(userEntity1);
 
 		given(postRepository.save(any(PostEntity.class))).willReturn(postEntity2);
 		given(postRepository.findById(any(Long.class))).willReturn(Optional.of(postEntity1));
@@ -413,13 +427,15 @@ public class PostServiceTest {
 		then(fileService).should(times(0)).upload(any(PostEntity.class), any(MultipartFile.class));
 	}
 	
-	@DisplayName("로그인한 사용자와 포스트를 생성한 사용자가 일치하지 않아 수정하는데 실패한다.")
+	@DisplayName("포스트를 생성한 사용자와 일치하지 않아 수정하는데 실패한다.")
 	@Test
 	public void givenPostUpdate_whenCallUpdate_thenUserNotMatchedException() {
-		UserEntity userEntity2 = new UserEntity()
-				.email("real@real.com")
-				.name("실전 이름")
-				.password("1234")
+		UserEntity userEntity2;
+		
+		userEntity2 = new UserEntity()
+				.email("user2@user2.com")	
+				.name("사용자2")
+				.password("12345678Aa!@#$%")
 				.userRole(UserRole.USER);
 		userEntity2.setId(2L);
 		
@@ -427,7 +443,7 @@ public class PostServiceTest {
 		given(categoryRepository.findByName(any(String.class))).willReturn(Optional.of(categoryEntity1));
 
 		assertThrows(UserNotMatchedException.class, () -> {
-			postServiceImpl.update(postEntity1.getId(), postUpdate, null, userDetailsImpl);			
+			postServiceImpl.update(postEntity1.getId(), postUpdate, null, new UserDetailsImpl(userEntity2));			
 		});
 
 		then(postRepository).should(times(0)).save(any(PostEntity.class));

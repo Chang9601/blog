@@ -7,9 +7,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import com.whooa.blog.comment.dto.CommentDTO.CommentUpdateRequest;
-import com.whooa.blog.comment.dto.CommentDTO.CommentCreateRequest;
-import com.whooa.blog.comment.dto.CommentDTO.CommentResponse;
+import com.whooa.blog.comment.dto.CommentDto.CommentUpdateRequest;
+import com.whooa.blog.comment.dto.CommentDto.CommentCreateRequest;
+import com.whooa.blog.comment.dto.CommentDto.CommentResponse;
 import com.whooa.blog.comment.entity.CommentEntity;
 import com.whooa.blog.comment.exception.CommentNotBelongingToPostException;
 import com.whooa.blog.comment.exception.CommentNotFoundException;
@@ -136,14 +136,15 @@ public class CommentServiceImpl implements CommentService {
 	
 	@Override
 	public CommentResponse update(Long id, Long postId, CommentUpdateRequest commentUpdate, UserDetailsImpl userDetailsImpl) {
-		Long userId;
 		CommentEntity commentEntity;
+		String content;
 		PostEntity postEntity;
-		
-		postEntity = postRepository.findById(postId).orElseThrow(() -> new PostNotFoundException(Code.NOT_FOUND, new String[] {"포스트가 존재하지 않습니다."}));
-		commentEntity = commentRepository.findById(id).orElseThrow(() -> new CommentNotFoundException(Code.NOT_FOUND, new String[] {"댓글이 존재하지 않습니다."}));
+		Long userId;
 
 		userId = userDetailsImpl.getId();
+
+		postEntity = postRepository.findById(postId).orElseThrow(() -> new PostNotFoundException(Code.NOT_FOUND, new String[] {"포스트가 존재하지 않습니다."}));
+		commentEntity = commentRepository.findById(id).orElseThrow(() -> new CommentNotFoundException(Code.NOT_FOUND, new String[] {"댓글이 존재하지 않습니다."}));
 		
 		if (!commentEntity.getUser().getId().equals(userId)) {
 			throw new UserNotMatchedException(Code.USER_NOT_MATCHED, new String[] {"로그인한 사용자와 댓글을 생성한 사용자가 일치하지 않습니다."});
@@ -153,7 +154,7 @@ public class CommentServiceImpl implements CommentService {
 			throw new CommentNotBelongingToPostException(Code.COMMENT_NOT_IN_POST, new String[] {"댓글이 포스트에 속하지 않습니다."});
 		}
 		
-		String content = commentUpdate.getContent();
+		content = commentUpdate.getContent();
 			
 		if (StringUtil.notEmpty(content)) {
 			commentEntity.content(content);

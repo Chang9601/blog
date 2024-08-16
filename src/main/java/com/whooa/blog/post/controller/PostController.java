@@ -2,7 +2,6 @@ package com.whooa.blog.post.controller;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -17,10 +16,11 @@ import org.springframework.web.multipart.MultipartFile;
 import com.whooa.blog.common.api.ApiResponse;
 import com.whooa.blog.common.api.PageResponse;
 import com.whooa.blog.common.code.Code;
+import com.whooa.blog.common.security.CurrentUser;
 import com.whooa.blog.common.security.UserDetailsImpl;
-import com.whooa.blog.post.dto.PostDTO.PostResponse;
-import com.whooa.blog.post.dto.PostDTO.PostCreateRequest;
-import com.whooa.blog.post.dto.PostDTO.PostUpdateRequest;
+import com.whooa.blog.post.dto.PostDto.PostResponse;
+import com.whooa.blog.post.dto.PostDto.PostCreateRequest;
+import com.whooa.blog.post.dto.PostDto.PostUpdateRequest;
 import com.whooa.blog.post.service.PostService;
 import com.whooa.blog.util.PaginationUtil;
 
@@ -65,7 +65,7 @@ public class PostController {
 	 */
 	@ResponseStatus(value = HttpStatus.CREATED)
 	@PostMapping(consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
-	public ApiResponse<PostResponse> createPost(@Valid @RequestPart(name = "post") PostCreateRequest postCreate, @RequestPart(name = "files", required = false) MultipartFile[] uploadFiles, @AuthenticationPrincipal UserDetailsImpl userDetailsImpl) {		
+	public ApiResponse<PostResponse> createPost(@Valid @RequestPart(name = "post") PostCreateRequest postCreate, @RequestPart(name = "files", required = false) MultipartFile[] uploadFiles, @CurrentUser UserDetailsImpl userDetailsImpl) {		
 		return ApiResponse.handleSuccess(Code.CREATED.getCode(), Code.CREATED.getMessage(), postService.create(postCreate, uploadFiles, userDetailsImpl), new String[] {"포스트를 생성했습니다."});
 	}
 
@@ -77,10 +77,10 @@ public class PostController {
 	)
 	@ResponseStatus(value = HttpStatus.OK)
 	@DeleteMapping("/{id}")
-	public ApiResponse<PostResponse> deletePost(@PathVariable Long id, @AuthenticationPrincipal UserDetailsImpl userDetailsImpl) {
+	public ApiResponse<PostResponse> deletePost(@PathVariable Long id, @CurrentUser UserDetailsImpl userDetailsImpl) {
 		postService.delete(id, userDetailsImpl);
 				
-		return ApiResponse.handleSuccess(Code.NO_CONTENT.getCode(), Code.NO_CONTENT.getMessage(), null, new String[] {"포스트가 삭제되었습니다."});
+		return ApiResponse.handleSuccess(Code.NO_CONTENT.getCode(), Code.NO_CONTENT.getMessage(), null, new String[] {"포스트를 삭제했습니다."});
 	}
 
 	@Operation(
@@ -120,7 +120,7 @@ public class PostController {
 	/* @RequestBody 어노테이션은 내부적으로 Spring이 제공하는 HttpMessageConverter를 사용하여 JSON을 Java 객체로 변환한다. */
 	@ResponseStatus(value = HttpStatus.OK)
 	@PatchMapping("/{id}")
-	public ApiResponse<PostResponse> updatePost(@PathVariable Long id, @Valid @RequestPart(name = "post") PostUpdateRequest postUpdate, @RequestPart(name = "files", required = false) MultipartFile[] uploadFiles, @AuthenticationPrincipal UserDetailsImpl userDetailsImpl) {		
+	public ApiResponse<PostResponse> updatePost(@PathVariable Long id, @Valid @RequestPart(name = "post") PostUpdateRequest postUpdate, @RequestPart(name = "files", required = false) MultipartFile[] uploadFiles, @CurrentUser UserDetailsImpl userDetailsImpl) {		
 		return ApiResponse.handleSuccess(Code.OK.getCode(), Code.OK.getMessage(), postService.update(id, postUpdate, uploadFiles, userDetailsImpl), new String[] {"포스트를 수정했습니다."});
 	}
 }

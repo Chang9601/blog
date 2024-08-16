@@ -8,6 +8,7 @@ import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase.Replace;
@@ -59,19 +60,19 @@ public class PostRepositoryTest {
 
 	@BeforeEach
 	public void setUp() {
-		categoryEntity1 = categoryRepository.save(new CategoryEntity().name("테스트 카테고리"));
+		categoryEntity1 = categoryRepository.save(new CategoryEntity().name("카테고리1"));
 				
 		userEntity = userRepository.save(new UserEntity()
-				.email("test@test.com")
-				.name("테스트 이름")
-				.password("1234")
-				.userRole(UserRole.USER));
+					.email("user@user.com")
+					.name("사용자")
+					.password("12345678Aa!@#$%")
+					.userRole(UserRole.USER));
 		
 		postEntity1 = new PostEntity()
-				.content("테스트 내용")
-				.title("테스트 제목")
-				.category(categoryEntity1)
-				.user(userEntity);
+					.content("포스트")
+					.title("포스트")
+					.category(categoryEntity1)
+					.user(userEntity);
 		
 		pagination = new PaginationUtil();
 		pageable = pagination.makePageable();
@@ -85,7 +86,9 @@ public class PostRepositoryTest {
 		 * when: 행위.
 		 * then: 검증.
 		 */
-		PostEntity savedPostEntity = postRepository.save(postEntity1);
+		PostEntity savedPostEntity;
+		
+		savedPostEntity = postRepository.save(postEntity1);
 		
 		assertTrue(savedPostEntity.getId() > 0);
 	}
@@ -101,7 +104,9 @@ public class PostRepositoryTest {
 	@DisplayName("포스트를 삭제하는데 성공한다.")
 	@Test
 	public void givenPostEntity_whenCallDelete_thenReturnNothing() {		
-		PostEntity savedPostEntity = postRepository.save(postEntity1);
+		PostEntity savedPostEntity;
+		
+		savedPostEntity = postRepository.save(postEntity1);
 		
 		postRepository.delete(savedPostEntity);
 		/*
@@ -122,8 +127,10 @@ public class PostRepositoryTest {
 	@DisplayName("포스트를 조회하는데 성공한다.")
 	@Test
 	public void givenId_whenCallFindById_thenReturnPostEntity() {		
-		PostEntity savedPostEntity = postRepository.save(postEntity1);
-		PostEntity foundPostEntity = postRepository.findById(savedPostEntity.getId()).get();
+		PostEntity foundPostEntity, savedPostEntity;
+		
+		savedPostEntity = postRepository.save(postEntity1);
+		foundPostEntity = postRepository.findById(savedPostEntity.getId()).get();
 
 		assertEquals(foundPostEntity.getTitle(), savedPostEntity.getTitle());			
 	}
@@ -136,23 +143,26 @@ public class PostRepositoryTest {
 		 * Assertions.assertEquals(postRepository.findById(1000L), Optional.empty());
 		 */
 		assertThrows(NoSuchElementException.class, () -> {
-			postRepository.findById(1L).get();
+			postRepository.findById(100L).get();
 		});
 	}
 		
 	@DisplayName("포스트 목록을 조회하는데 성공한다.")
 	@Test
 	public void givenPagination_whenCallFindAll_thenReturnPostEntities() {
-		PostEntity postEntity2 = new PostEntity()
-				.content("실전 내용")
-				.title("실전 제목")
-				.category(categoryEntity1)
-				.user(userEntity);
+		PostEntity postEntity2;
+		Page<PostEntity> page;
+		
+		postEntity2 = new PostEntity()
+					.content("포스트2")
+					.title("포스트2")
+					.category(categoryEntity1)
+					.user(userEntity);
 		
 		postRepository.save(postEntity1);
 		postRepository.save(postEntity2);
 		
-		Page<PostEntity> page = postRepository.findAll(pageable);
+		page = postRepository.findAll(pageable);
 		
 		assertEquals(page.getTotalElements(), 2);	
 	}
@@ -160,18 +170,22 @@ public class PostRepositoryTest {
 	@DisplayName("포스트 목록을 조회(카테고리 아이디)하는데 성공한다.")
 	@Test
 	public void givenPagination_whenCallfindByCategoryId_thenReturnPostEntitiesByCategoryId() {
-		CategoryEntity categoryEntity2 = categoryRepository.save(new CategoryEntity().name("실전 카테고리"));
-
-		PostEntity postEntity2 = new PostEntity()
-				.content("실전 내용")
-				.title("실전 제목")
-				.category(categoryEntity2)
-				.user(userEntity);
+		CategoryEntity categoryEntity2;
+		Page<PostEntity> page;
+		PostEntity postEntity2;
 		
+		categoryEntity2 = categoryRepository.save(new CategoryEntity().name("실전 카테고리"));
+		
+		postEntity2 = new PostEntity()
+					.content("포스트2")
+					.title("포스트2")
+					.category(categoryEntity2)
+					.user(userEntity);
+			
 		postRepository.save(postEntity1);
 		postRepository.save(postEntity2);
 		
-		Page<PostEntity> page = postRepository.findByCategoryId(categoryEntity2.getId(), pageable);
+		page = postRepository.findByCategoryId(categoryEntity2.getId(), pageable);
 		
 		assertEquals(page.getTotalElements(), 1);
 	}
@@ -179,12 +193,14 @@ public class PostRepositoryTest {
 	@DisplayName("포스트를 수정하는데 성공한다.")
 	@Test
 	public void givenPostEntity_whenCallSaveForUpdate_thenReturnUpdatedPost() {		
-		PostEntity savedPostEntity = postRepository.save(postEntity1);
-		PostEntity foundPostEntity = postRepository.findById(savedPostEntity.getId()).get();
+		PostEntity foundPostEntity, savedPostEntity, updatedPostEntity;
 		
-		foundPostEntity.content("실전 내용").title("실전 제목");
+		savedPostEntity = postRepository.save(postEntity1);
+		foundPostEntity = postRepository.findById(savedPostEntity.getId()).get();
+		
+		foundPostEntity.content("포스트2").title("포스트2");
 
-		PostEntity updatedPostEntity = postRepository.save(foundPostEntity);
+		updatedPostEntity = postRepository.save(foundPostEntity);
 
 		assertEquals(updatedPostEntity.getTitle(), foundPostEntity.getTitle());
 		assertEquals(updatedPostEntity.getContent(), foundPostEntity.getContent());

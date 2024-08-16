@@ -23,9 +23,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 
-import com.whooa.blog.category.dto.CategoryDTO.CategoryCreateRequest;
-import com.whooa.blog.category.dto.CategoryDTO.CategoryResponse;
-import com.whooa.blog.category.dto.CategoryDTO.CategoryUpdateRequest;
+import com.whooa.blog.category.dto.CategoryDto.CategoryCreateRequest;
+import com.whooa.blog.category.dto.CategoryDto.CategoryResponse;
+import com.whooa.blog.category.dto.CategoryDto.CategoryUpdateRequest;
 import com.whooa.blog.category.entity.CategoryEntity;
 import com.whooa.blog.category.exception.CategoryNotFoundException;
 import com.whooa.blog.category.exception.DuplicateCategoryException;
@@ -58,12 +58,11 @@ public class CategoryServiceTest {
 		
 	@BeforeEach
 	public void setUpEach() {
-		String name = "테스트 카테고리";
+		String name = "카테고리1";
 		
 		categoryEntity1 = new CategoryEntity().name(name);
-		
 		categoryCreate = new CategoryCreateRequest().name(name);
-		categoryUpdate = new CategoryUpdateRequest().name("실전 카테고리");
+		categoryUpdate = new CategoryUpdateRequest().name("카테고리2");
 	}
 
 	@DisplayName("카테고리를 생성하는데 성공한다.")
@@ -156,7 +155,9 @@ public class CategoryServiceTest {
 	@DisplayName("카테고리 목록을 조회하는데 성공한다.")
 	@Test
 	public void givenPagination_whenCallFindAll_thenReturnCategories() {
-		CategoryEntity categoryEntity2 = new CategoryEntity().name("실전 카테고리");
+		CategoryEntity categoryEntity2;
+		
+		categoryEntity2 = new CategoryEntity().name("카테고리2");
 		
 		given(categoryRepository.findAll(any(Pageable.class))).willReturn(new PageImpl<CategoryEntity>(List.of(categoryEntity1, categoryEntity2)));
 		
@@ -170,7 +171,9 @@ public class CategoryServiceTest {
 	@DisplayName("카테고리를 수정하는데 성공한다.")
 	@Test
 	public void givenCategoryUpdate_whenCallUpdate_thenReturnCategory() {
-		CategoryEntity categoryEntity2 = new CategoryEntity().name(categoryUpdate.getName());
+		CategoryEntity categoryEntity2;
+		
+		categoryEntity2 = new CategoryEntity().name(categoryUpdate.getName());
 
 		given(categoryRepository.save(any(CategoryEntity.class))).willReturn(categoryEntity2);
 		given(categoryRepository.findById(any(Long.class))).willReturn(Optional.of(categoryEntity1));
