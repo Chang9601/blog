@@ -4,8 +4,8 @@ import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
 
 
-import com.whooa.blog.user.dto.UserDTO.UserCreateRequest;
-import com.whooa.blog.user.dto.UserDTO.UserResponse;
+import com.whooa.blog.user.dto.UserDto.UserCreateRequest;
+import com.whooa.blog.user.dto.UserDto.UserResponse;
 import com.whooa.blog.user.entity.UserEntity;
 
 @Mapper

@@ -60,7 +60,7 @@ public class JwtUtil {
 		}
 			
 		email = parseEmail(refreshToken);	
-		optionalUserEntity = userRepository.findByEmail(email);
+		optionalUserEntity = userRepository.findByEmailAndActiveTrue(email);
 
 		if (optionalUserEntity.isEmpty()) {
 			throw new UserNotFoundException(Code.NOT_FOUND, new String[] {"이메일에 해당하는 사용자가 존재하지 않습니다."});

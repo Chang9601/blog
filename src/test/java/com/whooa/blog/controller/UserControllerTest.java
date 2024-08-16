@@ -13,7 +13,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import java.nio.charset.StandardCharsets;
-import java.util.List;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -30,25 +29,25 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.filter.CharacterEncodingFilter;
 
-
-import com.whooa.blog.common.api.PageResponse;
 import com.whooa.blog.common.code.Code;
 import com.whooa.blog.common.exception.AllExceptionHandler;
 import com.whooa.blog.common.security.UserDetailsImpl;
 import com.whooa.blog.user.controller.UserController;
-import com.whooa.blog.user.dto.UserDTO.UserCreateRequest;
-import com.whooa.blog.user.dto.UserDTO.UserResponse;
+import com.whooa.blog.user.dto.UserDto.UserCreateRequest;
+import com.whooa.blog.user.dto.UserDto.UserPasswordUpdateRequest;
+import com.whooa.blog.user.dto.UserDto.UserResponse;
+import com.whooa.blog.user.dto.UserDto.UserUpdateRequest;
 import com.whooa.blog.user.entity.UserEntity;
 import com.whooa.blog.user.exception.DuplicateUserException;
+import com.whooa.blog.user.exception.InvalidCredentialsException;
+import com.whooa.blog.user.exception.SamePasswordException;
+import com.whooa.blog.user.exception.UserNotFoundException;
 import com.whooa.blog.user.mapper.UserMapper;
 import com.whooa.blog.user.service.UserService;
 import com.whooa.blog.user.type.UserRole;
-import com.whooa.blog.util.PaginationUtil;
 import com.whooa.blog.util.PasswordUtil;
 import com.whooa.blog.util.SerializeDeserializeUtil;
 import com.whooa.blog.util.UserRoleMapper;
@@ -69,261 +68,515 @@ public class UserControllerTest {
 	private UserEntity userEntity;
 
 	private UserCreateRequest userCreate;
-	private UserResponse user1;
-	
-	private PaginationUtil pagination;
-	
+	private UserUpdateRequest userUpdate;
+	private UserPasswordUpdateRequest userPasswordUpdate;
+	private UserResponse user;
+		
 	@BeforeAll
 	public void setUpAll() {		
 		mockMvc = MockMvcBuilders
 				.webAppContextSetup(webApplicationContext)
 				.addFilter(new CharacterEncodingFilter("utf-8", true))
 				.apply(springSecurity()).build();
-		
-		pagination = new PaginationUtil();
 	}
 	
 	@BeforeEach
 	public void setUpEach() {
-		String email = "ttest@test.com";
-		String name = "테테스트 이름";
-		String password = "12345678Aa!@#$%";
-		String userRole = "USER";
+		String email, name, password, userRole;
+		
+		email = "user1@user1.com";
+		name = "사용자1";
+		password = "12345678Aa!@#$%";
+		userRole = "USER";
 		
 		userEntity = new UserEntity()
-				.email(email)
-				.name(name)
-				.password(password)
-				.userRole(UserRole.USER);
+					.email(email)
+					.name(name)
+					.password(password)
+					.userRole(UserRole.USER);
 		
 		userCreate = new UserCreateRequest()
-				.email(email)
-				.name(name)
-				.password(password)
-				.userRole(userRole);
+					.email(email)
+					.name(name)
+					.password(password)
+					.userRole(userRole);
 		
-		user1 = new UserResponse()
+		userUpdate = new UserUpdateRequest()
+					.email("user2@user2.com")
+					.name("사용자2");
+		
+		userPasswordUpdate = new UserPasswordUpdateRequest()
+							.oldPassword(password)
+							.newPassword("12345679Aa!@#$%");
+
+		user = new UserResponse()
 				.email(email)
 				.userRole(UserRole.USER);
 	}
 	
-	@DisplayName("사용자를 생성하는데 성공한다.")
+	@DisplayName("회원가입에 성공한다.")
 	@Test
-	public void givenUserCreate_whenCallCreateUser_thenReturnUser() throws Exception {
+	public void givenUserCreate_whenCallCreateMe_thenReturnUser() throws Exception {
+		ResultActions action;
+		
 		given(userService.create(any(UserCreateRequest.class))).willAnswer((answer) -> {
-			userEntity.password(PasswordUtil.hash(userEntity.getPassword())).userRole(UserRoleMapper.map(userCreate.getUserRole()));
-			user1 = UserMapper.INSTANCE.toDto(userEntity);
+			userEntity.password(PasswordUtil.hash(userCreate.getPassword())).userRole(UserRoleMapper.map(userCreate.getUserRole()));
+			user = UserMapper.INSTANCE.toDto(userEntity);
 			
-			return user1;
+			return user;
 		});
 
-		ResultActions action = mockMvc.perform(post("/api/v1/users")
-										.content(SerializeDeserializeUtil.serializeToString(userCreate))
-										.characterEncoding(StandardCharsets.UTF_8)
-										.contentType(MediaType.APPLICATION_JSON));
+		action = mockMvc.perform(
+						post("/api/v1/users")
+						.content(SerializeDeserializeUtil.serializeToString(userCreate))
+						.characterEncoding(StandardCharsets.UTF_8)
+						.contentType(MediaType.APPLICATION_JSON)
+				);
 				
-		action.andDo(print())
-				.andExpect(status().isCreated())
-				.andExpect(jsonPath("$.data.email", is(user1.getEmail())))
-				.andExpect(jsonPath("$.data.userRole", is(user1.getUserRole().getRole())));
+		action
+		.andDo(print())
+		.andExpect(status().isCreated())
+		.andExpect(jsonPath("$.data.email", is(user.getEmail())))
+		.andExpect(jsonPath("$.data.userRole", is(user.getUserRole().getRole())));
 	}
 	
-	@DisplayName("이름이 너무 짧아 사용자를 생성하는데 실패한다.")
+	@DisplayName("이름이  짧아 회원가입에 실패한다.")
 	@Test
-	public void givenUserCreate_whenCallCreateUser_thenThrowBadRequestExceptionForName() throws Exception {
+	public void givenUserCreate_whenCallCreateMe_thenThrowBadRequestExceptionForName() throws Exception {
+		ResultActions action;
+		
 		given(userService.create(any(UserCreateRequest.class))).willAnswer((answer) -> {
-			userEntity.password(PasswordUtil.hash(userEntity.getPassword())).userRole(UserRoleMapper.map(userCreate.getUserRole()));
-			user1 = UserMapper.INSTANCE.toDto(userEntity);
+			userEntity.password(PasswordUtil.hash(userCreate.getPassword())).userRole(UserRoleMapper.map(userCreate.getUserRole()));
+			user = UserMapper.INSTANCE.toDto(userEntity);
 			
-			return user1;
+			return user;
 		});
 
 		userCreate.name("테");
-		ResultActions action = mockMvc.perform(post("/api/v1/users")
-										.content(SerializeDeserializeUtil.serializeToString(userCreate))
-										.characterEncoding(StandardCharsets.UTF_8)
-										.contentType(MediaType.APPLICATION_JSON));
+		action = mockMvc.perform(
+						post("/api/v1/users")
+						.content(SerializeDeserializeUtil.serializeToString(userCreate))
+						.characterEncoding(StandardCharsets.UTF_8)
+						.contentType(MediaType.APPLICATION_JSON)
+				);
 				
-		action.andDo(print())
-				.andExpect(status().isBadRequest());
+		action
+		.andDo(print())
+		.andExpect(status().isBadRequest());
 	}
 
-	@DisplayName("이메일이 유효하지 않아 사용자를 생성하는데 실패한다.")
+	@DisplayName("이메일이 유효하지 않아 회원가입에 실패한다.")
 	@Test
-	public void givenUserCreate_whenCallCreateUser_thenThrowBadRequestExceptionForEmail() throws Exception {
+	public void givenUserCreate_whenCallCreateMe_thenThrowBadRequestExceptionForEmail() throws Exception {
+		ResultActions action;
+		
 		given(userService.create(any(UserCreateRequest.class))).willAnswer((answer) -> {
-			userEntity.password(PasswordUtil.hash(userEntity.getPassword())).userRole(UserRoleMapper.map(userCreate.getUserRole()));
-			user1 = UserMapper.INSTANCE.toDto(userEntity);
+			userEntity.password(PasswordUtil.hash(userCreate.getPassword())).userRole(UserRoleMapper.map(userCreate.getUserRole()));
+			user = UserMapper.INSTANCE.toDto(userEntity);
 			
-			return user1;
+			return user;
 		});
 
 		userCreate.email("ttesttest.com");
-		ResultActions action = mockMvc.perform(post("/api/v1/users")
-										.content(SerializeDeserializeUtil.serializeToString(userCreate))
-										.characterEncoding(StandardCharsets.UTF_8)
-										.contentType(MediaType.APPLICATION_JSON));
+		action = mockMvc.perform(
+						post("/api/v1/users")
+						.content(SerializeDeserializeUtil.serializeToString(userCreate))
+						.characterEncoding(StandardCharsets.UTF_8)
+						.contentType(MediaType.APPLICATION_JSON)
+				);
 				
-		action.andDo(print())
-				.andExpect(status().isBadRequest());
+		action
+		.andDo(print())
+		.andExpect(status().isBadRequest());
 	}
 	
-	@DisplayName("비밀번호가 유효하지 않아 사용자를 생성하는데 실패한다.")
+	@DisplayName("비밀번호가 유효하지 않아 회원가입에 실패한다.")
 	@Test
-	public void givenUserCreate_whenCallCreateUser_thenThrowBadRequestExceptionForPassword() throws Exception {
+	public void givenUserCreate_whenCallCreateMe_thenThrowBadRequestExceptionForPassword() throws Exception {
+		ResultActions action;
+		
 		given(userService.create(any(UserCreateRequest.class))).willAnswer((answer) -> {
-			userEntity.password(PasswordUtil.hash(userEntity.getPassword())).userRole(UserRoleMapper.map(userCreate.getUserRole()));
-			user1 = UserMapper.INSTANCE.toDto(userEntity);
+			userEntity.password(PasswordUtil.hash(userCreate.getPassword())).userRole(UserRoleMapper.map(userCreate.getUserRole()));
+			user = UserMapper.INSTANCE.toDto(userEntity);
 			
-			return user1;
+			return user;
 		});
 
 		userCreate.password("12314241");
-		ResultActions action = mockMvc.perform(post("/api/v1/users")
-										.content(SerializeDeserializeUtil.serializeToString(userCreate))
-										.characterEncoding(StandardCharsets.UTF_8)
-										.contentType(MediaType.APPLICATION_JSON));
+		action = mockMvc.perform(
+						post("/api/v1/users")
+						.content(SerializeDeserializeUtil.serializeToString(userCreate))
+						.characterEncoding(StandardCharsets.UTF_8)
+						.contentType(MediaType.APPLICATION_JSON)
+				);
 				
-		action.andDo(print())
-				.andExpect(status().isBadRequest());
+		action
+		.andDo(print())
+		.andExpect(status().isBadRequest());
 	}
 	
-	@DisplayName("사용자 이미 존재하여 생성하는데 실패한다.")
+	@DisplayName("사용자가 이미 존재하여 회원가입에 실패한다.")
 	@Test
-	public void givenUserCreate_whenCallCreateUser_thenThrowDuplicateUserException() throws Exception {
+	public void givenUserCreate_whenCallCreateMe_thenThrowDuplicateUserException() throws Exception {
+		ResultActions action;
+		
 		given(userService.create(any(UserCreateRequest.class))).willThrow(new DuplicateUserException(Code.CONFLICT, new String[] {"이메일을 사용하는 사용자가 존재합니다."}));
 
-		ResultActions action = mockMvc.perform(post("/api/v1/users")
-										.content(SerializeDeserializeUtil.serializeToString(userCreate))
-										.characterEncoding(StandardCharsets.UTF_8)
-										.contentType(MediaType.APPLICATION_JSON));
-		action.andDo(print())
-				.andExpect(status().isConflict())
-				.andExpect(result -> assertTrue(result.getResolvedException() instanceof DuplicateUserException));
+		action = mockMvc.perform(
+						post("/api/v1/users")
+						.content(SerializeDeserializeUtil.serializeToString(userCreate))
+						.characterEncoding(StandardCharsets.UTF_8)
+						.contentType(MediaType.APPLICATION_JSON)
+				);
+		
+		action
+		.andDo(print())
+		.andExpect(status().isConflict())
+		.andExpect(result -> assertTrue(result.getResolvedException() instanceof DuplicateUserException));
 	}
 	
-	@DisplayName("사용자를 삭제하는데 성공한다.")
+	@DisplayName("회원탈퇴에 성공한다.")
 	@Test
 	@WithMockCustomUser
-	public void givenId_whenCallDeleteUser_thenReturnNothing() throws Exception {		
+	public void givenUserDetailsImpl_whenCallDeleteMe_thenReturnNothing() throws Exception {
+		ResultActions action;
+		
 		willDoNothing().given(userService).delete(any(UserDetailsImpl.class));
 
-		ResultActions action = mockMvc.perform(delete("/api/v1/users"));
+		action = mockMvc.perform(delete("/api/v1/users"));
 		
-		action.andDo(print())
-				.andExpect(status().isOk())
-				.andExpect(jsonPath("$.metadata.code", is(Code.NO_CONTENT.getCode())));
+		action
+		.andDo(print())
+		.andExpect(status().isOk())
+		.andExpect(jsonPath("$.metadata.code", is(Code.NO_CONTENT.getCode())));
+	}
+	
+	@DisplayName("사용자가 존재하지 않아 회원탈퇴에 실패한다.")
+	@Test
+	@WithMockCustomUser
+	public void givenUserDetailsImpl_whenCallDeleteMe_thenThrowUserNotFoundException() throws Exception {		
+		ResultActions action;
+		
+		willThrow(new UserNotFoundException(Code.NOT_FOUND, new String[] {"아이디에 해당하는 사용자가 존재하지 않습니다."})).given(userService).delete(any(UserDetailsImpl.class));
+		
+		action = mockMvc.perform(delete("/api/v1/users"));
+		
+		action
+		.andDo(print())
+		.andExpect(status().isNotFound())
+		.andExpect(result -> assertTrue(result.getResolvedException() instanceof UserNotFoundException));
 	}
 	
 	// TODO: UnauthenticatedUserException 예외 클래스로 처리하는 방법.
-	@DisplayName("인증되어 있지 않아 사용자를 삭제하는데 실패한다.")
+	@DisplayName("인증되어 있지 않아 회원탈퇴에 실패한다.")
 	@Test
-	public void givenId_whenCallDeleteUser_thenThrowUnauthenticatedUserException() throws Exception {		
+	public void givenUserDetailsImpl_whenCallDeleteMe_thenThrowUnauthenticatedUserException() throws Exception {
+		ResultActions action;
+		
 		willDoNothing().given(userService).delete(any(UserDetailsImpl.class));
 
-		ResultActions action = mockMvc.perform(delete("/api/v1/users"));
+		action = mockMvc.perform(delete("/api/v1/users"));
 		
-		action.andDo(print())
-				.andExpect(status().isUnauthorized());
+		action
+		.andDo(print())
+		.andExpect(status().isUnauthorized());
 	}
 	
-	@DisplayName("본인을 조회하는데 성공한다.")
+	@DisplayName("회원조회에 성공한다.")
 	@Test
 	@WithMockCustomUser
-	public void givenNothing_whenCallGetMe_thenReturnUser() throws Exception {
-		given(userService.find(any(UserDetailsImpl.class))).willReturn(user1);
-
-		ResultActions action = mockMvc.perform(get("/api/v1/users/me")
-										.characterEncoding(StandardCharsets.UTF_8));
+	public void givenUserDetailsImpl_whenCallGetMe_thenReturnUser() throws Exception {
+		ResultActions action;
 		
-		action.andDo(print())
-				.andExpect(status().isOk())
-				.andExpect(jsonPath("$.data.email", is(user1.getEmail())));
+		given(userService.find(any(UserDetailsImpl.class))).willReturn(user);
+
+		action = mockMvc.perform(
+						get("/api/v1/users")
+						.characterEncoding(StandardCharsets.UTF_8)
+				);
+		
+		action
+		.andDo(print())
+		.andExpect(status().isOk())
+		.andExpect(jsonPath("$.data.email", is(user.getEmail())));
 	}
 	
-	@DisplayName("인증되어 있지 않아 본인을 조회하는데 실패한다.")
-	@Test
-	public void givenNothing_whenCallGetMe_thenThrowUnauthenticatedUserException() throws Exception {		
-		given(userService.find(any(UserDetailsImpl.class))).willReturn(user1);
-
-		ResultActions action = mockMvc.perform(get("/api/v1/users/me")
-										.characterEncoding(StandardCharsets.UTF_8));
-		
-		action.andDo(print())
-				.andExpect(status().isUnauthorized());
-	}
-
-	@DisplayName("사용자를 조회하는데 성공한다.")
-	@Test
-	@WithMockCustomAdmin
-	public void givenId_whenCallGetUser_thenReturnUser() throws Exception {
-		given(userService.findById(any(Long.class))).willReturn(user1);
-
-		ResultActions action = mockMvc.perform(get("/api/v1/users/{id}", userEntity.getId())
-										.characterEncoding(StandardCharsets.UTF_8));
-		
-		action.andDo(print())
-				.andExpect(status().isOk())
-				.andExpect(jsonPath("$.data.email", is(user1.getEmail())));
-	}
-	
-	@DisplayName("사용자를 조회하는데 필요한 권한이 없어 실패한다.")
+	@DisplayName("사용자가 존재하지 않아 회원조회에 실패한다.")
 	@Test
 	@WithMockCustomUser
-	public void givenId_whenCallGetUser_thenThrowUnauthorizedUserException() throws Exception {		
-		given(userService.findById(any(Long.class))).willReturn(user1);
-
-		ResultActions action = mockMvc.perform(get("/api/v1/users/{id}", userEntity.getId())
-										.characterEncoding(StandardCharsets.UTF_8));
+	public void givenUserDetailsImpl_whenCallGetMe_thenThrowUserNotFoundException() throws Exception {
+		ResultActions action;
 		
-		action.andDo(print())
-				.andExpect(status().isForbidden());
-	}
+		given(userService.find(any(UserDetailsImpl.class))).willThrow(new UserNotFoundException(Code.NOT_FOUND, new String[] {"아이디에 해당하는 사용자가 존재하지 않습니다."}));
+
+		action = mockMvc.perform(
+						get("/api/v1/users")
+						.characterEncoding(StandardCharsets.UTF_8)
+				);
+
+		action
+		.andDo(print())
+		.andExpect(status().isNotFound())
+		.andExpect(result -> assertTrue(result.getResolvedException() instanceof UserNotFoundException));
+	}	
 	
-	@DisplayName("사용자 목록을 조회하는데 성공한다.")
+	@DisplayName("인증되어 있지 않아 회원조회에 실패한다.")
 	@Test
-	@WithMockCustomAdmin
-	public void givenPagination_whenCallGetUsers_thenReturnUsers() throws Exception {	
-		UserResponse user2 = new UserResponse()
-				.email("real@real.com")
-				.userRole(UserRole.USER);
+	public void givenUserDetailsImpl_whenCallGetMe_thenThrowUnauthenticatedUserException() throws Exception {		
+		ResultActions action;
 		
-		PageResponse<UserResponse> page = PageResponse.handleResponse(List.of(user1, user2), pagination.getPageSize(), pagination.getPageNo(), 2, 1, true, true);
+		given(userService.find(any(UserDetailsImpl.class))).willReturn(user);
 
-		given(userService.findAll(any(PaginationUtil.class))).willReturn(page);
-
-		MultiValueMap<String, String> params = new LinkedMultiValueMap<String, String>();
-		params.add("pageNo", String.valueOf(pagination.getPageNo()));
-		params.add("pageSize", String.valueOf(pagination.getPageSize()));
-		params.add("sortBy", pagination.getSortBy());
-		params.add("sortDir", pagination.getSortDir());
+		action = mockMvc.perform(
+						get("/api/v1/users")
+						.characterEncoding(StandardCharsets.UTF_8)
+				);
 		
-		ResultActions action = mockMvc.perform(get("/api/v1/users")
-										.params(params)
-										.characterEncoding(StandardCharsets.UTF_8));
-		
-		action.andDo(print())
-				.andExpect(status().isOk())
-				.andExpect(jsonPath("$.data.content.size()", is(page.getContent().size())));
+		action
+		.andDo(print())
+		.andExpect(status().isUnauthorized());
 	}
 	
-	// TODO: UnauthorizedUserException 예외 클래스로 처리하는 방법.
-	@DisplayName("사용자 목록을 조회하는데 필요한 권한이 없어 실패한다.")
+	@DisplayName("회원수정에 성공한다.")
 	@Test
 	@WithMockCustomUser
-	public void givenPagination_whenCallGetUsers_thenThrowUnauthorizedUserException() throws Exception {	
-		UserResponse user2 = new UserResponse()
-				.email("real@real.com")
-				.userRole(UserRole.USER);
+	public void givenUserUpdate_whenCallUpdateMe_thenReturnUser() throws Exception {
+		ResultActions action;
 		
-		PageResponse<UserResponse> page = PageResponse.handleResponse(List.of(user1, user2), pagination.getPageSize(), pagination.getPageNo(), 2, 1, true, true);
-
-		given(userService.findAll(any(PaginationUtil.class))).willReturn(page);
-
-		ResultActions action = mockMvc.perform(get("/api/v1/users")
-										.characterEncoding(StandardCharsets.UTF_8));
+		given(userService.update(any(UserUpdateRequest.class), any(UserDetailsImpl.class))).willAnswer((answer) -> {
+			userEntity.email(userUpdate.getEmail());
+			user = UserMapper.INSTANCE.toDto(userEntity);
+			
+			return user;
+		});
 		
-		action.andDo(print())
-				.andExpect(status().isForbidden());
+		action = mockMvc.perform(
+						patch("/api/v1/users")
+						.content(SerializeDeserializeUtil.serializeToString(userUpdate))
+						.characterEncoding(StandardCharsets.UTF_8)
+						.contentType(MediaType.APPLICATION_JSON)
+				);
+
+		action
+		.andDo(print())
+		.andExpect(status().isOk())
+		.andExpect(jsonPath("$.data.email", is(user.getEmail())));
 	}
+	
+	
+	@DisplayName("이름이  짧아 회원수정에 실패한다.")
+	@Test
+	@WithMockCustomUser
+	public void givenUserUpdate_whenCallUpdateMe_thenThrowBadRequestExceptionForName() throws Exception {
+		ResultActions action;
+		
+		given(userService.update(any(UserUpdateRequest.class), any(UserDetailsImpl.class))).willAnswer((answer) -> {
+			userEntity.email(userUpdate.getEmail());
+			user = UserMapper.INSTANCE.toDto(userEntity);
+			
+			return user;
+		});
+
+		userUpdate.name("테");
+		action = mockMvc.perform(
+						patch("/api/v1/users")
+						.content(SerializeDeserializeUtil.serializeToString(userUpdate))
+						.characterEncoding(StandardCharsets.UTF_8)
+						.contentType(MediaType.APPLICATION_JSON)
+				);
+				
+		action
+		.andDo(print())
+		.andExpect(status().isBadRequest());
+	}
+
+	@DisplayName("이메일이 유효하지 않아 회원수정에 실패한다.")
+	@Test
+	@WithMockCustomUser
+	public void givenUserUpdate_whenCallUpdateMe_thenThrowBadRequestExceptionForEmail() throws Exception {
+		ResultActions action;
+		
+		given(userService.update(any(UserUpdateRequest.class), any(UserDetailsImpl.class))).willAnswer((answer) -> {
+			userEntity.email(userUpdate.getEmail());
+			user = UserMapper.INSTANCE.toDto(userEntity);
+			
+			return user;
+		});
+
+		userUpdate.email("ttesttest.com");
+		action = mockMvc.perform(
+						patch("/api/v1/users")
+						.content(SerializeDeserializeUtil.serializeToString(userUpdate))
+						.characterEncoding(StandardCharsets.UTF_8)
+						.contentType(MediaType.APPLICATION_JSON)
+				);
+				
+		action
+		.andDo(print())
+		.andExpect(status().isBadRequest());
+	}
+
+	@DisplayName("사용자 이미 존재하여 회원수정에 실패한다.")
+	@Test
+	@WithMockCustomUser
+	public void givenUserUpdate_whenCallUpdateMe_thenThrowDuplicateUserException() throws Exception {
+		ResultActions action;
+		
+		given(userService.update(any(UserUpdateRequest.class), any(UserDetailsImpl.class))).willThrow(new DuplicateUserException(Code.CONFLICT, new String[] {"이메일을 사용하는 사용자가 존재합니다."}));
+
+		action = mockMvc.perform(
+						patch("/api/v1/users")
+						.content(SerializeDeserializeUtil.serializeToString(userUpdate))
+					.	characterEncoding(StandardCharsets.UTF_8)
+						.contentType(MediaType.APPLICATION_JSON)
+				);
+		
+		action
+		.andDo(print())
+		.andExpect(status().isConflict())
+		.andExpect(result -> assertTrue(result.getResolvedException() instanceof DuplicateUserException));
+	}
+	
+	@DisplayName("인증되어 있지 않아 회원수정에 실패한다.")
+	@Test
+	public void givenUserUpdate_whenCallUpdateMe_thenThrowUnauthenticatedUserException() throws Exception {
+		ResultActions action;
+		
+		given(userService.update(any(UserUpdateRequest.class), any(UserDetailsImpl.class))).willAnswer((answer) -> {
+			userEntity.email(userUpdate.getEmail());
+			user = UserMapper.INSTANCE.toDto(userEntity);
+			
+			return user;
+		});
+		
+		action = mockMvc.perform(
+						patch("/api/v1/users")
+						.content(SerializeDeserializeUtil.serializeToString(userUpdate))
+						.characterEncoding(StandardCharsets.UTF_8)
+						.contentType(MediaType.APPLICATION_JSON)
+				);
+		
+		action
+		.andDo(print())
+		.andExpect(status().isUnauthorized());
+	}
+	
+	@DisplayName("비밀번호 수정에 성공한다.")
+	@Test
+	@WithMockCustomUser
+	public void givenUserPasswordUpdate_whenCallUpdateMyPassword_thenReturnUser() throws Exception {
+		ResultActions action;
+		
+		given(userService.updatePassowrd(any(UserPasswordUpdateRequest.class), any(UserDetailsImpl.class))).willAnswer((answer) -> {
+			userEntity.password(PasswordUtil.hash(userPasswordUpdate.getNewPassword()));
+			user = UserMapper.INSTANCE.toDto(userEntity);			
+
+			return user;
+		});
+		
+		action = mockMvc.perform(
+						patch("/api/v1/users/update-my-password")
+						.content(SerializeDeserializeUtil.serializeToString(userPasswordUpdate))
+						.characterEncoding(StandardCharsets.UTF_8)
+						.contentType(MediaType.APPLICATION_JSON)
+				);
+				
+		action
+		.andDo(print())
+		.andExpect(status().isOk());
+	}
+
+	@DisplayName("새 비밀번호가 유효하지 않아 비밀번호 수정에 실패한다.")
+	@Test
+	@WithMockCustomUser
+	public void givenUserPasswordUpdate_whenCallUpdateMyPassword_thenThrowBadRequestExceptionForPassword() throws Exception {
+		ResultActions action;
+		
+		given(userService.updatePassowrd(any(UserPasswordUpdateRequest.class), any(UserDetailsImpl.class))).willAnswer((answer) -> {
+			userEntity.password(PasswordUtil.hash(userPasswordUpdate.getNewPassword()));
+			user = UserMapper.INSTANCE.toDto(userEntity);			
+
+			return user;
+		});
+		
+		userPasswordUpdate.newPassword("12314241");
+		action = mockMvc.perform(
+						patch("/api/v1/users/update-my-password")
+						.content(SerializeDeserializeUtil.serializeToString(userPasswordUpdate))
+						.characterEncoding(StandardCharsets.UTF_8)
+						.contentType(MediaType.APPLICATION_JSON)
+				);
+
+		action
+		.andDo(print())
+		.andExpect(status().isBadRequest());
+	}
+	
+	@DisplayName("비밀번호가 정확하지 않아 비밀번호 수정에 실패한다.")
+	@Test
+	@WithMockCustomUser
+	public void givenUserPasswordUpdate_whenCallUpdateMyPassword_thenThrowInvalidCredentialsException() throws Exception {
+		ResultActions action;
+		
+		given(userService.updatePassowrd(any(UserPasswordUpdateRequest.class), any(UserDetailsImpl.class))).willThrow(new InvalidCredentialsException(Code.BAD_REQUEST, new String[] {"비밀번호가 정확하지 않습니다."}));
+		
+		userPasswordUpdate.oldPassword("12345678bB!@#$%");
+		action = mockMvc.perform(
+						patch("/api/v1/users/update-my-password")
+						.content(SerializeDeserializeUtil.serializeToString(userPasswordUpdate))
+						.characterEncoding(StandardCharsets.UTF_8)
+						.contentType(MediaType.APPLICATION_JSON)
+				);
+				
+		action
+		.andDo(print())
+		.andExpect(status().isBadRequest())
+		.andExpect(result -> assertTrue(result.getResolvedException() instanceof InvalidCredentialsException));
+	}
+	
+	@DisplayName("새 비밀번호와 구 비밀번호가 일치하여 비밀번호 수정에 실패한다.")
+	@Test
+	@WithMockCustomUser
+	public void givenUserPasswordUpdate_whenCallUpdateMyPassword_thenThrowSamePasswordException() throws Exception {
+		ResultActions action;
+		
+		given(userService.updatePassowrd(any(UserPasswordUpdateRequest.class), any(UserDetailsImpl.class))).willThrow(new SamePasswordException(Code.BAD_REQUEST, new String[] {"새 비밀번호는 현재 비밀번호와 달라야 합니다."}));
+		
+		userPasswordUpdate.newPassword(userPasswordUpdate.getOldPassword());
+		action = mockMvc.perform(
+						patch("/api/v1/users/update-my-password")
+						.content(SerializeDeserializeUtil.serializeToString(userPasswordUpdate))
+						.characterEncoding(StandardCharsets.UTF_8)
+						.contentType(MediaType.APPLICATION_JSON)
+				);
+
+		action
+		.andDo(print())
+		.andExpect(status().isBadRequest())
+		.andExpect(result -> assertTrue(result.getResolvedException() instanceof SamePasswordException));
+	}
+	
+	@DisplayName("인증되어 있지 않아 비밀번호 수정에 실패한다.")
+	@Test
+	public void givenUserPasswordUpdate_whenCallUpdateMyPassword_thenThrowUnauthenticatedUserException() throws Exception {
+		ResultActions action;
+		
+		given(userService.updatePassowrd(any(UserPasswordUpdateRequest.class), any(UserDetailsImpl.class))).willAnswer((answer) -> {
+			userEntity.password(PasswordUtil.hash(userPasswordUpdate.getNewPassword()));
+			user = UserMapper.INSTANCE.toDto(userEntity);			
+
+			return user;
+		});
+		
+		action = mockMvc.perform(
+						patch("/api/v1/users/update-my-password")
+						.content(SerializeDeserializeUtil.serializeToString(userPasswordUpdate))
+						.characterEncoding(StandardCharsets.UTF_8)
+						.contentType(MediaType.APPLICATION_JSON)
+				);
+
+		action
+		.andDo(print())
+		.andExpect(status().isUnauthorized());
+	}	
 }

@@ -211,6 +211,7 @@ public class SecurityConfig {
 			             .requestMatchers("/api/v1/users/**").hasAuthority(UserRole.USER.getRole())//.authenticated()
 						 .requestMatchers(HttpMethod.GET, "/api/v1/categories/**").permitAll()
 						 .requestMatchers("/api/v1/categories/**").hasAuthority(UserRole.ADMIN.getRole())
+						 .requestMatchers("/api/v1/admin/**").hasAuthority(UserRole.ADMIN.getRole())
 						 /* 
 						  * hasRole() 메서드는 hasAuthority() 메서드와 동일하지만 차이점은 다음과 같다. 
 						  * hasRole('ADMIN') -> 열거형은 ROLE_ADMIN.

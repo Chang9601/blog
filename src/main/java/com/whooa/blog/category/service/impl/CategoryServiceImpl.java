@@ -7,9 +7,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import com.whooa.blog.category.dto.CategoryDTO.CategoryCreateRequest;
-import com.whooa.blog.category.dto.CategoryDTO.CategoryResponse;
-import com.whooa.blog.category.dto.CategoryDTO.CategoryUpdateRequest;
+import com.whooa.blog.category.dto.CategoryDto.CategoryCreateRequest;
+import com.whooa.blog.category.dto.CategoryDto.CategoryResponse;
+import com.whooa.blog.category.dto.CategoryDto.CategoryUpdateRequest;
 import com.whooa.blog.category.entity.CategoryEntity;
 import com.whooa.blog.category.exception.CategoryNotFoundException;
 import com.whooa.blog.category.exception.DuplicateCategoryException;

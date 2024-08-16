@@ -32,10 +32,12 @@ public class TestSecurityConfig {
 				.logout((logout) -> logout.logoutUrl("/api/v1/auth/sign-out").addLogoutHandler(new LogoutHandlerImpl()).logoutSuccessHandler(new LogoutSuccessHandlerImpl()))
 				.authorizeHttpRequests((authorize) ->
 					authorize
+							 .requestMatchers("/api/v1/auth/sign-out").hasAuthority(UserRole.USER.getRole())
 							 .requestMatchers(HttpMethod.POST, "/api/v1/users/**").permitAll()
 				             .requestMatchers("/api/v1/users/**").authenticated()
 							 .requestMatchers(HttpMethod.GET, "/api/v1/categories/**").permitAll()
 							 .requestMatchers("/api/v1/categories/**").hasAuthority(UserRole.ADMIN.getRole())
+							 .requestMatchers("/api/v1/admin/**").hasAuthority(UserRole.ADMIN.getRole())
 							 .requestMatchers(HttpMethod.POST, "/api/v1/**").authenticated()
 							 .requestMatchers(HttpMethod.PUT, "/api/v1/**").authenticated()
 							 .requestMatchers(HttpMethod.PATCH, "/api/v1/**").authenticated()

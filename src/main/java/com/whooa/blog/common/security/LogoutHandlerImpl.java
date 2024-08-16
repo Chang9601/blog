@@ -14,7 +14,7 @@ import jakarta.servlet.http.HttpServletResponse;
 public class LogoutHandlerImpl implements LogoutHandler {
 	@Override
 	public void logout(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse, Authentication authentication) {
-			// TODO: 블랙 리스트.
+			// TODO: 블랙 리스트 + 데이터베이스에 저장된 새로고침 토큰.
 			CookieUtil.clear(httpServletRequest, httpServletResponse, JwtType.ACCESS_TOKEN.getType());
 			CookieUtil.clear(httpServletRequest, httpServletResponse, JwtType.REFRESH_TOKEN.getType());	
 	}

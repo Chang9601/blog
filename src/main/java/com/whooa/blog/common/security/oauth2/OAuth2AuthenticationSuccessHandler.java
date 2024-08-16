@@ -15,7 +15,7 @@ import com.whooa.blog.common.security.UserDetailsImpl;
 import com.whooa.blog.common.security.jwt.JwtBundle;
 import com.whooa.blog.common.security.jwt.JwtType;
 import com.whooa.blog.common.security.jwt.JwtUtil;
-import com.whooa.blog.user.dto.UserDTO.UserResponse;
+import com.whooa.blog.user.dto.UserDto.UserResponse;
 import com.whooa.blog.user.entity.UserEntity;
 import com.whooa.blog.user.repository.UserRepository;
 import com.whooa.blog.util.CookieUtil;
@@ -60,13 +60,11 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
 		CookieUtil.set(httpServletResponse, JwtType.ACCESS_TOKEN.getType(), jwt.getAccessToken(), true, 60 * 60, "/", "Strict", false);
 		CookieUtil.set(httpServletResponse, JwtType.REFRESH_TOKEN.getType(), jwt.getRefreshToken(), true, 60 * 60, "/", "Strict", false);
 		
-		userEntity = userRepository.findById(id).get();
+		userEntity = userRepository.findByIdAndActiveTrue(id).get();
 		setRefreshToken(userEntity, jwt.getRefreshToken());
 		
 		clearAuthenticationAttributes(httpServletRequest, httpServletResponse);
-		
-		System.out.println("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
-		
+				
 		success = ApiResponse.handleSuccess(Code.OK.getCode(), Code.OK.getMessage(), toUserResponseDTO(userDetailsImpl), new String[] {"OAuth2 로그인 했습니다."});
 
 		httpServletResponse.setStatus(HttpServletResponse.SC_OK);

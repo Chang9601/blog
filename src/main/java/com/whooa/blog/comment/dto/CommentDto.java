@@ -3,7 +3,7 @@ package com.whooa.blog.comment.dto;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 
-public class CommentDTO {
+public class CommentDto {
 
 	@Schema(
 		description = "댓글 생성 DTO"

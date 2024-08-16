@@ -38,8 +38,8 @@ import org.springframework.web.filter.CharacterEncodingFilter;
 
 import com.jayway.jsonpath.JsonPath;
 
-import com.whooa.blog.category.dto.CategoryDTO.CategoryCreateRequest;
-import com.whooa.blog.category.dto.CategoryDTO.CategoryUpdateRequest;
+import com.whooa.blog.category.dto.CategoryDto.CategoryCreateRequest;
+import com.whooa.blog.category.dto.CategoryDto.CategoryUpdateRequest;
 import com.whooa.blog.category.exception.CategoryNotFoundException;
 import com.whooa.blog.category.exception.DuplicateCategoryException;
 import com.whooa.blog.category.repository.CategoryRepository;
@@ -77,28 +77,31 @@ public class CategoryIntegrationTest {
 				.addFilter(new CharacterEncodingFilter("utf-8", true))
 				.apply(springSecurity()).build();
 		
-		userRepository.save(new UserEntity()
-				.email("test@test.com")
-				.name("테스트 이름")
-				.password("1234")
-				.userRole(UserRole.USER));
-		userRepository.save(new UserEntity()
-				.email("admin@admin.com")
-				.name("관리자 이름")
-				.password("1234")
-				.userRole(UserRole.ADMIN));		
+		userRepository.save(
+			new UserEntity()
+			.email("user@user.com")
+			.name("사용자")
+			.password("12345678Aa!@#$%")
+			.userRole(UserRole.USER)
+		);
 		
-		userDetailsImpl = new UserDetailsImpl(userRepository.findByEmail("admin@admin.com").get());
+		userRepository.save(
+			new UserEntity()
+			.email("admin@admin.com")
+			.name("관리자")
+			.password("12345678Aa!@#$%")
+			.userRole(UserRole.ADMIN)
+		);		
+		
+		userDetailsImpl = new UserDetailsImpl(userRepository.findByEmailAndActiveTrue("admin@admin.com").get());
 		
 		pagination = new PaginationUtil();
 	}
 	
 	@BeforeEach
 	void setUpEach() {
-		String name = "테스트 카테고리";
-
-		categoryCreate1 = new CategoryCreateRequest().name(name);
-		categoryUpdate = new CategoryUpdateRequest().name("실전 카테고리");		
+		categoryCreate1 = new CategoryCreateRequest().name("카테고리1");
+		categoryUpdate = new CategoryUpdateRequest().name("카테고리2");		
 	}
 
 	@AfterAll
@@ -116,114 +119,156 @@ public class CategoryIntegrationTest {
 	@Test
 	@WithUserDetails(value = "admin@admin.com", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")
 	public void givenCategoryCreate_whenCallCreateCategory_thenReturnCategory() throws Exception {
-		ResultActions action = mockMvc.perform(post("/api/v1/categories")
+		ResultActions action = mockMvc.perform(
+										post("/api/v1/categories")
 										.content(SerializeDeserializeUtil.serializeToString(categoryCreate1))
 										.characterEncoding(StandardCharsets.UTF_8)
-										.contentType(MediaType.APPLICATION_JSON));
-		action.andDo(print())
-				.andExpect(status().isCreated())
-				.andExpect(jsonPath("$.data.name", is(categoryCreate1.getName())));
+										.contentType(MediaType.APPLICATION_JSON)
+								);
+		
+		action
+		.andDo(print())
+		.andExpect(status().isCreated())
+		.andExpect(jsonPath("$.data.name", is(categoryCreate1.getName())));
 	}
 
-	@DisplayName("이름이 너무 짧아 카테고리를 생성하는데 실패한다.")
+	@DisplayName("이름이  짧아 카테고리를 생성하는데 실패한다.")
 	@Test
 	@WithUserDetails(value = "admin@admin.com", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")
 	public void givenCategoryCreate_whenCallCreateCategory_thenThrowBadRqeustExceptionForName() throws Exception {
-		categoryCreate1.name("테");
-		ResultActions action = mockMvc.perform(post("/api/v1/categories")
-										.content(SerializeDeserializeUtil.serializeToString(categoryCreate1))
-										.characterEncoding(StandardCharsets.UTF_8)
-										.contentType(MediaType.APPLICATION_JSON));
-		action.andDo(print())
-				.andExpect(status().isBadRequest());
+		ResultActions action;
+		categoryCreate1.name("카");
+		
+		action = mockMvc.perform(
+						post("/api/v1/categories")
+						.content(SerializeDeserializeUtil.serializeToString(categoryCreate1))
+						.characterEncoding(StandardCharsets.UTF_8)
+						.contentType(MediaType.APPLICATION_JSON)
+				);
+		
+		action
+		.andDo(print())
+		.andExpect(status().isBadRequest());
 	}
 	
 	@DisplayName("카테고리가 이미 존재하여 생성하는데 실패한다.")
 	@Test
 	@WithUserDetails(value = "admin@admin.com", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")
 	public void givenCategoryCreate_whenCallCreateCategory_thenThrowDuplicateCategoryException() throws Exception {
-		mockMvc.perform(post("/api/v1/categories")
+		ResultActions action;
+		
+		mockMvc.perform(
+				post("/api/v1/categories")
 				.content(SerializeDeserializeUtil.serializeToString(categoryCreate1))
 				.characterEncoding(StandardCharsets.UTF_8)
-				.contentType(MediaType.APPLICATION_JSON));
+				.contentType(MediaType.APPLICATION_JSON)
+		);
 		
-		ResultActions action = mockMvc.perform(post("/api/v1/categories")
+		action = mockMvc.perform(
+				post("/api/v1/categories")
 				.content(SerializeDeserializeUtil.serializeToString(categoryCreate1))
 				.characterEncoding(StandardCharsets.UTF_8)
-				.contentType(MediaType.APPLICATION_JSON));
+				.contentType(MediaType.APPLICATION_JSON)
+		);
 		
-		action.andDo(print())
-				.andExpect(status().isConflict())
-				.andExpect(output -> assertTrue(output.getResolvedException() instanceof DuplicateCategoryException));
+		action
+		.andDo(print())
+		.andExpect(status().isConflict())
+		.andExpect(output -> assertTrue(output.getResolvedException() instanceof DuplicateCategoryException));
 	}
 	
 	@DisplayName("카테고리를 생성하는데 필요한 권한이 없어 실패한다.")
 	@Test
-	@WithUserDetails(value = "test@test.com", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")
+	@WithUserDetails(value = "user@user.com", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")
 	public void givenCategoryCreate_whenCallCreateCategory_thenThrowUnauthorizedUserException() throws Exception {
-		ResultActions action = mockMvc.perform(post("/api/v1/categories")
-										.content(SerializeDeserializeUtil.serializeToString(categoryCreate1))
-										.characterEncoding(StandardCharsets.UTF_8)
-										.contentType(MediaType.APPLICATION_JSON));
-		action.andDo(print())
-				.andExpect(status().isForbidden());
+		ResultActions action;
+		
+		action = mockMvc.perform(
+						post("/api/v1/categories")
+						.content(SerializeDeserializeUtil.serializeToString(categoryCreate1))
+						.characterEncoding(StandardCharsets.UTF_8)
+						.contentType(MediaType.APPLICATION_JSON)
+				);
+		
+		action
+		.andDo(print())
+		.andExpect(status().isForbidden());
 	}
 	
 	@DisplayName("카테고리를 삭제하는데 성공한다.")
 	@Test
 	@WithUserDetails(value = "admin@admin.com", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")
 	public void givenId_whenCallDeleteCategory_thenReturnNothing() throws Exception {
-		MvcResult result = mockMvc.perform(post("/api/v1/categories")
-									.content(SerializeDeserializeUtil.serializeToString(categoryCreate1))
-									.characterEncoding(StandardCharsets.UTF_8)
-									.contentType(MediaType.APPLICATION_JSON))
-									.andExpect(status().isCreated())
-									.andReturn();
+		ResultActions action;
+		Integer id;
+		MvcResult result;
 		
-		Integer id = JsonPath.read(result.getResponse().getContentAsString(), "$.data.id");
+		result = mockMvc.perform(
+						post("/api/v1/categories")
+						.content(SerializeDeserializeUtil.serializeToString(categoryCreate1))
+						.characterEncoding(StandardCharsets.UTF_8)
+						.contentType(MediaType.APPLICATION_JSON))
+						.andExpect(status().isCreated())
+						.andReturn();
+		
+		id = JsonPath.read(result.getResponse().getContentAsString(), "$.data.id");
 
-		ResultActions action = mockMvc.perform(delete("/api/v1/categories/{id}", id));
+		action = mockMvc.perform(delete("/api/v1/categories/{id}", id));
 		
-		action.andDo(print())
-				.andExpect(status().isOk())
-				.andExpect(jsonPath("$.metadata.code", is(Code.NO_CONTENT.getCode())));
+		action
+		.andDo(print())
+		.andExpect(status().isOk())
+		.andExpect(jsonPath("$.metadata.code", is(Code.NO_CONTENT.getCode())));
 	}
 
 	@DisplayName("카테고리가 존재하지 않아 삭제하는데 실패한다.")
 	@Test
 	@WithUserDetails(value = "admin@admin.com", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")
 	public void givenId_whenCallDeleteCategory_thenThrowCategoryNotFoundException() throws Exception {
-		ResultActions action = mockMvc.perform(delete("/api/v1/categories/{id}", 100L));
+		ResultActions action;
+		
+		action = mockMvc.perform(delete("/api/v1/categories/{id}", 100L));
 			        
-		action.andDo(print())
-				.andExpect(status().isNotFound())
-				.andExpect(output -> assertTrue(output.getResolvedException() instanceof CategoryNotFoundException));
+		action
+		.andDo(print())
+		.andExpect(status().isNotFound())
+		.andExpect(output -> assertTrue(output.getResolvedException() instanceof CategoryNotFoundException));
 	}
 
-	@DisplayName("카테고리를 삭제하는데 필요한 권한이 없어 실패한다.")
+	@DisplayName("권한이 없어 카테고리를 삭제하는데 실패한다.")
 	@Test
-	@WithUserDetails(value = "test@test.com", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")
+	@WithUserDetails(value = "user@user.com", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")
 	public void givenId_whenCallDeleteCategory_thenThrowUnauthorizedUserException() throws Exception {
-		MvcResult result = mockMvc.perform(post("/api/v1/categories")
-									.with(user(userDetailsImpl))
-									.content(SerializeDeserializeUtil.serializeToString(categoryCreate1))
-									.characterEncoding(StandardCharsets.UTF_8)
-									.contentType(MediaType.APPLICATION_JSON))
-									.andExpect(status().isCreated())
-									.andReturn();
+		ResultActions action;
+		Integer id;
+		MvcResult result;
+		
+		result = mockMvc.perform(
+						post("/api/v1/categories")
+						.with(user(userDetailsImpl))
+						.content(SerializeDeserializeUtil.serializeToString(categoryCreate1))
+						.characterEncoding(StandardCharsets.UTF_8)
+						.contentType(MediaType.APPLICATION_JSON))
+						.andExpect(status().isCreated())
+						.andReturn();
 
-		Integer id = JsonPath.read(result.getResponse().getContentAsString(), "$.data.id");
+		id = JsonPath.read(result.getResponse().getContentAsString(), "$.data.id");
 		
-		ResultActions action = mockMvc.perform(delete("/api/v1/categories/{id}", id));
+		action = mockMvc.perform(delete("/api/v1/categories/{id}", id));
 		
-		action.andDo(print())
-				.andExpect(status().isForbidden());
+		action
+		.andDo(print())
+		.andExpect(status().isForbidden());
 	}
 	
 	@DisplayName("카테고리 목록을 조회하는데 성공한다.")
 	@Test
 	public void givenPagination_whenCallGetCategories_thenReturnCategories() throws Exception {
-		CategoryCreateRequest categoryCreate2 = new CategoryCreateRequest().name("실전 카테고리");
+		ResultActions action;
+		CategoryCreateRequest categoryCreate2;
+		MultiValueMap<String, String> params;
+		
+		categoryCreate2 = new CategoryCreateRequest().name("실전 카테고리");
 		
 		mockMvc.perform(post("/api/v1/categories")
 				.with(user(userDetailsImpl))
@@ -241,101 +286,134 @@ public class CategoryIntegrationTest {
 				.andExpect(status().isCreated())
 				.andReturn();
 
-		MultiValueMap<String, String> params = new LinkedMultiValueMap<String, String>();
+		params = new LinkedMultiValueMap<String, String>();
 		params.add("pageNo", String.valueOf(pagination.getPageNo()));
 		params.add("pageSize", String.valueOf(pagination.getPageSize()));
 		params.add("sortBy", pagination.getSortBy());
 		params.add("sortDir", pagination.getSortDir());
 		
-		ResultActions action = mockMvc.perform(get("/api/v1/categories")
-										.params(params)
-										.characterEncoding(StandardCharsets.UTF_8));
+		action = mockMvc.perform(
+						get("/api/v1/categories")
+						.params(params)
+						.characterEncoding(StandardCharsets.UTF_8)
+				);
 		
-		action.andDo(print())
-				.andExpect(status().isOk())
-				.andExpect(jsonPath("$.data.content.size()", is(2)));
+		action
+		.andDo(print())
+		.andExpect(status().isOk())
+		.andExpect(jsonPath("$.data.content.size()", is(2)));
 	}
 	
 	@DisplayName("카테고리를 수정하는데 성공한다.")
 	@Test
 	@WithUserDetails(value = "admin@admin.com", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")
 	public void givenCategoryUpdate_whenCallUpdateCategory_thenReturnCategory() throws Exception {
-		MvcResult result = mockMvc.perform(post("/api/v1/categories")
-									.content(SerializeDeserializeUtil.serializeToString(categoryCreate1))
-									.characterEncoding(StandardCharsets.UTF_8)
-									.contentType(MediaType.APPLICATION_JSON))
-									.andExpect(status().isCreated())
-									.andReturn();
-
-		Integer id = JsonPath.read(result.getResponse().getContentAsString(), "$.data.id");
-
-		ResultActions action = mockMvc.perform(patch("/api/v1/categories/{id}", id)
-										.content(SerializeDeserializeUtil.serializeToString(categoryUpdate))
-										.characterEncoding(StandardCharsets.UTF_8)
-										.contentType(MediaType.APPLICATION_JSON));
+		ResultActions action;
+		Integer id;
+		MvcResult result;
 		
-		action.andDo(print())
-				.andExpect(status().isOk())
-				.andExpect(jsonPath("$.data.name", is(categoryUpdate.getName())));
+		result = mockMvc.perform(
+						post("/api/v1/categories")
+						.content(SerializeDeserializeUtil.serializeToString(categoryCreate1))
+						.characterEncoding(StandardCharsets.UTF_8)
+						.contentType(MediaType.APPLICATION_JSON))
+						.andExpect(status().isCreated())
+						.andReturn();
+
+		id = JsonPath.read(result.getResponse().getContentAsString(), "$.data.id");
+
+		action = mockMvc.perform(
+						patch("/api/v1/categories/{id}", id)
+						.content(SerializeDeserializeUtil.serializeToString(categoryUpdate))
+						.characterEncoding(StandardCharsets.UTF_8)
+						.contentType(MediaType.APPLICATION_JSON)
+				);
+		
+		action
+		.andDo(print())
+		.andExpect(status().isOk())
+		.andExpect(jsonPath("$.data.name", is(categoryUpdate.getName())));
 	}
 	
-	@DisplayName("이름이 너무 짧아 카테고리를 수정하는데 실패한다.")
+	@DisplayName("이름이 짧아 카테고리를 수정하는데 실패한다.")
 	@Test
 	@WithUserDetails(value = "admin@admin.com", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")
 	public void givenCategoryUpdate_whenCallUpdateCategory_thenThrowBadRqeustExceptionForName() throws Exception {
-		categoryCreate1.name("테");
-		MvcResult result = mockMvc.perform(post("/api/v1/categories")
-									.content(SerializeDeserializeUtil.serializeToString(categoryCreate1))
-									.characterEncoding(StandardCharsets.UTF_8)
-									.contentType(MediaType.APPLICATION_JSON))
-									.andExpect(status().isCreated())
-									.andReturn();
-
-		Integer id = JsonPath.read(result.getResponse().getContentAsString(), "$.data.id");
-
-		ResultActions action = mockMvc.perform(patch("/api/v1/categories/{id}", id)
-										.content(SerializeDeserializeUtil.serializeToString(categoryUpdate))
-										.characterEncoding(StandardCharsets.UTF_8)
-										.contentType(MediaType.APPLICATION_JSON));
+		ResultActions action;
+		Integer id;
+		MvcResult result;
 		
-		action.andDo(print())
-				.andExpect(status().isBadRequest());
+		categoryUpdate.name("카");
+		
+		result = mockMvc.perform(
+						post("/api/v1/categories")
+						.content(SerializeDeserializeUtil.serializeToString(categoryCreate1))
+						.characterEncoding(StandardCharsets.UTF_8)
+						.contentType(MediaType.APPLICATION_JSON))
+						.andExpect(status().isCreated())
+						.andReturn();
+
+		id = JsonPath.read(result.getResponse().getContentAsString(), "$.data.id");
+
+		action = mockMvc.perform(
+						patch("/api/v1/categories/{id}", id)
+						.content(SerializeDeserializeUtil.serializeToString(categoryUpdate))
+						.characterEncoding(StandardCharsets.UTF_8)
+						.contentType(MediaType.APPLICATION_JSON)
+				);
+		
+		action
+		.andDo(print())
+		.andExpect(status().isBadRequest());
 	}
 	
 	@DisplayName("카테고리가 존재하지 않아 수정하는데 실패한다.")
 	@Test
 	@WithUserDetails(value = "admin@admin.com", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")
 	public void givenCategoryUpdate_whenCallUpdateCategory_thenThrowCategoryNotFoundException() throws Exception {				
-		ResultActions action = mockMvc.perform(patch("/api/v1/categories/{id}", 100L)
-										.content(SerializeDeserializeUtil.serializeToString(categoryUpdate))
-										.characterEncoding(StandardCharsets.UTF_8)
-										.contentType(MediaType.APPLICATION_JSON));
+		ResultActions action;
 		
-		action.andDo(print())
-				.andExpect(status().isNotFound())
-				.andExpect(output -> assertTrue(output.getResolvedException() instanceof CategoryNotFoundException));
+		action = mockMvc.perform(
+						patch("/api/v1/categories/{id}", 100L)
+						.content(SerializeDeserializeUtil.serializeToString(categoryUpdate))
+						.characterEncoding(StandardCharsets.UTF_8)
+						.contentType(MediaType.APPLICATION_JSON)
+				);
+		
+		action
+		.andDo(print())
+		.andExpect(status().isNotFound())
+		.andExpect(output -> assertTrue(output.getResolvedException() instanceof CategoryNotFoundException));
 	}
 	
-	@DisplayName("카테고리를 수정하는데 필요한 권한이 없어 실패한다.")
+	@DisplayName("권한이 없어 카테고리를 수정하는데 실패한다.")
 	@Test
-	@WithUserDetails(value = "test@test.com", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")
+	@WithUserDetails(value = "user@user.com", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")
 	public void givenCategoryUpdate_whenCallUpdateCategory_thenThrowUnauthorizedUserException() throws Exception {
-		MvcResult result = mockMvc.perform(post("/api/v1/categories")
-									.with(user(userDetailsImpl))
-									.content(SerializeDeserializeUtil.serializeToString(categoryCreate1))
-									.characterEncoding(StandardCharsets.UTF_8)
-									.contentType(MediaType.APPLICATION_JSON))
-									.andExpect(status().isCreated())
-									.andReturn();
+		ResultActions action;
+		Integer id;
+		MvcResult result;
+		
+		result = mockMvc.perform(
+						post("/api/v1/categories")
+						.with(user(userDetailsImpl))
+						.content(SerializeDeserializeUtil.serializeToString(categoryCreate1))
+						.characterEncoding(StandardCharsets.UTF_8)
+						.contentType(MediaType.APPLICATION_JSON))
+						.andExpect(status().isCreated())
+						.andReturn();
 
-		Integer id = JsonPath.read(result.getResponse().getContentAsString(), "$.data.id");
+		id = JsonPath.read(result.getResponse().getContentAsString(), "$.data.id");
 		
-		ResultActions action = mockMvc.perform(patch("/api/v1/categories/{id}", id)
-										.content(SerializeDeserializeUtil.serializeToString(categoryUpdate))
-										.characterEncoding(StandardCharsets.UTF_8)
-										.contentType(MediaType.APPLICATION_JSON));
+		action = mockMvc.perform(
+						patch("/api/v1/categories/{id}", id)
+						.content(SerializeDeserializeUtil.serializeToString(categoryUpdate))
+						.characterEncoding(StandardCharsets.UTF_8)
+						.contentType(MediaType.APPLICATION_JSON)
+				);
 		
-		action.andDo(print())
-				.andExpect(status().isForbidden());
+		action
+		.andDo(print())
+		.andExpect(status().isForbidden());
 	}
 }

@@ -2,8 +2,8 @@ package com.whooa.blog.post.dto;
 
 import java.util.List;
 
-import com.whooa.blog.category.dto.CategoryDTO.CategoryResponse;
-import com.whooa.blog.comment.dto.CommentDTO.CommentResponse;
+import com.whooa.blog.category.dto.CategoryDto.CategoryResponse;
+import com.whooa.blog.comment.dto.CommentDto.CommentResponse;
 import com.whooa.blog.file.value.File;
 
 import jakarta.validation.constraints.NotBlank;
@@ -18,7 +18,7 @@ import jakarta.validation.constraints.Size;
  * 3. 검증 코드와 엔티티의 속성 코드를 분리할 수 있다.
  * 	  엔티티 클래스에 @Column, @OneToOne와 같은 어노테이션들이 사용되는데 @Min, @Lenth와 같은 검증 코드가 사용되면 엔티티 클래스가 복잡하다.
  */
-public class PostDTO {
+public class PostDto {
 
 	public static class PostCreateRequest {
 		@Size(min = 2, message = "카테고리는 최소 2자 이상입니다.")

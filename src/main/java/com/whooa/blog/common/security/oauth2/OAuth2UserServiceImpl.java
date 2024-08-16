@@ -51,7 +51,7 @@ public class OAuth2UserServiceImpl implements OAuth2UserService<OAuth2UserReques
             throw new OAuth2AuthenticationProcessException(Code.OAUTH2_INVALID_EMAIL, new String[] {"소셜 로그인이 제공되지 않는 이메일입니다."});
 		}
 		
-		optionalUserEntity = userRepository.findByEmail(oAuth2UserInfo.getEmail());
+		optionalUserEntity = userRepository.findByEmailAndActiveTrue(oAuth2UserInfo.getEmail());
 		
 		if (optionalUserEntity.isPresent()) {
 			userEntity = optionalUserEntity.get();

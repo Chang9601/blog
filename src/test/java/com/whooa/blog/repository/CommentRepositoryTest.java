@@ -6,6 +6,7 @@ import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase.Replace;
@@ -51,24 +52,24 @@ public class CommentRepositoryTest {
 
 	@BeforeEach
 	public void setUp() {
-		categoryEntity = categoryRepository.save(new CategoryEntity().name("테스트 카테고리"));
+		categoryEntity = categoryRepository.save(new CategoryEntity().name("카테고리"));
 
 		userEntity = userRepository.save(new UserEntity()
-				.email("test@test.com")
-				.name("테스트 이름")
-				.password("1234")
-				.userRole(UserRole.USER));
+					.email("user@user.com")
+					.name("사용자")
+					.password("12345678Aa!@#$%")
+					.userRole(UserRole.USER));
 		
 		postEntity = postRepository.save(new PostEntity()
-				.content("테스트 내용")
-				.title("테스트 제목")
-				.category(categoryEntity)
-				.user(userEntity));
+					.content("포스트")
+					.title("포스트")
+					.category(categoryEntity)
+					.user(userEntity));
 		
 		commentEntity1 = new CommentEntity()
-				.content("테스트 내용")
-				.post(postEntity)
-				.user(userEntity);
+						.content("댓글1")
+						.post(postEntity)
+						.user(userEntity);
 		
 		pagination = new PaginationUtil();
 		pageable = pagination.makePageable();
@@ -77,7 +78,9 @@ public class CommentRepositoryTest {
 	@DisplayName("댓글을 생성하는데 성공한다.")
 	@Test
 	public void givenCommentEntity_whenCallSaveForCreate_thenReturnCommentEntity() {		
-		CommentEntity savedCommentEntity = commentRepository.save(commentEntity1);
+		CommentEntity savedCommentEntity;
+		
+		savedCommentEntity = commentRepository.save(commentEntity1);
 		
 		assertTrue(savedCommentEntity.getId() > 0);
 	}
@@ -86,7 +89,7 @@ public class CommentRepositoryTest {
 	@Test
 	public void givenPostId_whenCallSaveForCreate_thenThrowNoSuchElementException() {
 		assertThrows(NoSuchElementException.class, () -> {
-			postRepository.findById(2L).get();
+			postRepository.findById(100L).get();
 		});
 	}
 	
@@ -101,7 +104,9 @@ public class CommentRepositoryTest {
 	@DisplayName("댓글을 삭제하는데 성공한다.")
 	@Test
 	public void givenCommentEntity_whenCallDelete_thenReturnNothing() {
-		CommentEntity savedCommentEntity = commentRepository.save(commentEntity1);
+		CommentEntity savedCommentEntity;
+		
+		savedCommentEntity = commentRepository.save(commentEntity1);
 
 		commentRepository.delete(savedCommentEntity);
 		
@@ -112,7 +117,7 @@ public class CommentRepositoryTest {
 	@Test
 	public void givenPostId_whenCallDelete_thenThrowNoSuchElementException() {
 		assertThrows(NoSuchElementException.class, () -> {
-			postRepository.findById(2L).get();
+			postRepository.findById(100L).get();
 		});
 	}
 	
@@ -127,8 +132,10 @@ public class CommentRepositoryTest {
 	@DisplayName("댓글을 조회하는데 성공한다.")
 	@Test
 	public void givenId_whenCallFindById_thenReturnCommentEntity() {		
-		CommentEntity savedCommentEntity = commentRepository.save(commentEntity1);
-		CommentEntity foundCommentEntity = commentRepository.findById(savedCommentEntity.getId()).get();
+		CommentEntity foundCommentEntity, savedCommentEntity;
+		
+		savedCommentEntity = commentRepository.save(commentEntity1);
+		foundCommentEntity = commentRepository.findById(savedCommentEntity.getId()).get();
 
 		assertEquals(foundCommentEntity.getContent(), savedCommentEntity.getContent());		
 	}
@@ -137,31 +144,33 @@ public class CommentRepositoryTest {
 	@Test
 	public void givenPostId_whenCallFindById_ThrowNoSuchElementException() {
 		assertThrows(NoSuchElementException.class, () -> {
-			postRepository.findById(2L).get();
+			postRepository.findById(100L).get();
 		});
 	}
-	
 	
 	@DisplayName("댓글이 존재하지 않아 조회하는데 실패한다")
 	@Test
 	public void givenId_whenCallFindById_thenThrowNoSuchElementException() {		
 		assertThrows(NoSuchElementException.class, () -> {
-			commentRepository.findById(1L).get();
+			commentRepository.findById(100L).get();
 		});
 	}
 	
 	@DisplayName("댓글 목록을 조회하는데 성공한다.")
 	@Test
 	public void givenPostId_whenCallFindByPostId_thenReturnCommentEntitiesForPostEntity() {
-		CommentEntity commentEntity2 = new CommentEntity()
-				.content("테스트 내용")
-				.post(postEntity)
-				.user(userEntity);
+		CommentEntity commentEntity2;
+		Page<CommentEntity> page;
+		
+		commentEntity2 = new CommentEntity()
+						.content("댓글2")
+						.post(postEntity)
+						.user(userEntity);
 		
 		commentRepository.save(commentEntity1);
 		commentRepository.save(commentEntity2);
 		
-		Page<CommentEntity> page = commentRepository.findByPostId(postEntity.getId(), pageable);
+		page = commentRepository.findByPostId(postEntity.getId(), pageable);
 				
 		assertEquals(page.getTotalElements(), 2);			
 	}
@@ -170,19 +179,21 @@ public class CommentRepositoryTest {
 	@Test
 	public void givenPostId_whenCallFindByPostId_thenThrowNoSuchElementException() {
 		assertThrows(NoSuchElementException.class, () -> {
-			postRepository.findById(2L).get();
+			postRepository.findById(100L).get();
 		});
 	}
 	
 	@DisplayName("댓글을 수정하는데 성공한다.")
 	@Test
 	public void givenCommentEntity_whenCallSaveForUpdate_thenReturnUpdatedCommentEntity() {
-		CommentEntity savedCommentEntity = commentRepository.save(commentEntity1);
-		CommentEntity foundCommentEntity = commentRepository.findById(savedCommentEntity.getId()).get();
+		CommentEntity foundCommentEntity, savedCommentEntity, updatedCommentEntity;
+		
+		savedCommentEntity = commentRepository.save(commentEntity1);
+		foundCommentEntity = commentRepository.findById(savedCommentEntity.getId()).get();
 		
 		foundCommentEntity.content("실전 내용");
 		
-		CommentEntity updatedCommentEntity = commentRepository.save(foundCommentEntity);
+		updatedCommentEntity = commentRepository.save(foundCommentEntity);
 		
 		assertEquals(updatedCommentEntity.getContent(), foundCommentEntity.getContent());
 	}
@@ -191,7 +202,7 @@ public class CommentRepositoryTest {
 	@Test
 	public void givenPostId_whenCallSaveForUpdate_thenThrowNoSuchElementException() {
 		assertThrows(NoSuchElementException.class, () -> {
-			postRepository.findById(2L).get();
+			postRepository.findById(100L).get();
 		});
 	}	
 	
