@@ -25,11 +25,17 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.TestExecutionEvent;
 import org.springframework.security.test.context.support.WithUserDetails;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.filter.CharacterEncodingFilter;
+import org.testcontainers.containers.MySQLContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.utility.DockerImageName;
 
 import com.whooa.blog.category.entity.CategoryEntity;
 import com.whooa.blog.category.repository.CategoryRepository;
@@ -50,7 +56,19 @@ import com.whooa.blog.util.SerializeDeserializeUtil;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@Testcontainers
 public class AdminCommentIntegrationTest {
+	@Container
+	private static MySQLContainer mySqlContainer = new MySQLContainer(DockerImageName.parse("mysql:8.0.33"));
+	
+	@DynamicPropertySource
+	public static void setDynamicPropertySource(DynamicPropertyRegistry dynamicPropertyRegistry) {
+		dynamicPropertyRegistry.add("spring.datasource.driverClassName", mySqlContainer::getDriverClassName);
+		dynamicPropertyRegistry.add("spring.datasource.url", mySqlContainer::getJdbcUrl);
+		dynamicPropertyRegistry.add("spring.datasource.username", mySqlContainer::getUsername);
+		dynamicPropertyRegistry.add("spring.datasource.password", mySqlContainer::getPassword);
+	}
+	
 	private MockMvc mockMvc;
 	
     @Autowired
@@ -72,7 +90,7 @@ public class AdminCommentIntegrationTest {
 	private CommentUpdateRequest commentUpdate;
 	
 	@BeforeAll
-	void setUpAll() {
+	void setUpAll() {		
 		mockMvc = MockMvcBuilders
 				.webAppContextSetup(webApplicationContext)
 				.addFilter(new CharacterEncodingFilter("utf-8", true))
