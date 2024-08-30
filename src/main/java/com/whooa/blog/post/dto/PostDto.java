@@ -2,12 +2,14 @@ package com.whooa.blog.post.dto;
 
 import java.util.List;
 
+import org.hibernate.validator.constraints.Length;
+
 import com.whooa.blog.category.dto.CategoryDto.CategoryResponse;
 import com.whooa.blog.comment.dto.CommentDto.CommentResponse;
 import com.whooa.blog.file.value.File;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
 
 /*
  * DTO 사용 이유.
@@ -21,41 +23,23 @@ import jakarta.validation.constraints.Size;
 public class PostDto {
 
 	public static class PostCreateRequest {
-		@Size(min = 2, message = "카테고리는 최소 2자 이상입니다.")
+		@Length(message = "카테고리는 최소 2자 이상입니다.", min = 2)
 		@NotBlank(message = "카테고리를 입력하세요.")
+		@Schema(description = "포스트 생성 시 필요한 카테고리 이름", example = "운영체제", name = "categoryName")
 		private String categoryName;
 		
-		@Size(min = 300, max = 2000, message = "내용은 최소 300자 이상 최대 2000자 이하입니다.")
+		@Length(message = "내용은 최소 1자 이상 최대 2000자 이하입니다.", max = 2000, min = 1)
 		@NotBlank(message = "내용을 입력하세요.")
+		@Schema(description = "포스트 생성 시 필요한 포스트 내용", example = "100자 이상의 포스트", name = "content")
 		private String content;
 		
-		@Size(min = 2, message = "제목은 최소 2자 이상입니다.")
+		@Length(min = 2, message = "제목은 최소 2자 이상입니다.")
 		@NotBlank(message = "제목을 입력하세요.")
+		@Schema(description = "포스트 생성 시 필요한 포스트 제목", example = "스케줄링", name = "title")
 		private String title;
-		
-		public PostCreateRequest(String categoryName, String content, String title) {
-			this.categoryName = categoryName;
-			this.content = content;
-			this.title = title;
-		}
 
 		public PostCreateRequest() {}
 
-		public PostCreateRequest categoryName(String categoryName) {
-			this.categoryName = categoryName;
-			return this;
-		}
-		
-		public PostCreateRequest content(String content) {
-			this.content = content;
-			return this;
-		}
-		
-		public PostCreateRequest title(String title) {
-			this.title = title;
-			return this;
-		}
-		
 		public String getCategoryName() {
 			return categoryName;
 		}
@@ -88,40 +72,22 @@ public class PostDto {
 	}
 	
 	public static class PostUpdateRequest {
-		@Size(min = 2, message = "카테고리는 최소 2자 이상입니다.")
+		@Length(message = "카테고리는 최소 2자 이상입니다.", min = 2)
 		@NotBlank(message = "카테고리를 입력하세요.")
+		@Schema(description = "포스트 수정 시 필요한 카테고리 이름", example = "운영체제", name = "categoryName")
 		private String categoryName;
-		
-		@Size(min = 300, max = 2000, message = "내용은 최소 300자 이상 최대 2000자 이하입니다.")
+				
+		@Length(message = "내용은 최소 1자 이상 최대 2000자 이하입니다.", max = 2000, min = 1)
 		@NotBlank(message = "내용을 입력하세요.")
+		@Schema(description = "포스트 수정 시 필요한 포스트 내용", example = "100자 이상의 포스트", name = "content")
 		private String content;
 		
-		@Size(min = 2, message = "제목은 최소 2자 이상입니다.")
+		@Length(min = 2, message = "제목은 최소 2자 이상입니다.")
 		@NotBlank(message = "제목을 입력하세요.")
+		@Schema(description = "포스트 수정 시 필요한 포스트 제목", example = "스케줄링", name = "title")
 		private String title;
 
-		public PostUpdateRequest(String categoryName, String content, String title) {
-			this.categoryName = categoryName;
-			this.content = content;
-			this.title = title;
-		}
-
 		public PostUpdateRequest() {}
-		
-		public PostUpdateRequest categoryName(String categoryName) {
-			this.categoryName = categoryName;
-			return this;
-		}
-		
-		public PostUpdateRequest content(String content) {
-			this.content = content;
-			return this;
-		}
-		
-		public PostUpdateRequest title(String title) {
-			this.title = title;
-			return this;
-		}
 		
 		public String getCategoryName() {
 			return categoryName;
@@ -155,49 +121,29 @@ public class PostDto {
 	}
 	
 	public static class PostResponse {
+		@Schema(description = "데이터베이스에 저장된 포스트 아이디", example = "1", name = "id")
 		private Long id;
-		private CategoryResponse category;
 		/*
 		 * DTO의 필드로 엔티티를 사용하게 되면 엔티티는 DTO에서 해야 할 일을 같이 해야 하기 때문에 변경에 대한 이유가 늘어난다.
 		 * 다시말해, 이는 유지보수적인 측면에서 좋지 않기 때문에 DTO를 사용한다.
 		 */
-		private List<CommentResponse> comments;
+		@Schema(description = "데이터베이스에 저장된 포스트 내용", example = "1번 포스트!", name = "content")
 		private String content;
-		private List<File> files;
+		
+		@Schema(description = "데이터베이스에 저장된 포스트 제목", example = "스케줄링", name = "title")
 		private String title;
 
-		public PostResponse(Long id, CategoryResponse category, List<CommentResponse> comments, String content,
-				List<File> files, String title) {
-			this.id = id;
-			this.category = category;
-			this.comments = comments;
-			this.content = content;
-			this.files = files;
-			this.title = title;
-		}
+		@Schema(contentSchema = CategoryResponse.class, description = "데이터베이스에 저장된 포스트의 카테고리", name = "category")
+		private CategoryResponse category;
+		
+		@Schema(contentSchema = CommentResponse.class, description = "데이터베이스에 저장된 포스트의 댓글 목록", name = "comments")
+		private List<CommentResponse> comments;
+		
+		@Schema(contentSchema = File.class, description = "데이터베이스에 저장된 포스트의 파일 목록", name = "files")
+		private List<File> files;
 
 		public PostResponse() {}
 		
-		public PostResponse comments(List<CommentResponse> comments) {
-			this.comments = comments;
-			return this;
-		}
-
-		public PostResponse content(String content) {
-			this.content = content;
-			return this;
-		}
-
-		public PostResponse files(List<File> files) {
-			this.files = files;
-			return this;
-		}
-
-		public PostResponse title(String title) {
-			this.title = title;
-			return this;
-		}
-
 		public Long getId() {
 			return id;
 		}
@@ -205,7 +151,23 @@ public class PostDto {
 		public void setId(Long id) {
 			this.id = id;
 		}
+		
+		public String getContent() {
+			return content;
+		}
 
+		public void setContent(String content) {
+			this.content = content;
+		}
+		
+		public String getTitle() {
+			return title;
+		}
+
+		public void setTitle(String title) {
+			this.title = title;
+		}
+		
 		public CategoryResponse getCategory() {
 			return category;
 		}
@@ -222,14 +184,6 @@ public class PostDto {
 			this.comments = comments;
 		}
 
-		public String getContent() {
-			return content;
-		}
-
-		public void setContent(String content) {
-			this.content = content;
-		}
-
 		public List<File> getFiles() {
 			return files;
 		}
@@ -238,18 +192,10 @@ public class PostDto {
 			this.files = files;
 		}
 
-		public String getTitle() {
-			return title;
-		}
-
-		public void setTitle(String title) {
-			this.title = title;
-		}
-
 		@Override
 		public String toString() {
-			return "PostResponse [id=" + id + ", category=" + category + ", comments=" + comments + ", content="
-					+ content + ", files=" + files + ", title=" + title + "]";
+			return "PostResponse [id=" + id + ", content=" + content + ", title=" + title + ", category=" + category
+					+ ", comments=" + comments + ", files=" + files + "]";
 		}
-	}
+ 	}
 }

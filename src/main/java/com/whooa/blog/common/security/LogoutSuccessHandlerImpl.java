@@ -27,7 +27,9 @@ public class LogoutSuccessHandlerImpl implements LogoutSuccessHandler {
 			throws IOException, ServletException {
 		logger.info("[LogoutSuccessHandlerImpl] 로그아웃 성공했습니다.");
 
-		ApiResponse<?> success = ApiResponse.handleSuccess(Code.OK.getCode(), Code.OK.getMessage(), null, new String[] {"로그아웃 했습니다."});
+		ApiResponse<?> success;
+		
+		success = ApiResponse.handleSuccess(Code.OK.getCode(), Code.OK.getMessage(), null, new String[] {"로그아웃 했습니다."});
 
 		httpServletResponse.setStatus(HttpServletResponse.SC_OK);
 		httpServletResponse.setContentType(MediaType.APPLICATION_JSON_VALUE);

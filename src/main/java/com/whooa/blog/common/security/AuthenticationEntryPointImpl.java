@@ -42,8 +42,9 @@ public class AuthenticationEntryPointImpl implements AuthenticationEntryPoint {
 	public void commence(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse,
 			 AuthenticationException authenticationException) throws IOException, ServletException {
 		logger.error("[AuthenticationEntryPointImpl] 인증되지 않은 사용자입니다.");
-				
-		ApiResponse<UnauthenticatedUserException> failure = ApiResponse.handleFailure(Code.UNAUTHORIZED.getCode(), Code.UNAUTHORIZED.getMessage(), null, new String[] {"로그인을 하셔야 합니다."});
+		ApiResponse<UnauthenticatedUserException> failure;
+		
+		failure = ApiResponse.handleFailure(Code.UNAUTHORIZED.getCode(), Code.UNAUTHORIZED.getMessage(), null, new String[] {"로그인을 하셔야 합니다."});
 
 		httpServletResponse.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
 		httpServletResponse.setContentType(MediaType.APPLICATION_JSON_VALUE);

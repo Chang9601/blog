@@ -9,6 +9,7 @@ import com.whooa.blog.common.entity.CoreEntity;
 import com.whooa.blog.file.value.File;
 import com.whooa.blog.user.entity.UserEntity;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
 import jakarta.persistence.ElementCollection;
@@ -20,7 +21,7 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 
 @Entity
-@Table(name = "post")
+@Table(name = "posts")
 public class PostEntity extends CoreEntity {
 	@Column(length = 2000, nullable = false)
 	private String content;
@@ -41,7 +42,7 @@ public class PostEntity extends CoreEntity {
 	@JoinColumn(name = "category_id", nullable = false)
 	private CategoryEntity category;
 	
-	@OneToMany(mappedBy = "post")
+	@OneToMany(mappedBy = "post", cascade = CascadeType.REMOVE)
 	private List<CommentEntity> comments = new ArrayList<CommentEntity>();
 	
 	@ManyToOne(fetch = FetchType.LAZY)
@@ -52,57 +53,8 @@ public class PostEntity extends CoreEntity {
 	 * List, Set과 같은 자료구조는 엔티티 생성 시 바로 초기화를 하기 때문에 생성자에 포함하지 않는다.
 	 * 포함하면 게터에서 NullPointerException이 발생한다. 
 	 */
-	public PostEntity(Long id, String content, String title) {
-		super(id);
-		
-		this.content = content;
-		this.title = title;
-	}
-
 	public PostEntity() {
-		super(-1L);
-	}
-	
-	public PostEntity content(String content) {
-		this.content = content;
-		return this;
-	}
-
-	public PostEntity title(String title) {
-		this.title = title;
-		return this;
-	}
-	
-	public PostEntity files(List<File> files) {
-		this.files = files;
-		return this;
-	}
-
-	public PostEntity category(CategoryEntity category) {
-		if (this.category != null) {
-			this.category.getPosts().remove(this);
-		}
-		
-		this.category = category;
-		category.getPosts().add(this);
-		
-		return this;
-	}
-
-	public PostEntity comments(List<CommentEntity> comments) {
-		this.comments = comments;
-		return this;
-	}
-
-	public PostEntity user(UserEntity user) {
-		if (this.user != null) {
-			this.user.getPosts().remove(this);
-		}
-
-		this.user = user;
-		user.getPosts().add(this);
-		
-		return this;
+		super(0L);
 	}
 	
 	public Long getId() {

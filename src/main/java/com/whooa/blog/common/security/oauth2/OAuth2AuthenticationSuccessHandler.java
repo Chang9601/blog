@@ -13,7 +13,6 @@ import com.whooa.blog.common.api.ApiResponse;
 import com.whooa.blog.common.code.Code;
 import com.whooa.blog.common.security.UserDetailsImpl;
 import com.whooa.blog.common.security.jwt.JwtBundle;
-import com.whooa.blog.common.security.jwt.JwtType;
 import com.whooa.blog.common.security.jwt.JwtUtil;
 import com.whooa.blog.user.dto.UserDto.UserResponse;
 import com.whooa.blog.user.entity.UserEntity;
@@ -46,21 +45,17 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
 	@Override
 	public void onAuthenticationSuccess(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse,
 			Authentication authentication) throws IOException, ServletException {
-		Long id;
 		JwtBundle jwt;
 		ApiResponse<UserResponse> success;
 		UserDetailsImpl userDetailsImpl;
 		UserEntity userEntity;
 		
 		userDetailsImpl = (UserDetailsImpl) authentication.getPrincipal();
-		
-		id = userDetailsImpl.getId();
 		jwt = jwtUtil.issue(userDetailsImpl.getUsername());
 
-		CookieUtil.set(httpServletResponse, JwtType.ACCESS_TOKEN.getType(), jwt.getAccessToken(), true, 60 * 60, "/", "Strict", false);
-		CookieUtil.set(httpServletResponse, JwtType.REFRESH_TOKEN.getType(), jwt.getRefreshToken(), true, 60 * 60, "/", "Strict", false);
-		
-		userEntity = userRepository.findByIdAndActiveTrue(id).get();
+		CookieUtil.setJwtCookies(httpServletResponse, jwt.getAccessToken(), jwt.getRefreshToken());
+
+		userEntity = userRepository.findByIdAndActiveTrue(userDetailsImpl.getId()).get();
 		setRefreshToken(userEntity, jwt.getRefreshToken());
 		
 		clearAuthenticationAttributes(httpServletRequest, httpServletResponse);
@@ -79,16 +74,16 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
 	}
 	
 	private UserResponse toUserResponseDTO(UserDetailsImpl userDetailsImpl) {
-		UserResponse userResponse = new UserResponse()
-											.email(userDetailsImpl.getUsername())
-											.userRole(userDetailsImpl.getUserRole());
+		UserResponse userResponse = new UserResponse();
 		userResponse.setId(userDetailsImpl.getId());
+		userResponse.setEmail(userDetailsImpl.getUsername());
+		userResponse.setUserRole(userDetailsImpl.getUserRole());		
 		
 		return userResponse;				
 	}
 	
 	private void setRefreshToken(UserEntity userEntity, String refreshToken) {
-		userEntity.refreshToken(refreshToken);
+		userEntity.setRefreshToken(refreshToken);
 		userRepository.save(userEntity);
 	}
 }

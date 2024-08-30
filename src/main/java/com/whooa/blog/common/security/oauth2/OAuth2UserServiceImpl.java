@@ -69,21 +69,20 @@ public class OAuth2UserServiceImpl implements OAuth2UserService<OAuth2UserReques
 	}
 	
 	private UserEntity create(OAuth2UserRequest oAuth2UserRequest, OAuth2UserInfo oAuth2UserInfo) {
-		UserEntity userEntity = new UserEntity();
-		String password = PasswordUtil.hash(oAuth2UserInfo.getOAuth2ProviderId());
+		UserEntity userEntity;
 		
-		userEntity
-				.email(oAuth2UserInfo.getEmail())
-				.name(oAuth2UserInfo.getName())
-				.password(password)
-				.oAuth2Provider(OAuth2Provider.valueOf(oAuth2UserRequest.getClientRegistration().getRegistrationId().toUpperCase()))
-				.oAuth2ProviderId(oAuth2UserInfo.getOAuth2ProviderId());
+		userEntity = new UserEntity();		
+		userEntity.setEmail(oAuth2UserInfo.getEmail());
+		userEntity.setName(oAuth2UserInfo.getName());
+		userEntity.setPassword(PasswordUtil.hash(oAuth2UserInfo.getOAuth2ProviderId()));
+		userEntity.setOAuth2Provider(OAuth2Provider.valueOf(oAuth2UserRequest.getClientRegistration().getRegistrationId().toUpperCase()));
+		userEntity.setOAuth2ProviderId(oAuth2UserInfo.getOAuth2ProviderId());
 		
 		return userRepository.save(userEntity);
 	}
 	
 	private UserEntity update(UserEntity userEntity, OAuth2UserInfo oAuth2UserInfo) {
-		userEntity.name(oAuth2UserInfo.getName());
+		userEntity.setName(oAuth2UserInfo.getName());
 		
 		return userRepository.save(userEntity);
 	}

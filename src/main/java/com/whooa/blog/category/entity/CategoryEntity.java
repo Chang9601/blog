@@ -12,7 +12,7 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 
 @Entity
-@Table(name = "category")
+@Table(name = "categories")
 public class CategoryEntity extends CoreEntity {
 	@Column(length = 300, nullable = false)
 	private String name;
@@ -20,24 +20,8 @@ public class CategoryEntity extends CoreEntity {
 	@OneToMany(mappedBy = "category")
 	private List<PostEntity> posts = new ArrayList<PostEntity>();
 	
-	public CategoryEntity(Long id, String name) {
-		super(id);
-		
-		this.name = name;
-	}
-
 	public CategoryEntity() {
-		super(-1L);
-	}
-	
-	public CategoryEntity name(String name) {
-		this.name = name;
-		return this;
-	}
-	
-	public CategoryEntity posts(List<PostEntity> posts) {
-		this.posts = posts;
-		return this;
+		super(0L);
 	}
 	
 	public Long getId() {

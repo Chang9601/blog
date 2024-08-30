@@ -17,26 +17,30 @@ import com.whooa.blog.user.entity.UserEntity;
 import com.whooa.blog.user.exception.DuplicateUserException;
 import com.whooa.blog.user.exception.UserNotFoundException;
 import com.whooa.blog.user.mapper.UserMapper;
+import com.whooa.blog.user.mapper.UserRoleMapper;
+import com.whooa.blog.user.param.UserSearchParam;
+import com.whooa.blog.user.repository.UserQueryDslRepository;
 import com.whooa.blog.user.repository.UserRepository;
-import com.whooa.blog.util.PaginationUtil;
+import com.whooa.blog.util.PaginationParam;
 import com.whooa.blog.util.PasswordUtil;
-import com.whooa.blog.util.StringUtil;
-import com.whooa.blog.util.UserRoleMapper;
 
 @Service
 public class AdminUserServiceImpl implements AdminUserService {
 	private UserRepository userRepository;
+	private UserQueryDslRepository userQueryDslRepository;
 
-	public AdminUserServiceImpl(UserRepository userRepository) {
+	public AdminUserServiceImpl(UserRepository userRepository, UserQueryDslRepository userQueryDslRepository) {
 		this.userRepository = userRepository;
+		this.userQueryDslRepository = userQueryDslRepository;
 	}
-
+	
 	@Override
 	public void delete(Long id) {
 		UserEntity userEntity;
 		
 		userEntity = userRepository.findByIdAndActiveTrue(id).orElseThrow(() -> new UserNotFoundException(Code.NOT_FOUND, new String[] {"아이디에 해당하는 사용자가 존재하지 않습니다."}));
-		userEntity.active(false);
+		
+		userEntity.setActive(false);
 		
 		userRepository.save(userEntity);
 	}
@@ -45,11 +49,11 @@ public class AdminUserServiceImpl implements AdminUserService {
 	public UserResponse find(Long id) {
 		UserEntity userEntity = userRepository.findByIdAndActiveTrue(id).orElseThrow(() -> new UserNotFoundException(Code.NOT_FOUND, new String[] {"아이디에 해당하는 사용자가 존재하지 않습니다."}));
 		
-		return UserMapper.INSTANCE.toDto(userEntity);
+		return UserMapper.INSTANCE.fromEntity(userEntity);
 	}
 
 	@Override
-	public PageResponse<UserResponse> findAll(PaginationUtil paginationUtil) {
+	public PageResponse<UserResponse> findAll(PaginationParam paginationParam) {
 		Pageable pageable;
 		Page<UserEntity> page;
 		List<UserEntity> userEntities;
@@ -58,7 +62,7 @@ public class AdminUserServiceImpl implements AdminUserService {
 		long totalElements;
 		boolean isLast, isFirst;
 		
-		pageable = paginationUtil.makePageable();
+		pageable = paginationParam.makePageable();
 		page = userRepository.findByActiveTrue(pageable);
 		
 		userEntities = page.getContent();
@@ -69,43 +73,52 @@ public class AdminUserServiceImpl implements AdminUserService {
 		isLast = page.isLast();
 		isFirst = page.isFirst();
 				
-		userResponse = userEntities.stream().map((userEntity) -> UserMapper.INSTANCE.toDto(userEntity)).collect(Collectors.toList());
+		userResponse = userEntities.stream().map((userEntity) -> UserMapper.INSTANCE.fromEntity(userEntity)).collect(Collectors.toList());
+		
+		return PageResponse.handleResponse(userResponse, pageSize, pageNo, totalElements, totalPages, isLast, isFirst);
+	}
+	
+	@Override
+	public PageResponse<UserResponse> searchAll(UserSearchParam userSearchParam) {
+		Pageable pageable;
+		Page<UserEntity> page;
+		List<UserEntity> userEntities;
+		List<UserResponse> userResponse;
+		int pageSize, pageNo, totalPages;
+		long totalElements;
+		boolean isLast, isFirst;
+		
+		pageable = userSearchParam.makePageable();
+		page = userQueryDslRepository.searchAll(userSearchParam, pageable);
+		
+		userEntities = page.getContent();
+		pageSize = page.getSize();
+		pageNo = page.getNumber();
+		totalElements = page.getTotalElements();
+		totalPages = page.getTotalPages();
+		isLast = page.isLast();
+		isFirst = page.isFirst();
+
+		userResponse = userEntities.stream().map((userEntity) -> UserMapper.INSTANCE.fromEntity(userEntity)).collect(Collectors.toList());
 		
 		return PageResponse.handleResponse(userResponse, pageSize, pageNo, totalElements, totalPages, isLast, isFirst);
 	}
 
 	@Override
 	public UserResponse update(Long id, UserAdminUpdateRequest userAdminUpdate) {
-		String email, name, password, userRole;
 		UserEntity userEntity;
 		
 		userEntity = userRepository.findByIdAndActiveTrue(id).orElseThrow(() -> new UserNotFoundException(Code.NOT_FOUND, new String[] {"아이디에 해당하는 사용자가 존재하지 않습니다."}));
-
-		email = userAdminUpdate.getEmail();
-		name = userAdminUpdate.getName();
-		password = userAdminUpdate.getPassword();
-		userRole = userAdminUpdate.getUserRole();
 		
-		if (StringUtil.notEmpty(email)) {
-			if (userRepository.existsByEmail(email)) {
-				throw new DuplicateUserException(Code.CONFLICT, new String[] {"이메일을 사용하는 사용자가 이미 존재합니다."});
-			}
+		if (userRepository.existsByEmail(userAdminUpdate.getEmail())) {
+			throw new DuplicateUserException(Code.CONFLICT, new String[] {"이메일을 사용하는 사용자가 이미 존재합니다."});
+		}
 			
-			userEntity.email(email);
-		}
+		userEntity.setEmail(userAdminUpdate.getEmail());
+		userEntity.setName(userAdminUpdate.getName());
+		userEntity.setPassword(PasswordUtil.hash(userAdminUpdate.getPassword()));
+		userEntity.setUserRole(UserRoleMapper.map(userAdminUpdate.getUserRole()));
 		
-		if (StringUtil.notEmpty(name)) {
-			userEntity.name(name);
-		}
-		
-		if (StringUtil.notEmpty(password)) {
-			userEntity.password(PasswordUtil.hash(password));
-		}
-		
-		if (!StringUtil.notEmpty(userRole)) {
-			userEntity.userRole(UserRoleMapper.map(userRole));
-		}
-		
-		return UserMapper.INSTANCE.toDto(userRepository.save(userEntity));
+		return UserMapper.INSTANCE.fromEntity(userRepository.save(userEntity));
 	}
 }

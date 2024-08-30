@@ -14,11 +14,11 @@ import com.whooa.blog.user.exception.InvalidCredentialsException;
 import com.whooa.blog.user.exception.SamePasswordException;
 import com.whooa.blog.user.exception.UserNotFoundException;
 import com.whooa.blog.user.mapper.UserMapper;
+import com.whooa.blog.user.mapper.UserRoleMapper;
 import com.whooa.blog.user.repository.UserRepository;
 import com.whooa.blog.user.service.UserService;
 import com.whooa.blog.util.PasswordUtil;
 import com.whooa.blog.util.StringUtil;
-import com.whooa.blog.util.UserRoleMapper;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -30,27 +30,21 @@ public class UserServiceImpl implements UserService {
 	
 	@Override
 	public UserResponse create(UserCreateRequest userCreate) {
-		String email, plainPassword, hashedPassword, userRole;
 		UserEntity userEntity;
 		
-		email = userCreate.getEmail();
-		
 		// TODO: 실제로 삭제하지 않고 active 필드만 false로 둘 경우 처리방법.
-		if (userRepository.existsByEmail(email)) {
+		if (userRepository.existsByEmail(userCreate.getEmail())) {
 			throw new DuplicateUserException(Code.CONFLICT, new String[] {"이메일을 사용하는 사용자가 존재합니다."});
 		}
 		
-		userRole = userCreate.getUserRole();
 		userEntity = UserMapper.INSTANCE.toEntity(userCreate);
+		userEntity.setPassword(PasswordUtil.hash(userCreate.getPassword()));
+		userEntity.setUserRole(UserRoleMapper.map(userCreate.getUserRole()));
 
-		plainPassword = userEntity.getPassword();
-		hashedPassword = PasswordUtil.hash(plainPassword);
-		
-		userEntity.password(hashedPassword).userRole(UserRoleMapper.map(userRole));
-		
-		return UserMapper.INSTANCE.toDto(userRepository.save(userEntity));
+		return UserMapper.INSTANCE.fromEntity(userRepository.save(userEntity));
 	}
-		
+	
+	// TODO: 포스트를 제거하면 당연히 댓글을 제거 사용자 제거하면 포스트와 댓글 전부 삭제?
 	@Override
 	public void delete(UserDetailsImpl userDetailsImpl) {
 		Long id;
@@ -59,7 +53,7 @@ public class UserServiceImpl implements UserService {
 		id = userDetailsImpl.getId();
 		
 		userEntity = userRepository.findByIdAndActiveTrue(id).orElseThrow(() -> new UserNotFoundException(Code.NOT_FOUND, new String[] {"아이디에 해당하는 사용자가 존재하지 않습니다."}));
-		userEntity.active(false);
+		userEntity.setActive(false);
 		
 		userRepository.save(userEntity);
 	}
@@ -72,7 +66,7 @@ public class UserServiceImpl implements UserService {
 		id = userDetailsImpl.getId();		
 		userEntity = userRepository.findByIdAndActiveTrue(id).orElseThrow(() -> new UserNotFoundException(Code.NOT_FOUND, new String[] {"아이디에 해당하는 사용자가 존재하지 않습니다."}));
 		
-		return UserMapper.INSTANCE.toDto(userEntity);
+		return UserMapper.INSTANCE.fromEntity(userEntity);
 	}
 
 	@Override
@@ -92,14 +86,14 @@ public class UserServiceImpl implements UserService {
 				throw new DuplicateUserException(Code.CONFLICT, new String[] {"이메일을 사용하는 사용자가 존재합니다."});
 			}
 			
-			userEntity.email(email);
+			userEntity.setEmail(email);
 		}
 		
 		if (StringUtil.notEmpty(name)) {
-			userEntity.name(name);
+			userEntity.setName(name);
 		}
 		
-		return UserMapper.INSTANCE.toDto(userRepository.save(userEntity));
+		return UserMapper.INSTANCE.fromEntity(userRepository.save(userEntity));
 	}
 
 	@Override
@@ -123,8 +117,8 @@ public class UserServiceImpl implements UserService {
 			throw new SamePasswordException(Code.BAD_REQUEST, new String[] {"새 비밀번호는 현재 비밀번호와 달라야 합니다."});
 		}
 		
-		userEntity.password(PasswordUtil.hash(newPassword));
+		userEntity.setPassword(PasswordUtil.hash(newPassword));
 
-		return UserMapper.INSTANCE.toDto(userRepository.save(userEntity));
+		return UserMapper.INSTANCE.fromEntity(userRepository.save(userEntity));
 	}
 }

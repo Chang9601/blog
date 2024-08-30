@@ -14,6 +14,8 @@ import com.whooa.blog.comment.entity.CommentEntity;
 import com.whooa.blog.comment.exception.CommentNotBelongingToPostException;
 import com.whooa.blog.comment.exception.CommentNotFoundException;
 import com.whooa.blog.comment.mapper.CommentMapper;
+import com.whooa.blog.comment.param.CommentSearchParam;
+import com.whooa.blog.comment.repository.CommentQueryDslRepository;
 import com.whooa.blog.comment.repository.CommentRepository;
 import com.whooa.blog.comment.service.CommentService;
 import com.whooa.blog.common.api.PageResponse;
@@ -27,16 +29,18 @@ import com.whooa.blog.user.exception.UserNotFoundException;
 import com.whooa.blog.user.exception.UserNotMatchedException;
 import com.whooa.blog.user.repository.UserRepository;
 import com.whooa.blog.util.StringUtil;
-import com.whooa.blog.util.PaginationUtil;
+import com.whooa.blog.util.PaginationParam;
 
 @Service
 public class CommentServiceImpl implements CommentService {
 	private CommentRepository commentRepository;
+	private CommentQueryDslRepository commentQueryDslRepository;
 	private PostRepository postRepository;
 	private UserRepository userRepository;
 
-	public CommentServiceImpl(CommentRepository commentRepository, PostRepository postRepository, UserRepository userRepository) {
+	public CommentServiceImpl(CommentRepository commentRepository, CommentQueryDslRepository commentQueryDslRepository, PostRepository postRepository, UserRepository userRepository) {
 		this.commentRepository = commentRepository;
+		this.commentQueryDslRepository = commentQueryDslRepository;
 		this.postRepository = postRepository;
 		this.userRepository = userRepository;
 	}
@@ -54,9 +58,10 @@ public class CommentServiceImpl implements CommentService {
 		userEntity = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(Code.NOT_FOUND, new String[] {"사용자가 존재하지 않습니다."}));
 		commentEntity = CommentMapper.INSTANCE.toEntity(commentCreate);
 		
-		commentEntity.post(postEntity).user(userEntity);
-	
-		return CommentMapper.INSTANCE.toDto(commentRepository.save(commentEntity));
+		commentEntity.setPost(postEntity);
+		commentEntity.setUser(userEntity);
+		
+		return CommentMapper.INSTANCE.fromEntity(commentRepository.save(commentEntity));
 	}
 	
 	@Override
@@ -82,7 +87,7 @@ public class CommentServiceImpl implements CommentService {
 	}
 	
 	@Override
-	public PageResponse<CommentResponse> findAllByPostId(Long postId, PaginationUtil paginationUtil) {
+	public PageResponse<CommentResponse> findAllByPostId(Long postId, PaginationParam paginationParam) {
 		Pageable pageable;
 		Page<CommentEntity> page;
 		List<CommentEntity> commentEntities;
@@ -91,7 +96,7 @@ public class CommentServiceImpl implements CommentService {
 		long totalElements;
 		boolean isLast, isFirst;
 		
-		pageable = paginationUtil.makePageable();
+		pageable = paginationParam.makePageable();
 
 		postRepository.findById(postId).orElseThrow(() -> new PostNotFoundException(Code.NOT_FOUND, new String[] {"포스트가 존재하지 않습니다."}));
 		
@@ -105,7 +110,7 @@ public class CommentServiceImpl implements CommentService {
 		isLast = page.isLast();
 		isFirst = page.isFirst();
 		
-		commentResponse = commentEntities.stream().map((commentEntity) -> CommentMapper.INSTANCE.toDto(commentEntity)).collect(Collectors.toList());
+		commentResponse = commentEntities.stream().map((commentEntity) -> CommentMapper.INSTANCE.fromEntity(commentEntity)).collect(Collectors.toList());
 		
 		return PageResponse.handleResponse(commentResponse, pageSize, pageNo, totalElements, totalPages, isLast, isFirst);
 	}
@@ -129,9 +134,37 @@ public class CommentServiceImpl implements CommentService {
 		
 		commentEntity = CommentMapper.INSTANCE.toEntity(commentCreate);
 		
-		commentEntity.parentId(parentCommentEntity.getId()).post(postEntity).user(userEntity);
-				
-		return CommentMapper.INSTANCE.toDto(commentRepository.save(commentEntity));
+		commentEntity.setParentId(parentCommentEntity.getId());
+		commentEntity.setPost(postEntity);
+		commentEntity.setUser(userEntity);
+		
+		return CommentMapper.INSTANCE.fromEntity(commentRepository.save(commentEntity));
+	}
+	
+	@Override
+	public PageResponse<CommentResponse> searchAll(CommentSearchParam commentSearchParam) {
+		Pageable pageable;
+		Page<CommentEntity> page;
+		List<CommentEntity> commentEntities;
+		List<CommentResponse> commentResponse;
+		int pageSize, pageNo, totalPages;
+		long totalElements;
+		boolean isLast, isFirst;
+		
+		pageable = commentSearchParam.makePageable();
+		page = commentQueryDslRepository.searchAll(commentSearchParam, pageable);
+		
+		commentEntities = page.getContent();
+		pageSize = page.getSize();
+		pageNo = page.getNumber();
+		totalElements = page.getTotalElements();
+		totalPages = page.getTotalPages();
+		isLast = page.isLast();
+		isFirst = page.isFirst();
+		
+		commentResponse = commentEntities.stream().map((commentEntity) -> CommentMapper.INSTANCE.fromEntity(commentEntity)).collect(Collectors.toList());
+
+		return PageResponse.handleResponse(commentResponse, pageSize, pageNo, totalElements, totalPages, isLast, isFirst);
 	}
 	
 	@Override
@@ -157,9 +190,9 @@ public class CommentServiceImpl implements CommentService {
 		content = commentUpdate.getContent();
 			
 		if (StringUtil.notEmpty(content)) {
-			commentEntity.content(content);
+			commentEntity.setContent(content);
 		}
 		
-		return CommentMapper.INSTANCE.toDto(commentRepository.save(commentEntity));
+		return CommentMapper.INSTANCE.fromEntity(commentRepository.save(commentEntity));
 	}
 }
