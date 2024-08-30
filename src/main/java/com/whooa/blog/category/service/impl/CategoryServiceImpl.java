@@ -14,57 +14,68 @@ import com.whooa.blog.category.entity.CategoryEntity;
 import com.whooa.blog.category.exception.CategoryNotFoundException;
 import com.whooa.blog.category.exception.DuplicateCategoryException;
 import com.whooa.blog.category.mapper.CategoryMapper;
+import com.whooa.blog.category.param.CategorySearchParam;
+import com.whooa.blog.category.repository.CategoryQueryDslRepository;
 import com.whooa.blog.category.repository.CategoryRepository;
 import com.whooa.blog.category.service.CategoryService;
 import com.whooa.blog.common.api.PageResponse;
 import com.whooa.blog.common.code.Code;
 import com.whooa.blog.util.StringUtil;
-import com.whooa.blog.util.PaginationUtil;
+import com.whooa.blog.util.PaginationParam;
 
 @Service
 public class CategoryServiceImpl implements CategoryService {
 	private CategoryRepository categoryRepository;
+	private CategoryQueryDslRepository categoryQueryDslRepository;
 		
-	public CategoryServiceImpl(CategoryRepository categoryRepository) {
+	public CategoryServiceImpl(CategoryRepository categoryRepository, CategoryQueryDslRepository categoryQueryDslRepository) {
 		this.categoryRepository = categoryRepository;
+		this.categoryQueryDslRepository = categoryQueryDslRepository;
 	}
 
 	@Override
 	public CategoryResponse create(CategoryCreateRequest categoryCreate) {
+		CategoryEntity categoryEntity;
+		
 		if (categoryRepository.existsByName(categoryCreate.getName())) {
 			throw new DuplicateCategoryException(Code.CONFLICT, new String[] {"카테고리가 존재합니다."});
 		}
 		
-		CategoryEntity categoryEntity = categoryRepository.save(CategoryMapper.INSTANCE.toEntity(categoryCreate));
+		categoryEntity = CategoryMapper.INSTANCE.toEntity(categoryCreate);
 		
-		return CategoryMapper.INSTANCE.toDto(categoryEntity);
+		return CategoryMapper.INSTANCE.fromEntity(categoryRepository.save(categoryEntity));
 	}
 
+	// TODO: 포스트를 제거하면 당연히 댓글을 제거 하지만 카테고리를 제거한다고 포스트를 전부 삭제?
 	@Override
 	public void delete(Long id) {
-		CategoryEntity categoryEntity = categoryRepository.findById(id).orElseThrow(() -> new CategoryNotFoundException(Code.NOT_FOUND, new String[] {"카테고리가 존재하지 않습니다."}));
-
+		CategoryEntity categoryEntity;
+		
+		categoryEntity = categoryRepository.findById(id).orElseThrow(() -> new CategoryNotFoundException(Code.NOT_FOUND, new String[] {"카테고리가 존재하지 않습니다."}));
+		
 		categoryRepository.delete(categoryEntity);		
 	}
 	
 	@Override
 	public CategoryResponse find(Long id) {
-		CategoryEntity categoryEntity = categoryRepository.findById(id).orElseThrow(() -> new CategoryNotFoundException(Code.NOT_FOUND, new String[] {"카테고리가 존재하지 않습니다."}));
+		CategoryEntity categoryEntity;
 		
-		return CategoryMapper.INSTANCE.toDto(categoryEntity);
+		categoryEntity = categoryRepository.findById(id).orElseThrow(() -> new CategoryNotFoundException(Code.NOT_FOUND, new String[] {"카테고리가 존재하지 않습니다."}));
+		
+		return CategoryMapper.INSTANCE.fromEntity(categoryEntity);
 	}
 
 	@Override
-	public PageResponse<CategoryResponse> findAll(PaginationUtil pagination) {
-		Pageable pageable;
-		Page<CategoryEntity> page;
+	public PageResponse<CategoryResponse> findAll(PaginationParam paginationParam) {
 		List<CategoryEntity> categoryEntities;
 		List<CategoryResponse> categoryResponse;
-		int pageSize, pageNo, totalPages;
+		Page<CategoryEntity> page;
+		Pageable pageable;
+		int pageNo, pageSize, totalPages;
+		boolean isFirst, isLast;
 		long totalElements;
-		boolean isLast, isFirst;
 		
-		pageable = pagination.makePageable();
+		pageable = paginationParam.makePageable();
 		page = categoryRepository.findAll(pageable);
 		
 		categoryEntities = page.getContent();
@@ -75,11 +86,43 @@ public class CategoryServiceImpl implements CategoryService {
 		isLast = page.isLast();
 		isFirst = page.isFirst();
 				
-		categoryResponse = categoryEntities.stream().map((categoryEntity) -> CategoryMapper.INSTANCE.toDto(categoryEntity)).collect(Collectors.toList());
+		categoryResponse = categoryEntities
+								.stream()
+								.map((categoryEntity) -> CategoryMapper.INSTANCE.fromEntity(categoryEntity))
+								.collect(Collectors.toList());
 		
 		return PageResponse.handleResponse(categoryResponse, pageSize, pageNo, totalElements, totalPages, isLast, isFirst);
 	}
 
+	@Override
+	public PageResponse<CategoryResponse> searchAll(CategorySearchParam categorySearchParam) {
+		List<CategoryEntity> categoryEntities;
+		List<CategoryResponse> categoryResponse;
+		Page<CategoryEntity> page;
+		Pageable pageable;
+		int pageNo, pageSize, totalPages;
+		boolean isFirst, isLast;
+		long totalElements;
+		
+		pageable = categorySearchParam.makePageable();
+		page = categoryQueryDslRepository.searchAll(categorySearchParam, pageable);
+		
+		categoryEntities = page.getContent();
+		pageSize = page.getSize();
+		pageNo = page.getNumber();
+		totalElements = page.getTotalElements();
+		totalPages = page.getTotalPages();
+		isLast = page.isLast();
+		isFirst = page.isFirst();
+		
+		categoryResponse = categoryEntities
+								.stream()
+								.map((categoryEntity) -> CategoryMapper.INSTANCE.fromEntity(categoryEntity))
+								.collect(Collectors.toList());
+		
+		return PageResponse.handleResponse(categoryResponse, pageSize, pageNo, totalElements, totalPages, isLast, isFirst);
+	}
+	
 	@Override
 	public CategoryResponse update(Long id, CategoryUpdateRequest categoryUpdate) {
 		CategoryEntity categoryEntity;
@@ -90,9 +133,9 @@ public class CategoryServiceImpl implements CategoryService {
 		name = categoryUpdate.getName();
 		
 		if (StringUtil.notEmpty(name)) {
-			categoryEntity.name(name);
+			categoryEntity.setName(name);
 		}
 		
-		return CategoryMapper.INSTANCE.toDto(categoryRepository.save(categoryEntity));
+		return CategoryMapper.INSTANCE.fromEntity(categoryRepository.save(categoryEntity));
 	}
 }

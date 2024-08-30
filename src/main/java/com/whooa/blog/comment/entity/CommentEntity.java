@@ -12,7 +12,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
 @Entity
-@Table(name = "comment")
+@Table(name = "comments")
 public class CommentEntity extends CoreEntity {
 	@Column(length = 500, nullable = false)
 	private String content;
@@ -33,49 +33,8 @@ public class CommentEntity extends CoreEntity {
 	@JoinColumn(name = "user_id", nullable = false)
 	private UserEntity user;
 	
-	public CommentEntity(Long id, String content, Long parentId, PostEntity post, UserEntity user) {
-		super(id);
-		
-		this.content = content;
-		this.parentId = parentId;
-		this.post = post;
-		this.user = user;
-	}
-
 	public CommentEntity() {
-		super(-1L);
-	}
-	
-	public CommentEntity content(String content) {
-		this.content = content;
-		return this;
-	}
-	
-	public CommentEntity parentId(Long parentId) {
-		this.parentId = parentId;
-		return this;
-	}
-	
-	public CommentEntity post(PostEntity post) {
-		if (this.post != null) {
-			this.post.getComments().remove(this);
-		}
-		
-		this.post = post;
-		post.getComments().add(this);
-		
-		return this;
-	}
-	
-	public CommentEntity user(UserEntity user) {
-		if (this.user != null) {
-			this.user.getComments().remove(this);
-		}
-
-		this.user = user;
-		user.getComments().add(this);
-		
-		return this;
+		super(0L);
 	}
 
 	public Long getId() {

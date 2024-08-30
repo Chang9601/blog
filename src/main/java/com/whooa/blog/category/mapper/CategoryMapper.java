@@ -10,7 +10,7 @@ import com.whooa.blog.category.entity.CategoryEntity;
 @Mapper
 public interface CategoryMapper {
 	CategoryMapper INSTANCE = Mappers.getMapper(CategoryMapper.class);
-
-	public abstract CategoryResponse toDto(CategoryEntity categoryEntity);
+	
+	public abstract CategoryResponse fromEntity(CategoryEntity categoryEntity);
 	public abstract CategoryEntity toEntity(CategoryCreateRequest categoryCreate);
 }

@@ -51,6 +51,7 @@ public class JwtUtil {
 	
 	public JwtBundle reissue(String refreshToken) {
 		String email;
+		JwtBundle jwt;
 		Optional<UserEntity> optionalUserEntity;
 		String savedRefreshToken;
 		UserEntity userEntity;
@@ -77,11 +78,11 @@ public class JwtUtil {
 		 *    중복 로그인 허용할 수 있도록 새로고침 토큰을 여러개 저장하는 방법이 있다.
 		 */
 		if (savedRefreshToken.isEmpty() || !savedRefreshToken.equals(refreshToken)) {
-			userEntity.refreshToken(null);
+			userEntity.setRefreshToken(null);
 			throw new JwtRefreshTokenNotMatched(Code.JWT_REFRESH_TOKEN_NOT_MATCHED, new String[] {"데이터베이스에 저장된 JWT 새로고침 토큰과 일치하지 않습니다."});
 		}
 		
-		JwtBundle jwt = issue(email);
+		jwt = issue(email);
 		
 		return jwt;
 	}
@@ -123,14 +124,16 @@ public class JwtUtil {
 	//  }
 	
 	private String build(String email, long expiration) {
-		Claims claims = Jwts.claims().setSubject(email);
-		Date now = new Date();
-					
+		Claims claims;
+		Date now;
+		
+		claims = Jwts.claims().setSubject(email);
+		now = new Date();
+		
 		return Jwts.builder()
 				  .setClaims(claims)
 				  .setExpiration(new Date(now.getTime() + expiration))
 				  .setIssuedAt(now)
-				  .setIssuer(email)
 				  .signWith(key(), SignatureAlgorithm.HS256)
 				  .compact();
 	}
@@ -141,7 +144,9 @@ public class JwtUtil {
 	}
 	
 	private <T> T parseClaim(String jwt, Function<Claims, T> claimResolver) {
-		Claims claims = parseAllClaims(jwt);
+		Claims claims;
+		
+		claims = parseAllClaims(jwt);
 		
 		return claimResolver.apply(claims);
 	}
