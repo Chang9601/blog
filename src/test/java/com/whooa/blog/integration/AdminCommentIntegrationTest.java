@@ -25,17 +25,11 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.TestExecutionEvent;
 import org.springframework.security.test.context.support.WithUserDetails;
-import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.filter.CharacterEncodingFilter;
-import org.testcontainers.containers.MySQLContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.utility.DockerImageName;
 
 import com.whooa.blog.category.entity.CategoryEntity;
 import com.whooa.blog.category.repository.CategoryRepository;
@@ -56,18 +50,17 @@ import com.whooa.blog.util.SerializeDeserializeUtil;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-@Testcontainers
+//@Testcontainers
 public class AdminCommentIntegrationTest {
-	@Container
-	private static MySQLContainer mySqlContainer = new MySQLContainer(DockerImageName.parse("mysql:8.0.33"));
-	
-	@DynamicPropertySource
-	public static void setDynamicPropertySource(DynamicPropertyRegistry dynamicPropertyRegistry) {
-		dynamicPropertyRegistry.add("spring.datasource.driverClassName", mySqlContainer::getDriverClassName);
-		dynamicPropertyRegistry.add("spring.datasource.url", mySqlContainer::getJdbcUrl);
-		dynamicPropertyRegistry.add("spring.datasource.username", mySqlContainer::getUsername);
-		dynamicPropertyRegistry.add("spring.datasource.password", mySqlContainer::getPassword);
-	}
+//	/* 
+//	 * Spring Boot 3.1 이전에는 Testcontainers가 자동으로 생성한 데이터베이스 주소를 설정하기 위해 DynamicPropertyRegistry를 사용해야 했다
+//	 * Spring Boot 3.1 이후로 @ServiceConnection 애노테이션을 사용하여 해당 설정을 간단하게 할 수 있다.
+//	 */
+//	@Container
+//	@ServiceConnection
+//	private static MySQLContainer<?> mySqlContainer = new MySQLContainer<>("mysql:8.0.33")
+//															.withUsername("root")
+//															.withPassword("root!@");
 	
 	private MockMvc mockMvc;
 	
@@ -90,7 +83,7 @@ public class AdminCommentIntegrationTest {
 	private CommentUpdateRequest commentUpdate;
 	
 	@BeforeAll
-	void setUpAll() {		
+	void setUpAll() {
 		mockMvc = MockMvcBuilders
 				.webAppContextSetup(webApplicationContext)
 				.addFilter(new CharacterEncodingFilter("utf-8", true))
@@ -149,7 +142,7 @@ public class AdminCommentIntegrationTest {
 	void tearDownEach() {
 		commentRepository.deleteAll();
 	}
-	
+	   
 	@DisplayName("댓글을 삭제하는데 성공한다.")
 	@Test
 	@WithUserDetails(value = "admin@admin.com", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")

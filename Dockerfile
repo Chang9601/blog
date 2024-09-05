@@ -5,7 +5,7 @@ FROM eclipse-temurin:17
 
 #USER spring
 
-WORKDIR /opt/spring-app
+WORKDIR /opt/spring_app
 
 COPY . .
 RUN ./gradlew clean build -x test

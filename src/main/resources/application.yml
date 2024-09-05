@@ -2,10 +2,10 @@ server:
   port: 3000
 
 spring:
-  data:
-    elasticsearch:
-      repositories:
-        enabled: true
+#  data:
+#    elasticsearch:
+#      repositories:
+#        enabled: true
 
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -13,9 +13,9 @@ spring:
     username: root
     password: root!@
     
-  elasticsearch:
-    uris:
-    - localhost:9200
+#  elasticsearch:
+#    uris:
+#    - localhost:9200
 
   servlet:
     multipart:
