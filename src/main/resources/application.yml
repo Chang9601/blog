@@ -60,7 +60,6 @@ spring:
     
   jwt:
     secret: d00928033e0288ff7f810733c98d38ed904f613cacfbe6c5677899aaa60e71a0
-    expiration: 3600000
  
   # Spring Boot 3(Hibernate 6 사용.) 이후로 Hibernate 방언을 선택 사항으로 사용할 수 있다. 
   # Hibernate 6은 classpath에 추가한 드라이버 의존성에 기반하여 자동으로 방언을 구성한다.

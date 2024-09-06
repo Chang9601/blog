@@ -1,7 +1,6 @@
 services:
   app:
     container_name: blog-app
-    image: blog
     build:
       dockerfile: Dockerfile
       context: .
@@ -81,15 +80,15 @@ services:
     ports:
       - '8080:8080'
       
-  #elasticsearch:
-  #  container_name: blog-elasticsearch
-  #  image: elasticsearch:8.14.0
-  #  ports:
-  #    - '9200:9200'
-  #  environment:
-  #    - discovery.type=single-node
-  #    - cluster.name=docker-cluster
-  #    - bootstrap.memory_lock=true
+  elasticsearch:
+    container_name: blog-elasticsearch
+    image: elasticsearch:8.14.0
+    ports:
+      - '9200:9200'
+    environment:
+      - discovery.type=single-node
+      - cluster.name=docker-cluster
+      - bootstrap.memory_lock=true
 
 volumes:
   mysqldb:
