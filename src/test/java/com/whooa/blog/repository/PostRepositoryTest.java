@@ -113,7 +113,7 @@ public class PostRepositoryTest {
 		 * Optional cannot be resolved to a type 오류.
 		 * Optional<PostEntity> postEntity1Optional = postRepository.findById(savedPostEntity.getId());
 		 */
-		assertEquals(postRepository.findById(savedPostEntity.getId()), Optional.empty());
+		assertEquals(Optional.empty(), postRepository.findById(savedPostEntity.getId()));
 	}
 	
 	@DisplayName("포스트가 존재하지 않아 삭제하는데 실패한다.")
@@ -132,7 +132,7 @@ public class PostRepositoryTest {
 		savedPostEntity = postRepository.save(postEntity1);
 		foundPostEntity = postRepository.findById(savedPostEntity.getId()).get();
 
-		assertEquals(foundPostEntity.getTitle(), savedPostEntity.getTitle());			
+		assertEquals(savedPostEntity.getTitle(), foundPostEntity.getTitle());
 	}
 	
 	@DisplayName("포스트를 조회하는데 실패한다.")
@@ -164,7 +164,7 @@ public class PostRepositoryTest {
 		
 		page = postRepository.findAll(pageable);
 		
-		assertEquals(page.getTotalElements(), 2);	
+		assertEquals(2, page.getTotalElements());	
 	}
 
 	@DisplayName("포스트 목록을 조회(카테고리 아이디)하는데 성공한다.")
@@ -187,7 +187,7 @@ public class PostRepositoryTest {
 		
 		page = postRepository.findByCategoryId(categoryEntity2.getId(), pageable);
 		
-		assertEquals(page.getTotalElements(), 1);
+		assertEquals(1, page.getTotalElements());
 	}
 
 	@DisplayName("포스트를 수정하는데 성공한다.")
@@ -202,8 +202,8 @@ public class PostRepositoryTest {
 
 		updatedPostEntity = postRepository.save(foundPostEntity);
 
-		assertEquals(updatedPostEntity.getTitle(), foundPostEntity.getTitle());
-		assertEquals(updatedPostEntity.getContent(), foundPostEntity.getContent());
+		assertEquals(foundPostEntity.getTitle(), updatedPostEntity.getTitle());
+		assertEquals(foundPostEntity.getContent(), updatedPostEntity.getContent());
 	}
 	
 	@DisplayName("포스트가 존재하지 않아 수정하는데 실패한다.")

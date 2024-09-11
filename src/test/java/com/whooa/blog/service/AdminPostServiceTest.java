@@ -136,8 +136,8 @@ public class AdminPostServiceTest {
 		post = adminPostServiceImpl.update(postEntity1.getId(), postUpdate, null);
 		
 		assertNull(post.getFiles());
-		assertEquals(post.getTitle(), postUpdate.getTitle());
-		assertEquals(post.getContent(), postUpdate.getContent());
+		assertEquals(postUpdate.getTitle(), post.getTitle());
+		assertEquals(postUpdate.getContent(), post.getContent());
 
 		then(postRepository).should(times(1)).save(any(PostEntity.class));
 		then(postRepository).should(times(1)).findById(any(Long.class));
@@ -167,8 +167,8 @@ public class AdminPostServiceTest {
 		post = adminPostServiceImpl.update(postEntity1.getId(), postUpdate, uploadFiles);
 		
 		assertNotNull(post.getFiles());
-		assertEquals(post.getTitle(), postUpdate.getTitle());
-		assertEquals(post.getContent(), postUpdate.getContent());
+		assertEquals(postUpdate.getTitle(), post.getTitle());
+		assertEquals(postUpdate.getContent(), post.getContent());
 
 		then(postRepository).should(times(1)).save(any(PostEntity.class));
 		then(postRepository).should(times(1)).findById(any(Long.class));

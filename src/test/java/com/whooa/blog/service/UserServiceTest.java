@@ -76,7 +76,7 @@ public class UserServiceTest {
 		
 		user = userServiceImpl.create(userCreate);
 				
-		assertEquals(user.getEmail(), userCreate.getEmail());
+		assertEquals(userCreate.getEmail(), user.getEmail());
 
 		then(userRepository).should(times(1)).save(any(UserEntity.class));
 		then(userRepository).should(times(1)).existsByEmail(any(String.class));
@@ -140,7 +140,7 @@ public class UserServiceTest {
 		
 		user = userServiceImpl.find(userDetailsImpl);
 		
-		assertEquals(user.getId(), userEntity1.getId());
+		assertEquals(userEntity1.getId(), user.getId());
 		
 		then(userRepository).should(times(1)).findByIdAndActiveTrue(any(Long.class));
 	}

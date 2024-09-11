@@ -110,7 +110,7 @@ public class CommentRepositoryTest {
 
 		commentRepository.delete(savedCommentEntity);
 		
-		assertEquals(commentRepository.findById(savedCommentEntity.getId()), Optional.empty());
+		assertEquals(Optional.empty(), commentRepository.findById(savedCommentEntity.getId()));
 	}
 	
 	@DisplayName("포스트가 존재하지 않아 댓글을 생성하는데 실패한다.")
@@ -137,7 +137,7 @@ public class CommentRepositoryTest {
 		savedCommentEntity = commentRepository.save(commentEntity1);
 		foundCommentEntity = commentRepository.findById(savedCommentEntity.getId()).get();
 
-		assertEquals(foundCommentEntity.getContent(), savedCommentEntity.getContent());		
+		assertEquals(savedCommentEntity.getContent(), foundCommentEntity.getContent());
 	}
 	
 	@DisplayName("포스트가 존재하지 않아 댓글을 조회하는데 실패한다.")
@@ -172,7 +172,7 @@ public class CommentRepositoryTest {
 		
 		page = commentRepository.findByPostId(postEntity.getId(), pageable);
 				
-		assertEquals(page.getTotalElements(), 2);			
+		assertEquals(2, page.getTotalElements());
 	}
 	
 	@DisplayName("포스트가 존재하지 않아 댓글 목록을 조회하는데 실패한다.")
@@ -195,7 +195,7 @@ public class CommentRepositoryTest {
 		
 		updatedCommentEntity = commentRepository.save(foundCommentEntity);
 		
-		assertEquals(updatedCommentEntity.getContent(), foundCommentEntity.getContent());
+		assertEquals(foundCommentEntity.getContent(), updatedCommentEntity.getContent());
 	}
 	
 	@DisplayName("포스트가 존재하지 않아 댓글을 수정하는데 실패한다.")

@@ -118,7 +118,7 @@ public class CommentServiceTest {
 
 		comment = commentServiceImpl.create(postEntity1.getId(), commentCreate, userDetailsImpl);
 		
-		assertEquals(comment.getContent(), commentEntity1.getContent());
+		assertEquals(commentEntity1.getContent(), comment.getContent());
 
 		then(commentRepository).should(times(1)).save(any(CommentEntity.class));
 		then(postRepository).should(times(1)).findById(any(Long.class));
@@ -262,7 +262,7 @@ public class CommentServiceTest {
 
 		page = commentServiceImpl.findAllByPostId(postEntity1.getId(), pagination);
 
-		assertEquals(page.getTotalElements(), 2);
+		assertEquals(2, page.getTotalElements());
 
 		then(commentRepository).should(times(1)).findByPostId(any(Long.class), any(Pageable.class));
 		then(postRepository).should(times(1)).findById(any(Long.class));
@@ -286,7 +286,7 @@ public class CommentServiceTest {
 		
 		comment = commentServiceImpl.reply(commentEntity1.getId(), postEntity1.getId(), commentCreate, userDetailsImpl); 
 		
-		assertEquals(comment.getParentId(), commentEntity1.getId());
+		assertEquals(commentEntity1.getId(), comment.getParentId());
 
 		then(commentRepository).should(times(1)).save(any(CommentEntity.class));
 		then(commentRepository).should(times(1)).findById(any(Long.class));
@@ -369,7 +369,7 @@ public class CommentServiceTest {
 
 		comment = commentServiceImpl.update(commentEntity1.getId(), postEntity1.getId(), commentUpdate, userDetailsImpl);
 
-		assertEquals(comment.getContent(), commentUpdate.getContent());
+		assertEquals(commentUpdate.getContent(), comment.getContent());
 
 		then(commentRepository).should(times(1)).save(any(CommentEntity.class));
 		then(commentRepository).should(times(1)).findById(any(Long.class));

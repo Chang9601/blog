@@ -160,7 +160,7 @@ public class PostServiceTest {
 		post = postServiceImpl.create(postCreate, null, userDetailsImpl);
 				
 		assertNull(post.getFiles());
-		assertEquals(post.getTitle(), postEntity1.getTitle());
+		assertEquals(postEntity1.getTitle(), post.getTitle());
 
 		then(postRepository).should(times(1)).save(any(PostEntity.class));
 		then(categoryRepository).should(times(1)).findByName(any(String.class));
@@ -179,8 +179,8 @@ public class PostServiceTest {
 		post = postServiceImpl.create(postCreate, uploadFiles, userDetailsImpl);
 			
 		assertNotNull(post.getFiles());
-		assertEquals(post.getFiles().get(0).getName(), file.getName());
-		assertEquals(post.getTitle(), postEntity1.getTitle());
+		assertEquals(file.getName(), post.getFiles().get(0).getName());
+		assertEquals(postEntity1.getTitle(), post.getTitle());
 
 		then(postRepository).should(times(1)).save(any(PostEntity.class));
 		then(categoryRepository).should(times(1)).findByName(any(String.class));
@@ -271,7 +271,7 @@ public class PostServiceTest {
 
 		post = postServiceImpl.find(postEntity1.getId());
 		
-		assertEquals(post.getId(), postEntity1.getId());
+		assertEquals(postEntity1.getId(), post.getId());
 		
 		then(postRepository).should(times(1)).findById(any(Long.class));
 	}
@@ -304,7 +304,7 @@ public class PostServiceTest {
 
 		page = postServiceImpl.findAll(pagination);
 					
-		assertEquals(page.getTotalElements(), 2);
+		assertEquals(2, page.getTotalElements());
 		
 		then(postRepository).should(times(1)).findAll(any(Pageable.class));
 	}
@@ -329,7 +329,7 @@ public class PostServiceTest {
 
 		page = postServiceImpl.findAllByCategoryId(categoryEntity2.getId(), pagination);
 					
-		assertEquals(page.getTotalElements(), 1);
+		assertEquals(1, page.getTotalElements());
 		
 		then(postRepository).should(times(1)).findByCategoryId(any(Long.class), any(Pageable.class));
 		//then(categoryRepository).should(times(1)).findById(any(Long.class));
@@ -356,8 +356,8 @@ public class PostServiceTest {
 		post = postServiceImpl.update(postEntity1.getId(), postUpdate, null, userDetailsImpl);
 		
 		assertNull(post.getFiles());
-		assertEquals(post.getTitle(), postUpdate.getTitle());
-		assertEquals(post.getContent(), postUpdate.getContent());
+		assertEquals(postUpdate.getTitle(), post.getTitle());
+		assertEquals(postUpdate.getContent(), post.getContent());
 
 		then(postRepository).should(times(1)).save(any(PostEntity.class));
 		then(postRepository).should(times(1)).findById(any(Long.class));
@@ -387,8 +387,8 @@ public class PostServiceTest {
 		post = postServiceImpl.update(postEntity1.getId(), postUpdate, uploadFiles, userDetailsImpl);
 		
 		assertNotNull(post.getFiles());
-		assertEquals(post.getTitle(), postUpdate.getTitle());
-		assertEquals(post.getContent(), postUpdate.getContent());
+		assertEquals(postUpdate.getTitle(), post.getTitle());
+		assertEquals(postUpdate.getContent(), post.getContent());
 
 		then(postRepository).should(times(1)).save(any(PostEntity.class));
 		then(postRepository).should(times(1)).findById(any(Long.class));

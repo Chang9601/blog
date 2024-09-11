@@ -93,7 +93,7 @@ public class AdminUserServiceTest {
 		
 		user = adminUserServiceImpl.find(userEntity1.getId());
 		
-		assertEquals(user.getId(), userEntity1.getId());
+		assertEquals(userEntity1.getId(), user.getId());
 
 		then(userRepository).should(times(1)).findByIdAndActiveTrue(any(Long.class));
 	}
@@ -125,7 +125,7 @@ public class AdminUserServiceTest {
 
 		PageResponse<UserResponse> page = adminUserServiceImpl.findAll(pagination);
 					
-		assertEquals(page.getTotalElements(), 2);
+		assertEquals(2, page.getTotalElements());
 		
 		then(userRepository).should(times(1)).findByActiveTrue(any(Pageable.class));
 	}
@@ -147,8 +147,8 @@ public class AdminUserServiceTest {
 
 		user = adminUserServiceImpl.update(userEntity1.getId(), userAdminUpdate);
 		
-		assertEquals(user.getEmail(), userAdminUpdate.getEmail());
-		assertEquals(user.getUserRole(), UserRole.MANAGER);
+		assertEquals(userAdminUpdate.getEmail(), user.getEmail());
+		assertEquals(UserRole.MANAGER, user.getUserRole());
 				
 		then(userRepository).should(times(1)).save(any(UserEntity.class));
 		then(userRepository).should(times(1)).existsByEmail(any(String.class));

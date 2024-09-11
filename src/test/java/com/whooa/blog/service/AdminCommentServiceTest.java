@@ -140,7 +140,7 @@ public class AdminCommentServiceTest {
 
 		comment = adminCommentServiceImpl.update(commentEntity1.getId(), postEntity1.getId(), commentUpdate);
 
-		assertEquals(comment.getContent(), commentUpdate.getContent());
+		assertEquals(commentUpdate.getContent(), comment.getContent());
 
 		then(commentRepository).should(times(1)).save(any(CommentEntity.class));
 		then(commentRepository).should(times(1)).findById(any(Long.class));

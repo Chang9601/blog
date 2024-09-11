@@ -70,7 +70,7 @@ public class CategoryRepositoryTest {
 		
 		categoryRepository.delete(savedCategoryEntity);
 		
-		assertEquals(categoryRepository.findById(savedCategoryEntity.getId()), Optional.empty());
+		assertEquals(Optional.empty(), categoryRepository.findById(savedCategoryEntity.getId()));
 	}
 	
 	@DisplayName("카테고리가 존재하지 않아 삭제하는데 실패한다.")
@@ -89,7 +89,7 @@ public class CategoryRepositoryTest {
 		savedCategoryEntity = categoryRepository.save(categoryEntity1);
 		foundCategoryEntity = categoryRepository.findById(savedCategoryEntity.getId()).get();
 
-		assertEquals(foundCategoryEntity.getName(), savedCategoryEntity.getName());			
+		assertEquals(savedCategoryEntity.getName(), foundCategoryEntity.getName());	
 	}
 	
 	@DisplayName("카테고리를 조회하는데 실패한다.")
@@ -113,7 +113,7 @@ public class CategoryRepositoryTest {
 		
 		page = categoryRepository.findAll(pageable);
 
-		assertEquals(page.getTotalElements(), 2);			
+		assertEquals(2, page.getTotalElements());			
 	}
 	
 	@DisplayName("카테고리를 수정하는데 성공한다.")
@@ -128,7 +128,7 @@ public class CategoryRepositoryTest {
 
 		updatedCategoryEntity = categoryRepository.save(foundCategoryEntity);
 
-		assertEquals(updatedCategoryEntity.getName(), foundCategoryEntity.getName());
+		assertEquals(foundCategoryEntity.getName(), updatedCategoryEntity.getName());
 	}
 	
 	@DisplayName("카테고리가 존재하지 않아 수정하는데 실패한다.")

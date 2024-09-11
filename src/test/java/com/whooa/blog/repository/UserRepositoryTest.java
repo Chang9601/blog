@@ -93,7 +93,7 @@ public class UserRepositoryTest {
 		savedUserEntity = userRepository.save(userEntity1);
 		foundUserEntity = userRepository.findByIdAndActiveTrue(savedUserEntity.getId()).get();
 
-		assertEquals(foundUserEntity.getEmail(), savedUserEntity.getEmail());			
+		assertEquals(savedUserEntity.getEmail(), foundUserEntity.getEmail());			
 	}
 	
 	@DisplayName("사용자를 조회하는데 실패한다.")
@@ -112,7 +112,7 @@ public class UserRepositoryTest {
 		savedUserEntity = userRepository.save(userEntity1);
 		foundUserEntity = userRepository.findByEmailAndActiveTrue(savedUserEntity.getEmail()).get();
 
-		assertEquals(foundUserEntity.getEmail(), savedUserEntity.getEmail());			
+		assertEquals(savedUserEntity.getEmail(), foundUserEntity.getEmail());			
 	}
 
 	@DisplayName("사용자를 조회(이메일)하는데 실패한다.")
@@ -141,7 +141,7 @@ public class UserRepositoryTest {
 		
 		page = userRepository.findByActiveTrue(pageable);
 		
-		assertEquals(page.getTotalElements(), 1);			
+		assertEquals(1, page.getTotalElements());			
 	}
 
 	@DisplayName("사용자가 할성 상태라서 조회하는데 성공한다.")
@@ -152,7 +152,7 @@ public class UserRepositoryTest {
 		savedUserEntity = userRepository.save(userEntity1);
 		foundUserEntity = userRepository.findByIdAndActiveTrue(savedUserEntity.getId()).get();
 
-		assertEquals(foundUserEntity.getEmail(), savedUserEntity.getEmail());
+		assertEquals(savedUserEntity.getEmail(), foundUserEntity.getEmail());
 	}
 	
 	@DisplayName("사용자가 비할성 상태라서 조회하는데 실패한다.")
@@ -163,7 +163,7 @@ public class UserRepositoryTest {
 		
 		savedUserEntity = userRepository.save(userEntity1);
 
-		assertEquals(userRepository.findByIdAndActiveTrue(savedUserEntity.getId()), Optional.empty());
+		assertEquals(Optional.empty(), userRepository.findByIdAndActiveTrue(savedUserEntity.getId()));
 	}	
 	
 	@DisplayName("사용자가 존재하다.")

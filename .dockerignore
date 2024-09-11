@@ -1,5 +1,12 @@
+Dockerfile
+.dockerignore
+docker-compose
+
+.env
+
 .git
 .gitignore
-.dockerignore
-Dockerfile
-docker-compose
+
+build
+
+upload

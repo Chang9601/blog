@@ -14,7 +14,7 @@ RUN ./gradlew clean build -x test
 # jlink 명령으로 맞춤 JDK 이미지를 생성한다(jlink를 사용해서 애플리케이션에 필요한 모듈만 선택하여 실행 이미지로 링크할 수 있다.).
 RUN ["jlink", "--compress=2", \
      "--module-path", "/opt/jdk/jdk-17.0.12/jmods/", \
-     "--add-modules", "java.base,java.sql,java.xml,java.management,java.compiler,java.instrument,java.scripting,java.logging,java.naming,java.desktop,jdk.unsupported", \
+     "--add-modules", "java.base,java.sql,java.xml,java.management,java.compiler,java.security.jgss,java.instrument,java.scripting,java.logging,java.naming,java.desktop,jdk.unsupported", \
      "--no-header-files", "--no-man-pages", \
      "--output", "/springboot-runtime"]
 

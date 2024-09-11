@@ -73,7 +73,7 @@ public class CategoryServiceTest {
 		
 		category = categoryServiceImpl.create(categoryCreate);
 
-		assertEquals(category.getName(), categoryEntity1.getName());
+		assertEquals(categoryEntity1.getName(), category.getName());
 
 		then(categoryRepository).should(times(1)).save(any(CategoryEntity.class));
 		then(categoryRepository).should(times(1)).existsByName(any(String.class));
@@ -135,7 +135,7 @@ public class CategoryServiceTest {
 		
 		category = categoryServiceImpl.find(categoryEntity1.getId());
 		
-		assertEquals(category.getName(), categoryEntity1.getName());
+		assertEquals(categoryEntity1.getName(), category.getName());
 		
 		then(categoryRepository).should(times(1)).findById(any(Long.class));
 	}
@@ -163,7 +163,7 @@ public class CategoryServiceTest {
 		
 		PageResponse<CategoryResponse> page = categoryServiceImpl.findAll(pagination);
 		
-		assertEquals(page.getTotalElements(), 2);
+		assertEquals(2, page.getTotalElements());
 		
 		then(categoryRepository).should(times(1)).findAll(any(Pageable.class));
 	}
@@ -180,7 +180,7 @@ public class CategoryServiceTest {
 				
 		category = categoryServiceImpl.update(categoryEntity1.getId(), categoryUpdate);
 		
-		assertEquals(category.getName(), categoryEntity2.getName());
+		assertEquals(categoryEntity2.getName(), category.getName());
 		
 		then(categoryRepository).should(times(1)).save(any(CategoryEntity.class));
 		then(categoryRepository).should(times(1)).findById(any(Long.class));
