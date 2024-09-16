@@ -20,6 +20,7 @@ RUN ["jlink", "--compress=2", \
 
 FROM alpine:3.16
 COPY --from=base /springboot-runtime /opt/jdk
+COPY --from=ghcr.io/ufoscout/docker-compose-wait:latest /wait /wait
 ENV PATH=$PATH:/opt/jdk/bin
 EXPOSE 3000
 COPY --from=base /opt/spring_app/build/libs/whooa-blog-0.0.1-SNAPSHOT.jar /opt/spring_app/

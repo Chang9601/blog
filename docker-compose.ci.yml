@@ -1,10 +1,11 @@
 services:
   app:
     container_name: blog-app
-    image: blog
+    image: csup96/blog
     build:
       dockerfile: Dockerfile
       context: .
+    command: sh -c '/wait && java -jar /opt/spring_app/whooa-blog-0.0.1-SNAPSHOT.jar'      
     ports:
       - '3000:3000'
     env_file:
@@ -53,15 +54,15 @@ services:
     ports:
       - '8080:8080'
       
-  #elasticsearch:
-  #  container_name: blog-elasticsearch
-  #  image: elasticsearch:8.14.0
-  #  ports:
-  #    - '9200:9200'
-  #  environment:
-  #    - discovery.type=single-node
-  #    - cluster.name=docker-cluster
-  #    - bootstrap.memory_lock=true
+  elasticsearch:
+    container_name: blog-elasticsearch
+    image: elasticsearch:8.14.0
+    ports:
+      - '9200:9200'
+    environment:
+      - discovery.type=single-node
+      - cluster.name=docker-cluster
+      - bootstrap.memory_lock=true
 
 volumes:
   mysqldb:

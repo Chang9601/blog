@@ -5,14 +5,15 @@ spring:
   # .env 파일을 가져온다.
   config:
     import: optional:file:.env[.properties]
-#  data:
-#    elasticsearch:
-#      repositories:
-#        enabled: true
+  data:
+    elasticsearch:
+      repositories:
+        enabled: true
+    url: localhost:9200
 
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://${MYSQL_HOST}:${MYSQL_PORT}/${MYSQL_DATABASE}
+    url: jdbc:mysql://${MYSQL_HOST}:${MYSQL_PORT}/${MYSQL_DATABASE}?useSSL=false&allowPublicKeyRetrieval=true
     username: ${MYSQL_USERNAME}
     password: ${MYSQL_PASSWORD}
     
@@ -73,7 +74,9 @@ spring:
     properties:
       hibernate:
         '[format_sql]': true
-
+        dialect: org.hibernate.dialect.MySQLDialect
+        # hbm2ddl.auto: update
+        
 springdoc:
   version: 1.0
   api-docs:

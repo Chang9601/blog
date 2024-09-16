@@ -20,7 +20,7 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 
 @Entity
-@Table(name = "post")
+@Table(name = "posts")
 public class PostEntity extends CoreEntity {
 	@Column(length = 2000, nullable = false)
 	private String content;

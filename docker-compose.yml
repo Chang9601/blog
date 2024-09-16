@@ -1,0 +1,70 @@
+services:
+  app:
+    container_name: blog-app
+    image: csup96/blog
+    build:
+      dockerfile: Dockerfile
+      context: .
+    command: sh -c '/wait && java -jar /opt/spring_app/whooa-blog-0.0.1-SNAPSHOT.jar'
+    ports:
+      - '3000:3000'
+    env_file:
+      - ./.env
+    #volumes:
+    #  - .:/opt/spring-app
+    depends_on:
+      mysql:
+        condition: service_healthy
+    healthcheck:
+      disable: true
+
+  mysql:
+    container_name: blog-mysql
+    image: mysql:8.0.33
+    ports:
+      - '3306:3306'
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+    environment:
+      - MYSQL_ROOT_PASSWORD=root!@
+      - MYSQL_DATABASE=blog
+    volumes:
+      - mysqldb:/var/lib/mysql
+    healthcheck:
+      test:
+        [
+          'CMD',
+          'mysqladmin',
+          'ping',
+          '-h',
+          'localhost',
+          '-u',
+          'root',
+          '-p$$MYSQL_ROOT_PASSWORD',
+        ]
+      interval: 5s
+      timeout: 4s
+      retries: 5
+      start_period: 10m
+
+  #adminer:
+  #  container_name: blog-adminer
+  #  image: adminer:latest
+  #  ports:
+  #    - '8080:8080'
+      
+  elasticsearch:
+    container_name: blog-elasticsearch
+    image: elasticsearch:8.14.0
+    ports:
+      - '9200:9200'
+      - '9300:9300'
+    environment:
+      - cluster.name=blog-cluster
+      - discovery.type=single-node
+      - bootstrap.memory_lock=true
+      - xpack.security.enabled=false
+
+volumes:
+  mysqldb:
