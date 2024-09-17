@@ -14,7 +14,6 @@ import com.whooa.blog.post.entity.PostEntity;
  * SimpleJpaRepository 클래스가 내부적으로 @Repository 어노테이션을 사용하기 때문에 @Repository 어노테이션을 사용할 필요가 없다.
  * SimpleJpaRepository 클래스가 내부적으로 @Transactional 어노테이션을 사용하기 때문에 @Transactional 어노테이션을 사용할 필요가 없다.
  */
-@Repository
 public interface PostRepository extends JpaRepository<PostEntity, Long> {
 	public abstract Page<PostEntity> findByCategoryId(Long categoryId, Pageable pageable);
 }

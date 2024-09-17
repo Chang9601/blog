@@ -20,6 +20,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+
 import jakarta.validation.Valid;
 
 @Tag(
@@ -39,8 +40,7 @@ public class PostElasticsearchController {
 	)
 	@SecurityRequirement(
 		name = "JWT Cookie Authentication"
-	)	
-	
+	)
 	@ResponseStatus(value = HttpStatus.CREATED)
 	@PostMapping
 	public ApiResponse<PostResponse> createPost(@Valid @RequestBody PostCreateRequest postCreate, @CurrentUser UserDetailsImpl userDetailsImpl) {		

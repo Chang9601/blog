@@ -9,7 +9,6 @@ spring:
     elasticsearch:
       repositories:
         enabled: true
-    url: localhost:9200
 
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -17,9 +16,10 @@ spring:
     username: ${MYSQL_USERNAME}
     password: ${MYSQL_PASSWORD}
     
-#  elasticsearch:
-#    uris:
-#    - localhost:9200
+  elasticsearch:
+    url: ${ELASTICSEARCH_URL}
+    uris:
+    - ${ELASTICSEARCH_URL}
 
   servlet:
     multipart:

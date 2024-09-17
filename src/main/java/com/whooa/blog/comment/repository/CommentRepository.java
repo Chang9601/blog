@@ -8,7 +8,6 @@ import org.springframework.stereotype.Repository;
 
 import com.whooa.blog.comment.entity.CommentEntity;
 
-@Repository
 public interface CommentRepository extends JpaRepository<CommentEntity, Long> {
 	public abstract Page<CommentEntity> findByPostId(Long postId, Pageable pageable);
 }

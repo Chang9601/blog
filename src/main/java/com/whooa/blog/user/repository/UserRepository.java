@@ -9,7 +9,6 @@ import org.springframework.stereotype.Repository;
 
 import com.whooa.blog.user.entity.UserEntity;
 
-@Repository
 public interface UserRepository extends JpaRepository<UserEntity, Long> {
 	public abstract boolean existsByEmail(String email);
 	public abstract Page<UserEntity> findByActiveTrue(Pageable pageable);
