@@ -6,6 +6,8 @@ import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
@@ -76,11 +78,12 @@ public class CommentRepositoryTest {
 	}
 	
 	@DisplayName("댓글을 생성하는데 성공한다.")
-	@Test
-	public void givenCommentEntity_whenCallSaveForCreate_thenReturnCommentEntity() {		
+	@ParameterizedTest
+	@MethodSource("commentParametersProvider")
+	public void givenCommentEntity_whenCallSaveForCreate_thenReturnCommentEntity(CommentEntity commentEntity) {		
 		CommentEntity savedCommentEntity;
 		
-		savedCommentEntity = commentRepository.save(commentEntity1);
+		savedCommentEntity = commentRepository.save(commentEntity);
 		
 		assertTrue(savedCommentEntity.getId() > 0);
 	}
@@ -102,11 +105,12 @@ public class CommentRepositoryTest {
 	}
 
 	@DisplayName("댓글을 삭제하는데 성공한다.")
-	@Test
-	public void givenCommentEntity_whenCallDelete_thenReturnNothing() {
+	@ParameterizedTest
+	@MethodSource("commentParametersProvider")
+	public void givenCommentEntity_whenCallDelete_thenReturnNothing(CommentEntity commentEntity) {
 		CommentEntity savedCommentEntity;
 		
-		savedCommentEntity = commentRepository.save(commentEntity1);
+		savedCommentEntity = commentRepository.save(commentEntity);
 
 		commentRepository.delete(savedCommentEntity);
 		
@@ -130,11 +134,12 @@ public class CommentRepositoryTest {
 	}
 	
 	@DisplayName("댓글을 조회하는데 성공한다.")
-	@Test
-	public void givenId_whenCallFindById_thenReturnCommentEntity() {		
+	@ParameterizedTest
+	@MethodSource("commentParametersProvider")
+	public void givenId_whenCallFindById_thenReturnCommentEntity(CommentEntity commentEntity) {		
 		CommentEntity foundCommentEntity, savedCommentEntity;
 		
-		savedCommentEntity = commentRepository.save(commentEntity1);
+		savedCommentEntity = commentRepository.save(commentEntity);
 		foundCommentEntity = commentRepository.findById(savedCommentEntity.getId()).get();
 
 		assertEquals(savedCommentEntity.getContent(), foundCommentEntity.getContent());
@@ -157,8 +162,9 @@ public class CommentRepositoryTest {
 	}
 	
 	@DisplayName("댓글 목록을 조회하는데 성공한다.")
-	@Test
-	public void givenPostId_whenCallFindByPostId_thenReturnCommentEntitiesForPostEntity() {
+	@ParameterizedTest
+	@MethodSource("commentParametersProvider")
+	public void givenPostId_whenCallFindByPostId_thenReturnCommentEntitiesForPostEntity(CommentEntity commentEntity1) {
 		CommentEntity commentEntity2;
 		Page<CommentEntity> page;
 		
@@ -184,11 +190,12 @@ public class CommentRepositoryTest {
 	}
 	
 	@DisplayName("댓글을 수정하는데 성공한다.")
-	@Test
-	public void givenCommentEntity_whenCallSaveForUpdate_thenReturnUpdatedCommentEntity() {
+	@ParameterizedTest
+	@MethodSource("commentParametersProvider")
+	public void givenCommentEntity_whenCallSaveForUpdate_thenReturnUpdatedCommentEntity(CommentEntity commentEntity) {
 		CommentEntity foundCommentEntity, savedCommentEntity, updatedCommentEntity;
 		
-		savedCommentEntity = commentRepository.save(commentEntity1);
+		savedCommentEntity = commentRepository.save(commentEntity);
 		foundCommentEntity = commentRepository.findById(savedCommentEntity.getId()).get();
 		
 		foundCommentEntity.content("실전 내용");

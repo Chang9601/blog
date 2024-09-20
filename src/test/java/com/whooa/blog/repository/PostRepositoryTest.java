@@ -4,11 +4,14 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.NoSuchElementException;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase.Replace;
@@ -79,7 +82,8 @@ public class PostRepositoryTest {
 	}
 	
 	@DisplayName("포스트를 생성하는데 성공한다.")
-	@Test
+	@ParameterizedTest
+	@MethodSource("postParametersProvider")
 	public void givenPostEntity_whenCallSaveForCreate_thenReturnPostEntity() {
 		/*
 		 * given: 설정.
@@ -213,4 +217,12 @@ public class PostRepositoryTest {
 			postRepository.save(null);
 		});
 	}
+	
+	private static Stream<Arguments> postParametersProvider() {
+		return Stream.of(Arguments.of(new PostEntity()
+					.content("포스트")
+					.title("포스트")
+					.category(categoryEntity1)
+					.user(userEntity)));
+	}	
 }

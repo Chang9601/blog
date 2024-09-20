@@ -27,7 +27,7 @@ public class PostElasticsearchServiceImpl implements PostElasticsearchService {
 	}
 	
 	@Override
-	public PostResponse create(PostCreateRequest postCreate, UserDetailsImpl userDetailsImpl) {
+	public PostResponse create(PostCreateRequest postCreate, UserDetailsImpl userDetailsImpl) {		
 		Long categoryId, userId;
 		String categoryName, content, title;
 		

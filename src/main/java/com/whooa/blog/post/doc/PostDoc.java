@@ -1,5 +1,7 @@
 package com.whooa.blog.post.doc;
 
+import java.util.List;
+
 import org.springframework.data.annotation.Id;
 import org.springframework.data.elasticsearch.annotations.Document;
 import org.springframework.data.elasticsearch.annotations.Field;
@@ -12,7 +14,7 @@ import org.springframework.data.elasticsearch.core.join.JoinField;
 public class PostDoc {
 	@Id
 	@Field(type = FieldType.Keyword)
-	private Long id;
+	private String id;
 	
 	@Field(type = FieldType.Text, name = "category_name")
 	private String categoryName;
@@ -25,6 +27,9 @@ public class PostDoc {
 	
 	@Field(type = FieldType.Keyword, name = "category_id")
 	private Long categoryId;
+	
+	@Field(type = FieldType.Keyword, name = "comment_ids")
+	private List<Long> commentIds;
 
 	@Field(type = FieldType.Keyword, name = "user_id")
 	private Long userId;
@@ -42,20 +47,20 @@ public class PostDoc {
 		return new PostDocBuilder();
 	}
 
-	public Long getId() {
+	public String getId() {
 		return id;
 	}
 
+	public void setId(String id) {
+		this.id = id;
+	}
+	
 	public String getCategoryName() {
 		return categoryName;
 	}
 
 	public void setCategoryName(String categoryName) {
 		this.categoryName = categoryName;
-	}
-
-	public void setId(Long id) {
-		this.id = id;
 	}
 
 	public String getContent() {
@@ -99,16 +104,17 @@ public class PostDoc {
 	}
 
 	public static final class PostDocBuilder {
-		private Long id;
+		private String id;
 		private String categoryName;
 		private String content;
 		private String title;
 		private Long categoryId;
+		private List<Long> commentIds;
 		private Long userId;
 		
 		public PostDocBuilder() {}
 		
-		public PostDocBuilder id(Long id) {
+		public PostDocBuilder id(String id) {
 			this.id = id;
 			return this;
 		}

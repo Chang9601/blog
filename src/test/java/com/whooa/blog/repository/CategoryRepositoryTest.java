@@ -4,10 +4,14 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.NoSuchElementException;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
@@ -29,26 +33,23 @@ import com.whooa.blog.util.PaginationUtil;
 public class CategoryRepositoryTest {
 	@Autowired
 	private CategoryRepository categoryRepository;
-	
-	private CategoryEntity categoryEntity1;
-	
+		
 	private PaginationUtil pagination;
 	private Pageable pageable;
 	
 	@BeforeEach
-	public void setUp() {
-		categoryEntity1 = new CategoryEntity().name("카테고리1");
-		
+	public void setUp() {		
 		pagination = new PaginationUtil();
 		pageable = pagination.makePageable();
 	}
 	
 	@DisplayName("카테고리를 생성하는데 성공한다.")
-	@Test
-	public void givenCategoryEntity_whenCallSaveForCreate_thenReturnCategoryEntity() {
+	@ParameterizedTest
+	@MethodSource("categoryParametersProvider")
+	public void givenCategoryEntity_whenCallSaveForCreate_thenReturnCategoryEntity(CategoryEntity categoryEntity) {
 		CategoryEntity savedCategoryEntity;
 		
-		savedCategoryEntity = categoryRepository.save(categoryEntity1);
+		savedCategoryEntity = categoryRepository.save(categoryEntity);
 		
 		assertTrue(savedCategoryEntity.getId() > 0);
 	}
@@ -62,11 +63,12 @@ public class CategoryRepositoryTest {
 	}
 	
 	@DisplayName("카테고리를 삭제하는데 성공한다.")
-	@Test
-	public void givenCategoryEntity_whenCallDelete_thenReturnNothing() {		
+	@ParameterizedTest
+	@MethodSource("categoryParametersProvider")
+	public void givenCategoryEntity_whenCallDelete_thenReturnNothing(CategoryEntity categoryEntity) {		
 		CategoryEntity savedCategoryEntity;
 		
-		savedCategoryEntity = categoryRepository.save(categoryEntity1);
+		savedCategoryEntity = categoryRepository.save(categoryEntity);
 		
 		categoryRepository.delete(savedCategoryEntity);
 		
@@ -82,11 +84,12 @@ public class CategoryRepositoryTest {
 	}
 	
 	@DisplayName("카테고리를 조회하는데 성공한다.")
-	@Test
-	public void givenId_whenCallFindById_thenReturnCategoryEntity() {		
+	@ParameterizedTest
+	@MethodSource("categoryParametersProvider")
+	public void givenId_whenCallFindById_thenReturnCategoryEntity(CategoryEntity categoryEntity) {		
 		CategoryEntity foundCategoryEntity, savedCategoryEntity;
 		
-		savedCategoryEntity = categoryRepository.save(categoryEntity1);
+		savedCategoryEntity = categoryRepository.save(categoryEntity);
 		foundCategoryEntity = categoryRepository.findById(savedCategoryEntity.getId()).get();
 
 		assertEquals(savedCategoryEntity.getName(), foundCategoryEntity.getName());	
@@ -101,8 +104,9 @@ public class CategoryRepositoryTest {
 	}
 	
 	@DisplayName("카테고리의 목록을 조회하는데 성공한다.")
-	@Test
-	public void givenPagination_whenCallFindAll_thenReturnCategoryEntities() {
+	@ParameterizedTest
+	@MethodSource("categoryParametersProvider")
+	public void givenPagination_whenCallFindAll_thenReturnCategoryEntities(CategoryEntity categoryEntity1) {
 		CategoryEntity categoryEntity2;
 		Page<CategoryEntity> page;
 		
@@ -117,11 +121,12 @@ public class CategoryRepositoryTest {
 	}
 	
 	@DisplayName("카테고리를 수정하는데 성공한다.")
-	@Test
-	public void givenCategoryEntity_whenCallSaveForUpdate_thenReturnUpdatedCategoryEntity() {		
-		CategoryEntity  foundCategoryEntity, savedCategoryEntity, updatedCategoryEntity; 
+	@ParameterizedTest
+	@MethodSource("categoryParametersProvider")
+	public void givenCategoryEntity_whenCallSaveForUpdate_thenReturnUpdatedCategoryEntity(CategoryEntity categoryEntity) {		
+		CategoryEntity foundCategoryEntity, savedCategoryEntity, updatedCategoryEntity; 
 		
-		savedCategoryEntity = categoryRepository.save(categoryEntity1);
+		savedCategoryEntity = categoryRepository.save(categoryEntity);
 		foundCategoryEntity = categoryRepository.findById(savedCategoryEntity.getId()).get();
 		
 		foundCategoryEntity.name("카테고리2");
@@ -136,6 +141,10 @@ public class CategoryRepositoryTest {
 	public void givenNull_whenCallSaveForUpdate_thenThrowInvalidDataAccessApiUsageException() {
 		assertThrows(InvalidDataAccessApiUsageException.class, () -> {
 			categoryRepository.save(null);
-		});		
+		});
+	}
+	
+	private static Stream<Arguments> categoryParametersProvider() {
+		return Stream.of(Arguments.of(new CategoryEntity().name("카테고리1")));
 	}
 }
