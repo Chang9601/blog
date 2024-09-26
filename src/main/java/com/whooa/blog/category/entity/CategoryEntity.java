@@ -12,7 +12,7 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 
 @Entity
-@Table(name = "category")
+@Table(name = "categories")
 public class CategoryEntity extends CoreEntity {
 	@Column(length = 300, nullable = false)
 	private String name;

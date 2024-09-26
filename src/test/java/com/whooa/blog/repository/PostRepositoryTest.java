@@ -6,9 +6,11 @@ import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -30,7 +32,6 @@ import com.whooa.blog.user.repository.UserRepository;
 import com.whooa.blog.user.type.UserRole;
 import com.whooa.blog.util.PaginationUtil;
 
-
 /* 
  * AuditingEntityListener 메서드는 @PrePersis와 @PreUpdate 상태에서 호출된다.
  * 즉, 삽입 혹은 수정 SQL 문장이 실행되기 전에 호출된다.
@@ -46,6 +47,7 @@ import com.whooa.blog.util.PaginationUtil;
 @DataJpaTest
 /* 인 메모리 데이테베이스가 아니라 MySQL을 사용하려면 Replace.NONE으로 설정한다. */
 @AutoConfigureTestDatabase(replace = Replace.NONE)
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class PostRepositoryTest {
 	@Autowired
 	private PostRepository postRepository;
@@ -54,37 +56,37 @@ public class PostRepositoryTest {
 	@Autowired
 	private UserRepository userRepository;
 	
-	private PostEntity postEntity1;
-	private CategoryEntity categoryEntity1;
-	private UserEntity userEntity;
+	private static CategoryEntity categoryEntity1;
+	private static UserEntity userEntity;
 	
 	private PaginationUtil pagination;
 	private Pageable pageable;
-
-	@BeforeEach
+	
+	@BeforeAll
 	public void setUp() {
 		categoryEntity1 = categoryRepository.save(new CategoryEntity().name("카테고리1"));
-				
-		userEntity = userRepository.save(new UserEntity()
-					.email("user@user.com")
-					.name("사용자")
-					.password("12345678Aa!@#$%")
-					.userRole(UserRole.USER));
 		
-		postEntity1 = new PostEntity()
-					.content("포스트")
-					.title("포스트")
-					.category(categoryEntity1)
-					.user(userEntity);
+		userEntity = userRepository.save(new UserEntity()
+				.email("user@user.com")
+				.name("사용자")
+				.password("12345678Aa!@#$%")
+				.userRole(UserRole.USER));
 		
 		pagination = new PaginationUtil();
 		pageable = pagination.makePageable();
+	}
+
+	@AfterAll
+	public void tearDown() {
+		userRepository.deleteAll();
+		categoryRepository.deleteAll();
+		postRepository.deleteAll();
 	}
 	
 	@DisplayName("포스트를 생성하는데 성공한다.")
 	@ParameterizedTest
 	@MethodSource("postParametersProvider")
-	public void givenPostEntity_whenCallSaveForCreate_thenReturnPostEntity() {
+	public void givenPostEntity_whenCallSaveForCreate_thenReturnPostEntity(PostEntity postEntity) {
 		/*
 		 * given: 설정.
 		 * when: 행위.
@@ -92,7 +94,7 @@ public class PostRepositoryTest {
 		 */
 		PostEntity savedPostEntity;
 		
-		savedPostEntity = postRepository.save(postEntity1);
+		savedPostEntity = postRepository.save(postEntity);
 		
 		assertTrue(savedPostEntity.getId() > 0);
 	}
@@ -106,11 +108,12 @@ public class PostRepositoryTest {
 	}
 	
 	@DisplayName("포스트를 삭제하는데 성공한다.")
-	@Test
-	public void givenPostEntity_whenCallDelete_thenReturnNothing() {		
+	@ParameterizedTest
+	@MethodSource("postParametersProvider")
+	public void givenPostEntity_whenCallDelete_thenReturnNothing(PostEntity postEntity) {		
 		PostEntity savedPostEntity;
 		
-		savedPostEntity = postRepository.save(postEntity1);
+		savedPostEntity = postRepository.save(postEntity);
 		
 		postRepository.delete(savedPostEntity);
 		/*
@@ -129,11 +132,12 @@ public class PostRepositoryTest {
 	}
 	
 	@DisplayName("포스트를 조회하는데 성공한다.")
-	@Test
-	public void givenId_whenCallFindById_thenReturnPostEntity() {		
+	@ParameterizedTest
+	@MethodSource("postParametersProvider")
+	public void givenId_whenCallFindById_thenReturnPostEntity(PostEntity postEntity) {		
 		PostEntity foundPostEntity, savedPostEntity;
 		
-		savedPostEntity = postRepository.save(postEntity1);
+		savedPostEntity = postRepository.save(postEntity);
 		foundPostEntity = postRepository.findById(savedPostEntity.getId()).get();
 
 		assertEquals(savedPostEntity.getTitle(), foundPostEntity.getTitle());
@@ -152,8 +156,9 @@ public class PostRepositoryTest {
 	}
 		
 	@DisplayName("포스트 목록을 조회하는데 성공한다.")
-	@Test
-	public void givenPagination_whenCallFindAll_thenReturnPostEntities() {
+	@ParameterizedTest
+	@MethodSource("postParametersProvider")
+	public void givenPagination_whenCallFindAll_thenReturnPostEntities(PostEntity postEntity1) {
 		PostEntity postEntity2;
 		Page<PostEntity> page;
 		
@@ -172,8 +177,9 @@ public class PostRepositoryTest {
 	}
 
 	@DisplayName("포스트 목록을 조회(카테고리 아이디)하는데 성공한다.")
-	@Test
-	public void givenPagination_whenCallfindByCategoryId_thenReturnPostEntitiesByCategoryId() {
+	@ParameterizedTest
+	@MethodSource("postParametersProvider")
+	public void givenPagination_whenCallfindByCategoryId_thenReturnPostEntitiesByCategoryId(PostEntity postEntity1) {
 		CategoryEntity categoryEntity2;
 		Page<PostEntity> page;
 		PostEntity postEntity2;
@@ -195,11 +201,12 @@ public class PostRepositoryTest {
 	}
 
 	@DisplayName("포스트를 수정하는데 성공한다.")
-	@Test
-	public void givenPostEntity_whenCallSaveForUpdate_thenReturnUpdatedPost() {		
+	@ParameterizedTest
+	@MethodSource("postParametersProvider")
+	public void givenPostEntity_whenCallSaveForUpdate_thenReturnUpdatedPost(PostEntity postEntity) {		
 		PostEntity foundPostEntity, savedPostEntity, updatedPostEntity;
 		
-		savedPostEntity = postRepository.save(postEntity1);
+		savedPostEntity = postRepository.save(postEntity);
 		foundPostEntity = postRepository.findById(savedPostEntity.getId()).get();
 		
 		foundPostEntity.content("포스트2").title("포스트2");
@@ -223,6 +230,7 @@ public class PostRepositoryTest {
 					.content("포스트")
 					.title("포스트")
 					.category(categoryEntity1)
-					.user(userEntity)));
+					.user(userEntity))
+				);
 	}	
 }

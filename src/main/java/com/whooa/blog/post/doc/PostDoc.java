@@ -1,5 +1,6 @@
 package com.whooa.blog.post.doc;
 
+import java.util.Date;
 import java.util.List;
 
 import org.springframework.data.annotation.Id;
@@ -9,6 +10,8 @@ import org.springframework.data.elasticsearch.annotations.FieldType;
 import org.springframework.data.elasticsearch.annotations.JoinTypeRelation;
 import org.springframework.data.elasticsearch.annotations.JoinTypeRelations;
 import org.springframework.data.elasticsearch.core.join.JoinField;
+
+import com.fasterxml.jackson.annotation.JsonFormat;
 
 @Document(indexName = "posts")
 public class PostDoc {
@@ -33,6 +36,9 @@ public class PostDoc {
 
 	@Field(type = FieldType.Keyword, name = "user_id")
 	private Long userId;
+	
+	@JsonFormat(pattern = "yyyy-MM-dd")
+	private Date createdAt;
 	
 	@JoinTypeRelations(
 		relations = {
@@ -145,16 +151,16 @@ public class PostDoc {
 		}
 		
 		public PostDoc build() {
-			PostDoc postDocument = new PostDoc();
+			PostDoc postDoc = new PostDoc();
 			
-			postDocument.setId(id);
-			postDocument.setCategoryName(categoryName);
-			postDocument.setContent(content);
-			postDocument.setTitle(title);
-			postDocument.setCategoryId(categoryId);
-			postDocument.setUserId(userId);
+			postDoc.setId(id);
+			postDoc.setCategoryName(categoryName);
+			postDoc.setContent(content);
+			postDoc.setTitle(title);
+			postDoc.setCategoryId(categoryId);
+			postDoc.setUserId(userId);
 			
-			return postDocument;
+			return postDoc;
 		}
 	}
 }

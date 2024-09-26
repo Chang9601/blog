@@ -9,14 +9,17 @@ import static org.mockito.Mockito.times;
 import java.nio.charset.StandardCharsets;
 
 import java.util.Optional;
+import java.util.stream.Stream;
 import java.util.List;
 
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -61,8 +64,7 @@ public class PostServiceTest {
 	private CategoryRepository categoryRepository;
 	@Mock
 	private UserRepository userRepository;
-	
-	@Mock	
+	@Mock
 	private FileService fileService;
 
 	/*
@@ -72,10 +74,6 @@ public class PostServiceTest {
 	@InjectMocks
 	private PostServiceImpl postServiceImpl;
 
-	private PostEntity postEntity1;
-	private CategoryEntity categoryEntity1;
-	private UserEntity userEntity1;
-	
 	private PostCreateRequest postCreate;
 	private PostUpdateRequest postUpdate;
 	private PostResponse post;
@@ -88,48 +86,16 @@ public class PostServiceTest {
 	private UserDetailsImpl userDetailsImpl;
 	
 	@BeforeAll
-	public void setUpAll() {		
-		pagination = new PaginationUtil();
-		
-		userDetailsImpl = new UserDetailsImpl(
-			new UserEntity()
-			.email("user1@user1.com")
-			.name("사용자1 이름")
-			.password("12345678Aa!@#$%")
-			.userRole(UserRole.USER)
-		);
-	}
-	
-	@BeforeEach
-	public void setUpEach() {
+	public void setUp() {
 		/*
 		 * mock() 메서드로 PostRepository 인터페이스의 모의 객체를 생성한다.
 	     * postRepository = Mockito.mock(PostRepository.class);
 		 * postServiceImpl = new PostServiceImpl(postRepository);
 		 */
-		String title, content;
-		
-		title = "포스트1";
-		content = "포스트1";
-		
-		categoryEntity1 = new CategoryEntity().name("카테고리1");
-		
-		userEntity1 = new UserEntity()
-					.email("user2@user2.com")
-					.name("사용자2 이름")
-					.password("12345678Aa!@#$%")
-					.userRole(UserRole.USER);
-			
-		postEntity1 = new PostEntity()
-					.content(content)
-					.title(title)
-					.category(categoryEntity1)
-					.user(userEntity1);
-
 		postCreate = new PostCreateRequest()
-					.categoryName(categoryEntity1.getName())
-					.content(content)
-					.title(title);
+					.categoryName("카테고리1")
+					.content("포스트1")
+					.title("포스트1");
 		
 		postUpdate = new PostUpdateRequest()
 					.categoryName("카테고리2")
@@ -142,25 +108,37 @@ public class PostServiceTest {
 		};
 		
 		file = new File("txt", uploadFiles[0].getContentType(), uploadFiles[0].getOriginalFilename(), "D:\\spring-workspace\\whooa-blog\\upload\\test1.txt", uploadFiles[0].getSize());
+		
+		UserEntity userEntity = new UserEntity()
+				.email("user1@naver.com")
+				.name("사용자1")
+				.password("12345678Aa!@#$%")
+				.userRole(UserRole.USER);
+		userEntity.setId(1L);
+		
+		pagination = new PaginationUtil();
+		
+		userDetailsImpl = new UserDetailsImpl(userEntity);
 	}
-	
+
 	@DisplayName("포스트(파일 X)를 생성하는데 성공한다.")
-	@Test
-	public void givenPostCreate_whenCallCreate_thenReturnPost() {
+	@ParameterizedTest
+	@MethodSource("postParametersProvider")
+	public void givenPostCreate_whenCallCreate_thenReturnPost(PostEntity postEntity, CategoryEntity categoryEntity, UserEntity userEntity) {
 		/*
 		 * org.mockito.exceptions.misusing.PotentialStubbingProblem 오류.
 		 * Mockito 2.20부터 lenient() 메서드로 Mockito의 기본 행동인 strict stub을 변경한다.
 		 * BDDMockito 클래스는 메소드를 설정된 응답을 반환하도록 스텁(stub)한다.
 		 * BDDMockito.lenient().when(postRepository.save(any(PostEntity.class))).thenReturn(postEntity); 
 		 */
-		given(postRepository.save(any(PostEntity.class))).willReturn(postEntity1);
-		given(categoryRepository.findByName(any(String.class))).willReturn(Optional.of(categoryEntity1));
-		given(userRepository.findById(any(Long.class))).willReturn(Optional.of(userEntity1));
+		given(postRepository.save(any(PostEntity.class))).willReturn(postEntity);
+		given(categoryRepository.findByName(any(String.class))).willReturn(Optional.of(categoryEntity));
+		given(userRepository.findById(any(Long.class))).willReturn(Optional.of(userEntity));
 		
 		post = postServiceImpl.create(postCreate, null, userDetailsImpl);
-				
+
 		assertNull(post.getFiles());
-		assertEquals(postEntity1.getTitle(), post.getTitle());
+		assertEquals(postEntity.getTitle(), post.getTitle());
 
 		then(postRepository).should(times(1)).save(any(PostEntity.class));
 		then(categoryRepository).should(times(1)).findByName(any(String.class));
@@ -169,18 +147,19 @@ public class PostServiceTest {
 	}
 	
 	@DisplayName("포스트(파일 O)를 생성하는데 성공한다.")
-	@Test
-	public void givenPostCreate_whenCallCreate_thenReturnPostWithFiles() {
-		given(postRepository.save(any(PostEntity.class))).willReturn(postEntity1);
-		given(categoryRepository.findByName(any(String.class))).willReturn(Optional.of(categoryEntity1));
-		given(userRepository.findById(any(Long.class))).willReturn(Optional.of(userEntity1));
+	@ParameterizedTest
+	@MethodSource("postParametersProvider")
+	public void givenPostCreate_whenCallCreate_thenReturnPostWithFiles(PostEntity postEntity, CategoryEntity categoryEntity, UserEntity userEntity) {
+		given(postRepository.save(any(PostEntity.class))).willReturn(postEntity);
+		given(categoryRepository.findByName(any(String.class))).willReturn(Optional.of(categoryEntity));
+		given(userRepository.findById(any(Long.class))).willReturn(Optional.of(userEntity));
 		given(fileService.upload(any(PostEntity.class), any(MultipartFile.class))).willReturn(file);
 		
 		post = postServiceImpl.create(postCreate, uploadFiles, userDetailsImpl);
 			
 		assertNotNull(post.getFiles());
 		assertEquals(file.getName(), post.getFiles().get(0).getName());
-		assertEquals(postEntity1.getTitle(), post.getTitle());
+		assertEquals(postEntity.getTitle(), post.getTitle());
 
 		then(postRepository).should(times(1)).save(any(PostEntity.class));
 		then(categoryRepository).should(times(1)).findByName(any(String.class));
@@ -217,25 +196,27 @@ public class PostServiceTest {
 	}	
 
 	@DisplayName("포스트를 삭제하는데 성공한다.")
-	@Test
-	public void givenId_whenCallDelete_thenReturnNothing() {
+	@ParameterizedTest
+	@MethodSource("postParametersProvider")
+	public void givenId_whenCallDelete_thenReturnNothing(PostEntity postEntity) {
 		/* void 반환타입을 가지는 메서드를 스텁할 경우 willDoNothing() 메서드를 사용한다. */
 		willDoNothing().given(postRepository).delete(any(PostEntity.class));
-		given(postRepository.findById(any(Long.class))).willReturn(Optional.of(postEntity1));
+		given(postRepository.findById(any(Long.class))).willReturn(Optional.of(postEntity));
 		
-		postServiceImpl.delete(postEntity1.getId(), userDetailsImpl);
+		postServiceImpl.delete(postEntity.getId(), userDetailsImpl);
 
 		then(postRepository).should(times(1)).delete(any(PostEntity.class));				
 		then(postRepository).should(times(1)).findById(any(Long.class));
 	}
 
 	@DisplayName("포스트가 존재하지 않아 삭제하는데 실패한다.")
-	@Test
-	public void givenId_whenCallDelete_thenThrowPostNotFoundException() {
+	@ParameterizedTest
+	@MethodSource("postParametersProvider")
+	public void givenId_whenCallDelete_thenThrowPostNotFoundException(PostEntity postEntity) {
 		given(postRepository.findById(any(Long.class))).willReturn(Optional.empty());
 		
 		assertThrows(PostNotFoundException.class, () -> {
-			postServiceImpl.delete(postEntity1.getId(), userDetailsImpl);
+			postServiceImpl.delete(postEntity.getId(), userDetailsImpl);
 		});
 
 		then(postRepository).should(times(0)).delete(any(PostEntity.class));				
@@ -243,12 +224,13 @@ public class PostServiceTest {
 	}
 
 	@DisplayName("포스트를 작성한 사용자와 일치하지 않아 삭제하는데 실패한다.")
-	@Test
-	public void givenId_whenCallDelete_thenThrowUserNotMatchedException() {
+	@ParameterizedTest
+	@MethodSource("postParametersProvider")
+	public void givenId_whenCallDelete_thenThrowUserNotMatchedException(PostEntity postEntity1, CategoryEntity categoryEntity, UserEntity userEntity1) {
 		UserEntity userEntity2;
 		
 		userEntity2 = new UserEntity()
-					.email("user2@user2.com")	
+					.email("user2@naver.com")	
 					.name("사용자2")
 					.password("12345678Aa!@#$%")
 					.userRole(UserRole.USER);
@@ -265,32 +247,35 @@ public class PostServiceTest {
 	}
 
 	@DisplayName("포스트를 조회하는데 성공한다.")
-	@Test
-	public void givenId_whenCallFind_thenReturnPost() {
-		given(postRepository.findById(any(Long.class))).willReturn(Optional.of(postEntity1));
+	@ParameterizedTest
+	@MethodSource("postParametersProvider")
+	public void givenId_whenCallFind_thenReturnPost(PostEntity postEntity) {
+		given(postRepository.findById(any(Long.class))).willReturn(Optional.of(postEntity));
 
-		post = postServiceImpl.find(postEntity1.getId());
+		post = postServiceImpl.find(postEntity.getId());
 		
-		assertEquals(postEntity1.getId(), post.getId());
+		assertEquals(postEntity.getId(), post.getId());
 		
 		then(postRepository).should(times(1)).findById(any(Long.class));
 	}
 	
 	@DisplayName("포스트를 조회하는데 실패한다.")
-	@Test
-	public void givenId_whenCallFind_thenThrowPostNotFoundException() {
+	@ParameterizedTest
+	@MethodSource("postParametersProvider")
+	public void givenId_whenCallFind_thenThrowPostNotFoundException(PostEntity postEntity) {
 		given(postRepository.findById(any(Long.class))).willReturn(Optional.empty());
 		
 		assertThrows(PostNotFoundException.class, () -> {
-			postServiceImpl.find(postEntity1.getId());
+			postServiceImpl.find(postEntity.getId());
 		});
 		
 		then(postRepository).should(times(1)).findById(any(Long.class));
 	}
 	
 	@DisplayName("포스트 목록을 조회하는데 성공한다.")
-	@Test
-	public void givenPagination_whenCallFindAll_thenReturnPosts() {
+	@ParameterizedTest
+	@MethodSource("postParametersProvider")
+	public void givenPagination_whenCallFindAll_thenReturnPosts(PostEntity postEntity1, CategoryEntity categoryEntity, UserEntity userEntity) {
 		PageResponse<PostResponse> page;
 		PostEntity postEntity2;
 		
@@ -298,7 +283,7 @@ public class PostServiceTest {
 					.content("포스트2")
 					.title("포스트2")
 					.category(new CategoryEntity().name("카테고리2"))
-					.user(userEntity1);
+					.user(userEntity);
 
 		given(postRepository.findAll(any(Pageable.class))).willReturn(new PageImpl<PostEntity>(List.of(postEntity1, postEntity2)));
 
@@ -310,8 +295,9 @@ public class PostServiceTest {
 	}
 	
 	@DisplayName("포스트 목록을 조회(카테고리 아이디)하는데 성공한다.")
-	@Test
-	public void givenPagination_whenCallFindAllByCategoryId_thenReturnPosts() {
+	@ParameterizedTest
+	@MethodSource("postParametersProvider")
+	public void givenPagination_whenCallFindAllByCategoryId_thenReturnPosts(PostEntity postEntity1, CategoryEntity categoryEntity1, UserEntity userEntity) {
 		CategoryEntity categoryEntity2;
 		PageResponse<PostResponse> page;
 		PostEntity postEntity2;
@@ -322,7 +308,7 @@ public class PostServiceTest {
 					.content("포스트2")
 					.title("포스트2")
 					.category(categoryEntity2)
-					.user(userEntity1);
+					.user(userEntity);
 			
 		given(postRepository.findByCategoryId(any(Long.class), any(Pageable.class))).willReturn(new PageImpl<PostEntity>(List.of(postEntity2)));
 		//given(categoryRepository.findById(any(Long.class))).willReturn(Optional.of(categoryEntity1));
@@ -336,8 +322,9 @@ public class PostServiceTest {
 	}
 	
 	@DisplayName("포스트(파일 X)를 수정하는데 성공한다.")
-	@Test
-	public void givenPostUpdate_whenCallUpdate_thenReturnPost() {
+	@ParameterizedTest
+	@MethodSource("postParametersProvider")
+	public void givenPostUpdate_whenCallUpdate_thenReturnPost(PostEntity postEntity1, CategoryEntity categoryEntity1, UserEntity userEntity) {
 		CategoryEntity categoryEntity2;
 		PostEntity postEntity2;
 		
@@ -347,7 +334,7 @@ public class PostServiceTest {
 					.content(postUpdate.getContent())
 					.title(postUpdate.getTitle())
 					.category(categoryEntity2)
-					.user(userEntity1);
+					.user(userEntity);
 		
 		given(postRepository.save(any(PostEntity.class))).willReturn(postEntity2);
 		given(postRepository.findById(any(Long.class))).willReturn(Optional.of(postEntity1));
@@ -366,8 +353,9 @@ public class PostServiceTest {
 	}
 	
 	@DisplayName("포스트(파일 O)를 수정하는데 성공한다.")
-	@Test
-	public void givenPostUpdate_whenCallUpdate_thenReturnPostWithFiles() {
+	@ParameterizedTest
+	@MethodSource("postParametersProvider")
+	public void givenPostUpdate_whenCallUpdate_thenReturnPostWithFiles(PostEntity postEntity1, CategoryEntity categoryEntity1, UserEntity userEntity) {
 		CategoryEntity categoryEntity2;
 		PostEntity postEntity2;
 		
@@ -377,7 +365,7 @@ public class PostServiceTest {
 					.content(postUpdate.getContent())
 					.title(postUpdate.getTitle())
 					.category(categoryEntity2)
-					.user(userEntity1);
+					.user(userEntity);
 
 		given(postRepository.save(any(PostEntity.class))).willReturn(postEntity2);
 		given(postRepository.findById(any(Long.class))).willReturn(Optional.of(postEntity1));
@@ -397,12 +385,13 @@ public class PostServiceTest {
 	}
 	
 	@DisplayName("포스트가 존재하지 않아 수정하는데 실패한다.")
-	@Test
-	public void givenPostUpdate_whenCallUpdate_thenThrowPostNotFoundException() {
+	@ParameterizedTest
+	@MethodSource("postParametersProvider")
+	public void givenPostUpdate_whenCallUpdate_thenThrowPostNotFoundException(PostEntity postEntity) {
 		given(postRepository.findById(any(Long.class))).willReturn(Optional.empty());
 
 		assertThrows(PostNotFoundException.class, () -> {
-			postServiceImpl.update(postEntity1.getId(), postUpdate, null, userDetailsImpl);			
+			postServiceImpl.update(postEntity.getId(), postUpdate, null, userDetailsImpl);			
 		});
 		
 		then(postRepository).should(times(0)).save(any(PostEntity.class));
@@ -412,13 +401,14 @@ public class PostServiceTest {
 	}
 	
 	@DisplayName("카테고리가 존재하지 않아 포스트를 수정하는데 실패한다.")
-	@Test
-	public void givenPostUpdate_whenCallUpdate_thenThrowCategoryNotFoundException() {
-		given(postRepository.findById(any(Long.class))).willReturn(Optional.of(postEntity1));
+	@ParameterizedTest
+	@MethodSource("postParametersProvider")
+	public void givenPostUpdate_whenCallUpdate_thenThrowCategoryNotFoundException(PostEntity postEntity) {
+		given(postRepository.findById(any(Long.class))).willReturn(Optional.of(postEntity));
 		given(categoryRepository.findByName(any(String.class))).willReturn(Optional.empty());
-		
+
 		assertThrows(CategoryNotFoundException.class, () -> {
-			postServiceImpl.update(postEntity1.getId(), postUpdate, null, userDetailsImpl);			
+			postServiceImpl.update(postEntity.getId(), postUpdate, null, userDetailsImpl);			
 		});
 
 		then(postRepository).should(times(0)).save(any(PostEntity.class));
@@ -428,27 +418,47 @@ public class PostServiceTest {
 	}
 	
 	@DisplayName("포스트를 생성한 사용자와 일치하지 않아 수정하는데 실패한다.")
-	@Test
-	public void givenPostUpdate_whenCallUpdate_thenUserNotMatchedException() {
+	@ParameterizedTest
+	@MethodSource("postParametersProvider")
+	public void givenPostUpdate_whenCallUpdate_thenUserNotMatchedException(PostEntity postEntity, CategoryEntity categoryEntity, UserEntity userEntity1) {
 		UserEntity userEntity2;
 		
 		userEntity2 = new UserEntity()
-				.email("user2@user2.com")	
+				.email("user2@naver.com")	
 				.name("사용자2")
 				.password("12345678Aa!@#$%")
 				.userRole(UserRole.USER);
 		userEntity2.setId(2L);
 		
-		given(postRepository.findById(any(Long.class))).willReturn(Optional.of(postEntity1));
-		given(categoryRepository.findByName(any(String.class))).willReturn(Optional.of(categoryEntity1));
+		given(postRepository.findById(any(Long.class))).willReturn(Optional.of(postEntity));
+		given(categoryRepository.findByName(any(String.class))).willReturn(Optional.of(categoryEntity));
 
 		assertThrows(UserNotMatchedException.class, () -> {
-			postServiceImpl.update(postEntity1.getId(), postUpdate, null, new UserDetailsImpl(userEntity2));			
+			postServiceImpl.update(postEntity.getId(), postUpdate, null, new UserDetailsImpl(userEntity2));			
 		});
 
 		then(postRepository).should(times(0)).save(any(PostEntity.class));
 		then(postRepository).should(times(1)).findById(any(Long.class));
 		then(categoryRepository).should(times(1)).findByName(any(String.class));
 		then(fileService).should(times(0)).upload(any(PostEntity.class), any(MultipartFile.class));
+	}
+	
+	private static Stream<Arguments> postParametersProvider() {
+		CategoryEntity categoryEntity = new CategoryEntity().name("카테고리1");
+		
+		UserEntity userEntity = new UserEntity()
+								.email("user1@naver.com")
+								.name("사용자1")
+								.password("12345678Aa!@#$%")
+								.userRole(UserRole.USER);
+		userEntity.setId(1L);
+			
+		PostEntity postEntity = new PostEntity()
+								.content("포스트1")
+								.title("포스트1")
+								.category(categoryEntity)
+								.user(userEntity);
+
+		return Stream.of(Arguments.of(postEntity, categoryEntity, userEntity));
 	}	
 }

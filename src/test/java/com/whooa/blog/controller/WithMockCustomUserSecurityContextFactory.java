@@ -7,7 +7,7 @@ import org.springframework.security.test.context.support.WithSecurityContextFact
 
 import com.whooa.blog.common.security.UserDetailsImpl;
 import com.whooa.blog.user.entity.UserEntity;
-import com.whooa.blog.util.UserRoleMapper;
+import com.whooa.blog.user.mapper.UserRoleMapper;
 
 public class WithMockCustomUserSecurityContextFactory implements WithSecurityContextFactory<WithMockCustomUser> {
 

@@ -1,4 +1,4 @@
-package com.whooa.blog.util;
+package com.whooa.blog.user.mapper;
 
 import com.whooa.blog.user.type.UserRole;
 import com.whooa.blog.user.type.UserRole.ROLE;

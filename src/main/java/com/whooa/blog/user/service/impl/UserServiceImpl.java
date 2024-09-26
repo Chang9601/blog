@@ -14,11 +14,11 @@ import com.whooa.blog.user.exception.InvalidCredentialsException;
 import com.whooa.blog.user.exception.SamePasswordException;
 import com.whooa.blog.user.exception.UserNotFoundException;
 import com.whooa.blog.user.mapper.UserMapper;
+import com.whooa.blog.user.mapper.UserRoleMapper;
 import com.whooa.blog.user.repository.UserRepository;
 import com.whooa.blog.user.service.UserService;
 import com.whooa.blog.util.PasswordUtil;
 import com.whooa.blog.util.StringUtil;
-import com.whooa.blog.util.UserRoleMapper;
 
 @Service
 public class UserServiceImpl implements UserService {

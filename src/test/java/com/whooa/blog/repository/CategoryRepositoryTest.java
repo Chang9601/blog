@@ -6,9 +6,12 @@ import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.stream.Stream;
 
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -30,6 +33,7 @@ import com.whooa.blog.util.PaginationUtil;
 @EnableJpaAuditing
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = Replace.NONE)
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class CategoryRepositoryTest {
 	@Autowired
 	private CategoryRepository categoryRepository;
@@ -37,12 +41,17 @@ public class CategoryRepositoryTest {
 	private PaginationUtil pagination;
 	private Pageable pageable;
 	
-	@BeforeEach
+	@BeforeAll
 	public void setUp() {		
 		pagination = new PaginationUtil();
 		pageable = pagination.makePageable();
 	}
 	
+	@AfterAll
+	public void tearDown() {
+		categoryRepository.deleteAll();
+	}
+
 	@DisplayName("카테고리를 생성하는데 성공한다.")
 	@ParameterizedTest
 	@MethodSource("categoryParametersProvider")

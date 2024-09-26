@@ -9,13 +9,15 @@ import static org.mockito.Mockito.times;
 import java.nio.charset.StandardCharsets;
 
 import java.util.Optional;
+import java.util.stream.Stream;
 
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.extension.ExtendWith;
-
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -49,10 +51,6 @@ public class AdminPostServiceTest {
 	
 	@InjectMocks
 	private AdminPostServiceImpl adminPostServiceImpl;
-	
-	private PostEntity postEntity1;
-	private CategoryEntity categoryEntity1;
-	private UserEntity userEntity1;
 
 	private PostUpdateRequest postUpdate;
 	private PostResponse post;
@@ -60,22 +58,8 @@ public class AdminPostServiceTest {
 	private File file;
     private MockMultipartFile[] uploadFiles;
     
-	@BeforeEach
-	public void setUpEach() {
-		categoryEntity1 = new CategoryEntity().name("카테고리1");
-		
-		userEntity1 = new UserEntity()
-					.email("user1@user1.com")
-					.name("사용자1")
-					.password("12345678Aa!@#$%")
-					.userRole(UserRole.USER);
-		
-		postEntity1 = new PostEntity()
-					.content("포스트1")
-					.title("포스트1")
-					.category(categoryEntity1)
-					.user(userEntity1);
-
+	@BeforeAll
+	public void setUp() {
 		postUpdate = new PostUpdateRequest()
 					.categoryName("카테고리2")
 					.content("포스트2")
@@ -90,25 +74,26 @@ public class AdminPostServiceTest {
 	}
 
 	@DisplayName("포스트를 삭제하는데 성공한다.")
-	@Test
-	public void givenId_whenCallDelete_thenReturnNothing() {
+	@ParameterizedTest
+	@MethodSource("postParametersProvider")
+	public void givenId_whenCallDelete_thenReturnNothing(PostEntity postEntity) {
 		willDoNothing().given(postRepository).delete(any(PostEntity.class));
-		given(postRepository.findById(any(Long.class))).willReturn(Optional.of(postEntity1));
+		given(postRepository.findById(any(Long.class))).willReturn(Optional.of(postEntity));
 		
-		adminPostServiceImpl.delete(postEntity1.getId());
+		adminPostServiceImpl.delete(postEntity.getId());
 
 		then(postRepository).should(times(1)).delete(any(PostEntity.class));				
 		then(postRepository).should(times(1)).findById(any(Long.class));
 	}
 	
-
 	@DisplayName("포스트가 존재하지 않아 삭제하는데 실패한다.")
-	@Test
-	public void givenId_whenCallDelete_thenThrowPostNotFoundException() {
+	@ParameterizedTest
+	@MethodSource("postParametersProvider")
+	public void givenId_whenCallDelete_thenThrowPostNotFoundException(PostEntity postEntity) {
 		given(postRepository.findById(any(Long.class))).willReturn(Optional.empty());
 		
 		assertThrows(PostNotFoundException.class, () -> {
-			adminPostServiceImpl.delete(postEntity1.getId());
+			adminPostServiceImpl.delete(postEntity.getId());
 		});
 
 		then(postRepository).should(times(0)).delete(any(PostEntity.class));				
@@ -116,8 +101,9 @@ public class AdminPostServiceTest {
 	}
 	
 	@DisplayName("포스트(파일 X)를 수정하는데 성공한다.")
-	@Test
-	public void givenPostUpdate_whenCallUpdate_thenReturnPost() {
+	@ParameterizedTest
+	@MethodSource("postParametersProvider")
+	public void givenPostUpdate_whenCallUpdate_thenReturnPost(PostEntity postEntity1, CategoryEntity categoryEntity1, UserEntity userEntity) {
 		CategoryEntity categoryEntity2;
 		PostEntity postEntity2;
 		
@@ -127,7 +113,7 @@ public class AdminPostServiceTest {
 					.content(postUpdate.getContent())
 					.title(postUpdate.getTitle())
 					.category(categoryEntity2)
-					.user(userEntity1);
+					.user(userEntity);
 			
 		given(postRepository.save(any(PostEntity.class))).willReturn(postEntity2);
 		given(postRepository.findById(any(Long.class))).willReturn(Optional.of(postEntity1));
@@ -146,8 +132,9 @@ public class AdminPostServiceTest {
 	}
 	
 	@DisplayName("포스트(파일 O)를 수정하는데 성공한다.")
-	@Test
-	public void givenPostUpdate_whenCallUpdate_thenReturnPostWithFiles() {
+	@ParameterizedTest
+	@MethodSource("postParametersProvider")
+	public void givenPostUpdate_whenCallUpdate_thenReturnPostWithFiles(PostEntity postEntity1, CategoryEntity categoryEntity1, UserEntity userEntity) {
 		CategoryEntity categoryEntity2;
 		PostEntity postEntity2;
 		
@@ -157,7 +144,7 @@ public class AdminPostServiceTest {
 					.content(postUpdate.getContent())
 					.title(postUpdate.getTitle())
 					.category(categoryEntity2)
-					.user(userEntity1);
+					.user(userEntity);
 
 		given(postRepository.save(any(PostEntity.class))).willReturn(postEntity2);
 		given(postRepository.findById(any(Long.class))).willReturn(Optional.of(postEntity1));
@@ -177,12 +164,13 @@ public class AdminPostServiceTest {
 	}
 	
 	@DisplayName("포스트가 존재하지 않아 수정하는데 실패한다.")
-	@Test
-	public void givenPostUpdate_whenCallUpdate_thenThrowPostNotFoundException() {
+	@ParameterizedTest
+	@MethodSource("postParametersProvider")
+	public void givenPostUpdate_whenCallUpdate_thenThrowPostNotFoundException(PostEntity postEntity) {
 		given(postRepository.findById(any(Long.class))).willReturn(Optional.empty());
 
 		assertThrows(PostNotFoundException.class, () -> {
-			adminPostServiceImpl.update(postEntity1.getId(), postUpdate, null);			
+			adminPostServiceImpl.update(postEntity.getId(), postUpdate, null);			
 		});
 		
 		then(postRepository).should(times(0)).save(any(PostEntity.class));
@@ -192,18 +180,38 @@ public class AdminPostServiceTest {
 	}
 	
 	@DisplayName("카테고리가 존재하지 않아 포스트를 수정하는데 실패한다.")
-	@Test
-	public void givenPostUpdate_whenCallUpdate_thenThrowCategoryNotFoundException() {
-		given(postRepository.findById(any(Long.class))).willReturn(Optional.of(postEntity1));
+	@ParameterizedTest
+	@MethodSource("postParametersProvider")
+	public void givenPostUpdate_whenCallUpdate_thenThrowCategoryNotFoundException(PostEntity postEntity) {
+		given(postRepository.findById(any(Long.class))).willReturn(Optional.of(postEntity));
 		given(categoryRepository.findByName(any(String.class))).willReturn(Optional.empty());
 		
 		assertThrows(CategoryNotFoundException.class, () -> {
-			adminPostServiceImpl.update(postEntity1.getId(), postUpdate, null);			
+			adminPostServiceImpl.update(postEntity.getId(), postUpdate, null);			
 		});
 
 		then(postRepository).should(times(0)).save(any(PostEntity.class));
 		then(postRepository).should(times(1)).findById(any(Long.class));
 		then(categoryRepository).should(times(1)).findByName(any(String.class));
 		then(fileService).should(times(0)).upload(any(PostEntity.class), any(MultipartFile.class));
-	}	
+	}
+	
+	private static Stream<Arguments> postParametersProvider() {
+		CategoryEntity categoryEntity = new CategoryEntity().name("카테고리1");
+		
+		UserEntity userEntity = new UserEntity()
+								.email("user1@naver.com")
+								.name("사용자1")
+								.password("12345678Aa!@#$%")
+								.userRole(UserRole.USER);
+		userEntity.setId(1L);
+			
+		PostEntity postEntity = new PostEntity()
+								.content("포스트1")
+								.title("포스트1")
+								.category(categoryEntity)
+								.user(userEntity);
+
+		return Stream.of(Arguments.of(postEntity, categoryEntity, userEntity));
+	}		
 }

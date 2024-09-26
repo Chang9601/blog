@@ -1,5 +1,10 @@
 package com.whooa.blog.post.service.impl;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+
 import org.springframework.stereotype.Service;
 
 import com.whooa.blog.category.entity.CategoryEntity;
@@ -11,23 +16,32 @@ import com.whooa.blog.common.security.UserDetailsImpl;
 import com.whooa.blog.post.doc.PostDoc;
 import com.whooa.blog.post.doc.PostDoc.PostDocBuilder;
 import com.whooa.blog.post.dto.PostDto.PostCreateRequest;
-import com.whooa.blog.post.dto.PostDto.PostResponse;
-import com.whooa.blog.post.mapper.PostMapper;
 import com.whooa.blog.post.repository.PostElasticsearchRepository;
 import com.whooa.blog.post.service.PostElasticsearchService;
+import com.whooa.blog.query.Index;
+import com.whooa.blog.query.QueryDto;
+import com.whooa.blog.query.QueryUtil;
+
+import co.elastic.clients.elasticsearch.ElasticsearchClient;
+import co.elastic.clients.elasticsearch.core.SearchRequest;
+import co.elastic.clients.elasticsearch.core.SearchResponse;
+import co.elastic.clients.elasticsearch.core.search.Hit;
+import co.elastic.clients.elasticsearch.core.search.HitsMetadata;
 
 @Service
 public class PostElasticsearchServiceImpl implements PostElasticsearchService {
 	private PostElasticsearchRepository postElasticsearchRepository;
 	private CategoryRepository categoryRepository;
+	private ElasticsearchClient elasticsearchClient;
 	
-	public PostElasticsearchServiceImpl(PostElasticsearchRepository postElasticsearchRepository, CategoryRepository categoryRepository) {
+	public PostElasticsearchServiceImpl(PostElasticsearchRepository postElasticsearchRepository, CategoryRepository categoryRepository, ElasticsearchClient elasticsearchClient) {
 		this.postElasticsearchRepository = postElasticsearchRepository;
 		this.categoryRepository = categoryRepository;
+		this.elasticsearchClient = elasticsearchClient;
 	}
 	
 	@Override
-	public PostResponse create(PostCreateRequest postCreate, UserDetailsImpl userDetailsImpl) {		
+	public PostDoc create(PostCreateRequest postCreate, UserDetailsImpl userDetailsImpl) {		
 		Long categoryId, userId;
 		String categoryName, content, title;
 		
@@ -48,34 +62,73 @@ public class PostElasticsearchServiceImpl implements PostElasticsearchService {
 							.categoryId(categoryId)
 							.userId(userId)
 							.build();
-	
-		PostResponse post = PostMapper.INSTANCE.toDto(postElasticsearchRepository.save(postDoc));
-		
-		return post;
+
+		return postDoc;
 	}
 
 	@Override
-	public PostResponse find(Long id) {
+	public PostDoc find(Long id) {
 		PostDoc postDocument = postElasticsearchRepository.findById(id).orElse(null);
 		
-		return PostMapper.INSTANCE.toDto(postDocument);
+		return postDocument;
 	}
 
 	@Override
-	public PageResponse<PostResponse> findByContent(String content) {
+	public PageResponse<PostDoc> findByContent(String content) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public PageResponse<PostResponse> findByTitle(String title) {
+	public PageResponse<PostDoc> findByTitle(String title) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public PageResponse<PostResponse> findByCategoryName(String categoryName) {
+	public PageResponse<PostDoc> findByCategoryName(String categoryName) {
 		// TODO Auto-generated method stub
 		return null;
+	}
+
+	@Override
+	public List<PostDoc> search(QueryDto queryDto) {
+		
+		System.out.println("?????");
+		
+		SearchRequest searchRequest = QueryUtil.buildSearchRequest(Index.POST_INDEX, queryDto);
+		
+		return searchHelper(searchRequest);
+	}
+	
+	public List<PostDoc> searchSince(Date date) {
+		SearchRequest searchRequest = QueryUtil.buildSearchRequest(Index.POST_INDEX, "createdAt", date);
+		
+		return searchHelper(searchRequest);
+	}
+	
+	private List<PostDoc> searchHelper(SearchRequest searchRequest) {
+		if (searchRequest == null) {
+			return Collections.emptyList();
+		}
+		
+		try {
+			SearchResponse searchResponse = elasticsearchClient.search(searchRequest, PostDoc.class);
+			
+			List<Hit<PostDoc>> searchHits = searchResponse.hits().hits();
+			
+			System.out.println(searchHits);
+			
+			List<PostDoc> posts = new ArrayList<>(searchHits.size());
+			
+			for (Hit<PostDoc> hit: searchHits) {
+				posts.add(hit.source());
+			}
+			
+			return posts;
+			
+		} catch (Exception exception) {
+			return Collections.emptyList();
+		}
 	}
 }

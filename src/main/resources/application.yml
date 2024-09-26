@@ -5,10 +5,10 @@ spring:
   # .env 파일을 가져온다.
   config:
     import: optional:file:.env[.properties]
-#  data:
-#    elasticsearch:
-#      repositories:
-#        enabled: true
+  data:
+    elasticsearch:
+      repositories:
+        enabled: true
 
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -16,10 +16,10 @@ spring:
     username: ${MYSQL_USERNAME}
     password: ${MYSQL_PASSWORD}
     
-#  elasticsearch:
-#    url: ${ELASTICSEARCH_URL}
-#    uris:
-#    - ${ELASTICSEARCH_URL}
+  elasticsearch:
+    url: ${ELASTICSEARCH_URL}
+    uris:
+    - ${ELASTICSEARCH_URL}
 
   servlet:
     multipart:

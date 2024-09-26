@@ -46,11 +46,11 @@ import com.whooa.blog.user.exception.InvalidCredentialsException;
 import com.whooa.blog.user.exception.SamePasswordException;
 import com.whooa.blog.user.exception.UserNotFoundException;
 import com.whooa.blog.user.mapper.UserMapper;
+import com.whooa.blog.user.mapper.UserRoleMapper;
 import com.whooa.blog.user.service.UserService;
 import com.whooa.blog.user.type.UserRole;
 import com.whooa.blog.util.PasswordUtil;
 import com.whooa.blog.util.SerializeDeserializeUtil;
-import com.whooa.blog.util.UserRoleMapper;
 
 @WebMvcTest(controllers = {UserController.class})
 @ContextConfiguration(classes = {UserController.class, TestSecurityConfig.class})

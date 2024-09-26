@@ -8,13 +8,15 @@ import static org.mockito.Mockito.times;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -43,76 +45,67 @@ public class AdminUserServiceTest {
 	@InjectMocks
 	private AdminUserServiceImpl adminUserServiceImpl;
 	
-	private UserEntity userEntity1;
-
 	private UserAdminUpdateRequest userAdminUpdate;
 	private UserResponse user;
 
 	private PaginationUtil pagination;
 	
 	@BeforeAll
-	public void setUpAll() {
-		pagination = new PaginationUtil();
-	}
-	
-	@BeforeEach
-	public void setUpEach() {
-		userEntity1 = new UserEntity()
-				.email("user1@user1.com")
-				.name("사용자1")
-				.password("12345678Aa!@#$%")
-				.userRole(UserRole.USER);
-		
+	public void setUp() {
 		userAdminUpdate = new UserAdminUpdateRequest()
-				.email("user2@user2.com")
-				.name("사용자2")
-				.password("12345678Aa!@#$%")
-				.userRole("MANAGER");
+						.email("user2@user2.com")
+						.name("사용자2")
+						.password("12345678Aa!@#$%")
+						.userRole("MANAGER");
 		
 		pagination = new PaginationUtil();
 	}
 	
 	@DisplayName("사용자를 삭제하는데 성공한다.")
-	@Test
-	public void givenNothing_whenCallDelete_thenReturnNothing() {
-		given(userRepository.save(any(UserEntity.class))).willReturn(userEntity1);
-		given(userRepository.findByIdAndActiveTrue(any(Long.class))).willReturn(Optional.of(userEntity1));
+	@ParameterizedTest
+	@MethodSource("userParametersProvider")
+	public void givenNothing_whenCallDelete_thenReturnNothing(UserEntity userEntity) {
+		given(userRepository.save(any(UserEntity.class))).willReturn(userEntity);
+		given(userRepository.findByIdAndActiveTrue(any(Long.class))).willReturn(Optional.of(userEntity));
 		
-		adminUserServiceImpl.delete(userEntity1.getId());
+		adminUserServiceImpl.delete(userEntity.getId());
 		
-		assertFalse(userEntity1.getActive());
+		assertFalse(userEntity.getActive());
 	
 		then(userRepository).should(times(1)).save(any(UserEntity.class));
 		then(userRepository).should(times(1)).findByIdAndActiveTrue(any(Long.class));
 	}
 	
 	@DisplayName("사용자를 조회하는데 성공한다.")
-	@Test
-	public void givenId_whenCallFind_thenReturnUser() {
-		given(userRepository.findByIdAndActiveTrue(any(Long.class))).willReturn(Optional.of(userEntity1));
+	@ParameterizedTest
+	@MethodSource("userParametersProvider")
+	public void givenId_whenCallFind_thenReturnUser(UserEntity userEntity) {
+		given(userRepository.findByIdAndActiveTrue(any(Long.class))).willReturn(Optional.of(userEntity));
 		
-		user = adminUserServiceImpl.find(userEntity1.getId());
+		user = adminUserServiceImpl.find(userEntity.getId());
 		
-		assertEquals(userEntity1.getId(), user.getId());
+		assertEquals(userEntity.getId(), user.getId());
 
 		then(userRepository).should(times(1)).findByIdAndActiveTrue(any(Long.class));
 	}
 
 	@DisplayName("사용자를 조회하는데 실패한다.")
-	@Test
-	public void givenId_whenCallFind_thenThrowUserNotFoundException() {
+	@ParameterizedTest
+	@MethodSource("userParametersProvider")
+	public void givenId_whenCallFind_thenThrowUserNotFoundException(UserEntity userEntity) {
 		given(userRepository.findByIdAndActiveTrue(any(Long.class))).willReturn(Optional.empty());
 		
 		assertThrows(UserNotFoundException.class, () -> {
-			adminUserServiceImpl.find(userEntity1.getId());
+			adminUserServiceImpl.find(userEntity.getId());
 		});
 	
 		then(userRepository).should(times(1)).findByIdAndActiveTrue(any(Long.class));
 	}
 	
 	@DisplayName("사용자 목록을 조회하는데 성공한다.")
-	@Test
-	public void givenPagination_whenCallFindAll_thenReturnUsers() {
+	@ParameterizedTest
+	@MethodSource("userParametersProvider")
+	public void givenPagination_whenCallFindAll_thenReturnUsers(UserEntity userEntity1) {
 		UserEntity userEntity2;
 		
 		userEntity2 = new UserEntity()
@@ -131,8 +124,9 @@ public class AdminUserServiceTest {
 	}
 	
 	@DisplayName("사용자를 수정하는데 성공한다.")
-	@Test
-	public void givenUserAdminUpdate_whenCallFindAll_thenReturnUsers() {
+	@ParameterizedTest
+	@MethodSource("userParametersProvider")
+	public void givenUserAdminUpdate_whenCallFindAll_thenReturnUsers(UserEntity userEntity1) {
 		UserEntity userEntity2;
 	
 		userEntity2 = new UserEntity()
@@ -156,13 +150,14 @@ public class AdminUserServiceTest {
 	}
 	
 	@DisplayName("이메일을 사용하는 사용자가 이미 존재하여 수정하는데 실패한다.")
-	@Test
-	public void givenUserAdminUpdate_whenCallFindAll_thenThrowDuplicateUserException() {		
+	@ParameterizedTest
+	@MethodSource("userParametersProvider")
+	public void givenUserAdminUpdate_whenCallFindAll_thenThrowDuplicateUserException(UserEntity userEntity) {		
 		given(userRepository.existsByEmail(any(String.class))).willReturn(true);
-		given(userRepository.findByIdAndActiveTrue(any(Long.class))).willReturn(Optional.of(userEntity1));
+		given(userRepository.findByIdAndActiveTrue(any(Long.class))).willReturn(Optional.of(userEntity));
 
 		assertThrows(DuplicateUserException.class, () -> {
-			adminUserServiceImpl.update(userEntity1.getId(), userAdminUpdate); 
+			adminUserServiceImpl.update(userEntity.getId(), userAdminUpdate); 
 		});
 					
 		then(userRepository).should(times(0)).save(any(UserEntity.class));
@@ -171,16 +166,28 @@ public class AdminUserServiceTest {
 	}	
 	
 	@DisplayName("사용자가 존재하지 않아 수정하는데 실패한다.")
-	@Test
-	public void givenUserAdminUpdate_whenCallFindAll_thenThrowUserNotFoundException() {		
+	@ParameterizedTest
+	@MethodSource("userParametersProvider")
+	public void givenUserAdminUpdate_whenCallFindAll_thenThrowUserNotFoundException(UserEntity userEntity) {		
 		given(userRepository.findByIdAndActiveTrue(any(Long.class))).willReturn(Optional.empty());
 		
 		assertThrows(UserNotFoundException.class, () -> {
-			adminUserServiceImpl.update(userEntity1.getId(), userAdminUpdate);
+			adminUserServiceImpl.update(userEntity.getId(), userAdminUpdate);
 		});
 						
 		then(userRepository).should(times(0)).save(any(UserEntity.class));
 		then(userRepository).should(times(0)).existsByEmail(any(String.class));
 		then(userRepository).should(times(1)).findByIdAndActiveTrue(any(Long.class));
+	}
+	
+	private static Stream<Arguments> userParametersProvider() {		
+		UserEntity userEntity = new UserEntity()
+								.email("user1@naver.com")
+								.name("사용자1")
+								.password("12345678Aa!@#$%")
+								.userRole(UserRole.USER);
+		userEntity.setId(1L);
+			
+		return Stream.of(Arguments.of(userEntity));
 	}	
 }

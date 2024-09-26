@@ -7,12 +7,16 @@ import static org.mockito.BDDMockito.*;
 import static org.mockito.Mockito.times;
 
 import java.util.Optional;
+import java.util.stream.Stream;
 
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -37,41 +41,41 @@ public class UserServiceTest {
 	@InjectMocks
 	private UserServiceImpl userServiceImpl;
 	
-	private UserEntity userEntity1;
-
 	private UserCreateRequest userCreate;
 	private UserResponse user;
 		
 	private UserDetailsImpl userDetailsImpl;
 
-	@BeforeEach
-	public void setUpEach() {
+	@BeforeAll
+	public void setUp() {
 		String email, name, password, userRole;
 		
-		email = "user1@user1.com";
+		email = "user1@naver.com";
 		name = "사용자1";
 		password = "12345678Aa!@#$%";
 		userRole = "USER";
 		
-		userEntity1 = new UserEntity()
-					.email(email)
-					.name(name)
-					.password(password)
-					.userRole(UserRole.USER);
-		
+		UserEntity userEntity = new UserEntity()
+				.email(email)
+				.name(name)
+				.password(password)
+				.userRole(UserRole.USER);
+		userEntity.setId(1L);
+	
 		userCreate = new UserCreateRequest()
 					.email(email)
 					.name(name)
 					.password(password)
 					.userRole(userRole);
 				
-		userDetailsImpl = new UserDetailsImpl(userEntity1);
+		userDetailsImpl = new UserDetailsImpl(userEntity);
 	}
 	
 	@DisplayName("회원가입에 성공한다.")
-	@Test
-	public void givenUserCreate_whenCallCreate_thenReturnUser() {
-		given(userRepository.save(any(UserEntity.class))).willReturn(userEntity1);
+	@ParameterizedTest
+	@MethodSource("userParametersProvider")
+	public void givenUserCreate_whenCallCreate_thenReturnUser(UserEntity userEntity) {
+		given(userRepository.save(any(UserEntity.class))).willReturn(userEntity);
 		given(userRepository.existsByEmail(any(String.class))).willReturn(false);
 		
 		user = userServiceImpl.create(userCreate);
@@ -107,14 +111,15 @@ public class UserServiceTest {
 	}
 	
 	@DisplayName("회원탈퇴에 성공한다.")
-	@Test
-	public void givenNothing_whenCallDelete_thenReturnNothing() {
-		given(userRepository.save(any(UserEntity.class))).willReturn(userEntity1);
-		given(userRepository.findByIdAndActiveTrue(any(Long.class))).willReturn(Optional.of(userEntity1));
+	@ParameterizedTest
+	@MethodSource("userParametersProvider")
+	public void givenNothing_whenCallDelete_thenReturnNothing(UserEntity userEntity) {
+		given(userRepository.save(any(UserEntity.class))).willReturn(userEntity);
+		given(userRepository.findByIdAndActiveTrue(any(Long.class))).willReturn(Optional.of(userEntity));
 
 		userServiceImpl.delete(userDetailsImpl);
 		
-		assertFalse(userEntity1.getActive());
+		assertFalse(userEntity.getActive());
 	
 		then(userRepository).should(times(1)).save(any(UserEntity.class));
 		then(userRepository).should(times(1)).findByIdAndActiveTrue(any(Long.class));
@@ -134,13 +139,14 @@ public class UserServiceTest {
 	}
 		
 	@DisplayName("회원조회에 성공한다.")
-	@Test
-	public void givenUserDetailsImpl_whenCallFind_thenReturnUser() {
-		given(userRepository.findByIdAndActiveTrue(any(Long.class))).willReturn(Optional.of(userEntity1));
+	@ParameterizedTest
+	@MethodSource("userParametersProvider")
+	public void givenUserDetailsImpl_whenCallFind_thenReturnUser(UserEntity userEntity) {
+		given(userRepository.findByIdAndActiveTrue(any(Long.class))).willReturn(Optional.of(userEntity));
 		
 		user = userServiceImpl.find(userDetailsImpl);
 		
-		assertEquals(userEntity1.getId(), user.getId());
+		assertEquals(userEntity.getId(), user.getId());
 		
 		then(userRepository).should(times(1)).findByIdAndActiveTrue(any(Long.class));
 	}
@@ -156,4 +162,15 @@ public class UserServiceTest {
 	
 		then(userRepository).should(times(1)).findByIdAndActiveTrue(any(Long.class));
 	}
+	
+	private static Stream<Arguments> userParametersProvider() {		
+		UserEntity userEntity = new UserEntity()
+								.email("user1@naver.com")
+								.name("사용자1")
+								.password("12345678Aa!@#$%")
+								.userRole(UserRole.USER);
+		userEntity.setId(1L);
+			
+		return Stream.of(Arguments.of(userEntity));
+	}		
 }

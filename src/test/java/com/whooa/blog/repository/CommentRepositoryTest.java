@@ -2,11 +2,15 @@ package com.whooa.blog.repository;
 
 import java.util.NoSuchElementException;
 import java.util.Optional;
+import java.util.stream.Stream;
 
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,6 +38,7 @@ import static org.junit.jupiter.api.Assertions.*;
 @EnableJpaAuditing
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = Replace.NONE)
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class CommentRepositoryTest {
 	@Autowired
 	private CommentRepository commentRepository;
@@ -44,15 +49,14 @@ public class CommentRepositoryTest {
 	@Autowired
 	private UserRepository userRepository;
 	
-	private CommentEntity commentEntity1;
-	private CategoryEntity categoryEntity;
-	private PostEntity postEntity;
-	private UserEntity userEntity;
+	private static CategoryEntity categoryEntity;
+	private static PostEntity postEntity;
+	private static UserEntity userEntity;
 
 	private PaginationUtil pagination;
 	private Pageable pageable;
-
-	@BeforeEach
+	
+	@BeforeAll
 	public void setUp() {
 		categoryEntity = categoryRepository.save(new CategoryEntity().name("카테고리"));
 
@@ -67,14 +71,16 @@ public class CommentRepositoryTest {
 					.title("포스트")
 					.category(categoryEntity)
 					.user(userEntity));
-		
-		commentEntity1 = new CommentEntity()
-						.content("댓글1")
-						.post(postEntity)
-						.user(userEntity);
-		
+	
 		pagination = new PaginationUtil();
 		pageable = pagination.makePageable();
+	}
+	
+	@AfterAll
+	public void tearDown() {
+		postRepository.deleteAll();
+		categoryRepository.deleteAll();
+		userRepository.deleteAll();
 	}
 	
 	@DisplayName("댓글을 생성하는데 성공한다.")
@@ -220,4 +226,13 @@ public class CommentRepositoryTest {
 			commentRepository.save(null);
 		});
 	}
+	
+	private static Stream<Arguments> commentParametersProvider() {
+		return Stream.of(Arguments.of(
+						new CommentEntity()
+						.content("댓글1")
+						.post(postEntity)
+						.user(userEntity))
+				);
+	}	
 }

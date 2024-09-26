@@ -17,11 +17,11 @@ import com.whooa.blog.user.entity.UserEntity;
 import com.whooa.blog.user.exception.DuplicateUserException;
 import com.whooa.blog.user.exception.UserNotFoundException;
 import com.whooa.blog.user.mapper.UserMapper;
+import com.whooa.blog.user.mapper.UserRoleMapper;
 import com.whooa.blog.user.repository.UserRepository;
 import com.whooa.blog.util.PaginationUtil;
 import com.whooa.blog.util.PasswordUtil;
 import com.whooa.blog.util.StringUtil;
-import com.whooa.blog.util.UserRoleMapper;
 
 @Service
 public class AdminUserServiceImpl implements AdminUserService {

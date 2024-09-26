@@ -76,7 +76,7 @@ public class UserEntity extends CoreEntity {
 	public UserEntity() {
 		super(-1L);
 	}
-	
+		
 	public UserEntity active(Boolean active) {
 		this.active = active;
 		return this;

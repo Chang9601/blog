@@ -12,7 +12,7 @@ import org.springframework.data.elasticsearch.repository.config.EnableElasticsea
 @EnableElasticsearchRepositories(
 	basePackages = "com.whooa.blog.post.repository"
 )
-public class ElasticsearchConfig extends ElasticsearchConfiguration {
+public class ElasticsearchClientConfig extends ElasticsearchConfiguration {
 	
 	@Value("${spring.elasticsearch.url}")
 	private String url;
