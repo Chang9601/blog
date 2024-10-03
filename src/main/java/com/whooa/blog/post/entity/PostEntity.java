@@ -52,57 +52,9 @@ public class PostEntity extends CoreEntity {
 	 * List, Set과 같은 자료구조는 엔티티 생성 시 바로 초기화를 하기 때문에 생성자에 포함하지 않는다.
 	 * 포함하면 게터에서 NullPointerException이 발생한다. 
 	 */
-	public PostEntity(Long id, String content, String title) {
-		super(id);
-		
-		this.content = content;
-		this.title = title;
-	}
 
 	public PostEntity() {
-		super(-1L);
-	}
-	
-	public PostEntity content(String content) {
-		this.content = content;
-		return this;
-	}
-
-	public PostEntity title(String title) {
-		this.title = title;
-		return this;
-	}
-	
-	public PostEntity files(List<File> files) {
-		this.files = files;
-		return this;
-	}
-
-	public PostEntity category(CategoryEntity category) {
-		if (this.category != null) {
-			this.category.getPosts().remove(this);
-		}
-		
-		this.category = category;
-		category.getPosts().add(this);
-		
-		return this;
-	}
-
-	public PostEntity comments(List<CommentEntity> comments) {
-		this.comments = comments;
-		return this;
-	}
-
-	public PostEntity user(UserEntity user) {
-		if (this.user != null) {
-			this.user.getPosts().remove(this);
-		}
-
-		this.user = user;
-		user.getPosts().add(this);
-		
-		return this;
+		super(0L);
 	}
 	
 	public Long getId() {
@@ -175,5 +127,80 @@ public class PostEntity extends CoreEntity {
 	public String toString() {
 		return "PostEntity [id=" + super.getId() + ", content=" + content + ", title=" + title + ", files=" + files + ", category=" + category
 				+ ", comments=" + comments + ", user=" + user + "]";
+	}
+	
+	public static PostEntityBuilder builder() {
+		return new PostEntityBuilder();
+	}
+	
+	public static final class PostEntityBuilder {
+		private Long id;
+		private String content;
+		private String title;
+		private List<File> files;
+		private CategoryEntity category;
+		private List<CommentEntity> comments;
+		private UserEntity user;
+		
+		private PostEntityBuilder() {}
+		
+		public PostEntityBuilder id(Long id) {
+			this.id = id;
+			return this;
+		}
+		
+		public PostEntityBuilder content(String content) {
+			this.content = content;
+			return this;
+		}
+		
+		public PostEntityBuilder title(String title) {
+			this.title = title;
+			return this;
+		}
+		
+		public PostEntityBuilder files(List<File> files) {
+			this.files = files;
+			return this;
+		}
+		
+		public PostEntityBuilder category(CategoryEntity category) {
+			this.category = category;
+			return this;
+		}
+		
+		public PostEntityBuilder comments(List<CommentEntity> comments) {
+			this.comments = comments;
+			return this;
+		}
+		
+		public PostEntityBuilder user(UserEntity user) {
+			this.user = user;
+			return this;
+		}
+		
+		public PostEntity build() {
+			PostEntity postEntity = new PostEntity();
+			
+			if (id != null) {
+				postEntity.setId(id);
+			}
+			
+			postEntity.setContent(content);
+			postEntity.setTitle(title);
+			
+			if (files != null) {
+				postEntity.setFiles(files);
+			}
+			
+			postEntity.setCategory(category);
+			postEntity.setUser(user);
+			
+			if (comments != null) {
+				postEntity.setComments(comments);
+			}
+			
+			return postEntity;
+		}
 	}
 }

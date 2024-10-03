@@ -40,7 +40,7 @@ public class AdminPostServiceImpl implements AdminPostService {
 	public void delete(Long id) {
 		PostEntity postEntity;
 		
-		postEntity = postRepository.findById(id).orElseThrow(() -> new PostNotFoundException(Code.NOT_FOUND, new String[] {"포스트가 존재하지 않습니다."}));
+		postEntity = find(id);
 				
 		postRepository.delete(postEntity);
 	}
@@ -53,7 +53,7 @@ public class AdminPostServiceImpl implements AdminPostService {
 		PostResponse post;
 		PostEntity postEntity;
 		
-		postEntity = postRepository.findById(id).orElseThrow(() -> new PostNotFoundException(Code.NOT_FOUND, new String[] {"포스트가 존재하지 않습니다."}));
+		postEntity = find(id);		
 		categoryEntity = categoryRepository.findByName(postUpdate.getCategoryName()).orElseThrow(() -> new CategoryNotFoundException(Code.NOT_FOUND, new String[] {"카테고리가 존재하지 않습니다."}));
 
 		categoryName = postUpdate.getCategoryName();
@@ -61,15 +61,15 @@ public class AdminPostServiceImpl implements AdminPostService {
 		title = postUpdate.getContent();
 
 		if (StringUtil.notEmpty(categoryName)) {
-			postEntity.category(categoryEntity);
+			postEntity.setCategory(categoryEntity);
 		}
 		
 		if (StringUtil.notEmpty(content)) {
-			postEntity.content(postUpdate.getContent());
+			postEntity.setContent(postUpdate.getContent());
 		}
 		
 		if (StringUtil.notEmpty(title)) {
-			postEntity.title(postUpdate.getTitle());
+			postEntity.setTitle(postUpdate.getTitle());
 		}
 
 		if (uploadFiles != null && uploadFiles.length > 0) {
@@ -82,5 +82,9 @@ public class AdminPostServiceImpl implements AdminPostService {
 		post.setFiles(files);
 		
 		return post;
+	}
+	
+	private PostEntity find(Long id) {
+		return postRepository.findById(id).orElseThrow(() -> new PostNotFoundException(Code.NOT_FOUND, new String[] {"포스트가 존재하지 않습니다."}));
 	}
 }

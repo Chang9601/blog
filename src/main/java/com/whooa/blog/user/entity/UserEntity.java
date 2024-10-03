@@ -59,62 +59,8 @@ public class UserEntity extends CoreEntity {
 	@OneToMany(mappedBy = "user")
 	private List<PostEntity> posts = new ArrayList<PostEntity>();
 
-	public UserEntity(Long id, Boolean active, String email, String name, String password, String passwordResetToken,
-			LocalDateTime passwordResetTokenExpiration, String refreshToken, UserRole userRole) {
-		super(id);
-		
-		this.active = active;
-		this.email = email;
-		this.name = name;
-		this.password = password;
-		this.passwordResetToken = passwordResetToken;
-		this.passwordResetTokenExpiration = passwordResetTokenExpiration;
-		this.refreshToken = refreshToken;
-		this.userRole = userRole;
-	}
-
 	public UserEntity() {
-		super(-1L);
-	}
-		
-	public UserEntity active(Boolean active) {
-		this.active = active;
-		return this;
-	}
-	
-	public UserEntity email(String email) {
-		this.email = email;
-		return this;
-	}
-	
-	public UserEntity name(String name) {
-		this.name = name;
-		return this;
-	}
-	
-	public UserEntity oAuth2Provider(OAuth2Provider oAuth2Provider) {
-		this.oAuth2Provider = oAuth2Provider;
-		return this;
-	}
-	
-	public UserEntity oAuth2ProviderId(String oAuth2ProviderId) {
-		this.oAuth2ProviderId = oAuth2ProviderId;
-		return this;
-	}
-	
-	public UserEntity password(String password) {
-		this.password = password;
-		return this;
-	}
-	
-	public UserEntity refreshToken(String refreshToken) {
-		this.refreshToken = refreshToken;
-		return this;
-	}
-	
-	public UserEntity userRole(UserRole userRole) {
-		this.userRole = userRole;
-		return this;
+		super(0L);
 	}
 
 	public Boolean getActive() {
@@ -220,5 +166,140 @@ public class UserEntity extends CoreEntity {
 				+ passwordResetTokenExpiration + ", oAuth2Provider=" + oAuth2Provider + ", oAuth2ProviderId="
 				+ oAuth2ProviderId + ", refreshToken=" + refreshToken + ", userRole=" + userRole + ", comments="
 				+ comments + ", posts=" + posts + "]";
+	}
+	
+	public static UserEntityBuilder builder() {
+		return new UserEntityBuilder();
+	}
+	
+	public static final class UserEntityBuilder {
+		private Long id;
+		private Boolean active;
+		private String email;
+		private String name;
+		private String password;
+		private String passwordResetToken;
+		private LocalDateTime passwordResetTokenExpiration;
+		private OAuth2Provider oAuth2Provider;
+		private String oAuth2ProviderId;
+		private String refreshToken;
+		private UserRole userRole;
+		private List<CommentEntity> comments;
+		private List<PostEntity> posts;		
+		
+		private UserEntityBuilder() {}
+		
+		public UserEntityBuilder id(Long id) {
+			this.id = id;
+			return this;
+		}
+		
+		public UserEntityBuilder active(Boolean active) {
+			this.active = active;
+			return this;
+		}
+		
+		public UserEntityBuilder email(String email) {
+			this.email = email;
+			return this;
+		}
+		
+		public UserEntityBuilder name(String name) {
+			this.name = name;
+			return this;
+		}
+		
+		public UserEntityBuilder password(String password) {
+			this.password = password;
+			return this;
+		}
+		
+		public UserEntityBuilder passwordResetToken(String passwordResetToken) {
+			this.passwordResetToken = passwordResetToken;
+			return this;
+		}
+		
+		public UserEntityBuilder passwordResetTokenExpiration(LocalDateTime passwordResetTokenExpiration) {
+			this.passwordResetTokenExpiration = passwordResetTokenExpiration;
+			return this;
+		}
+		
+		public UserEntityBuilder oAuth2Provider(OAuth2Provider oAuth2Provider) {
+			this.oAuth2Provider = oAuth2Provider;
+			return this;
+		}
+		
+		public UserEntityBuilder oAuth2ProviderId(String oAuth2ProviderId) {
+			this.oAuth2ProviderId = oAuth2ProviderId;
+			return this;
+		}
+		
+		public UserEntityBuilder refreshToken(String refreshToken) {
+			this.refreshToken = refreshToken;
+			return this;
+		}
+		
+		public UserEntityBuilder userRole(UserRole userRole) {
+			this.userRole = userRole;
+			return this;
+		}
+		
+		public UserEntityBuilder comments(List<CommentEntity> comments) {
+			this.comments = comments;
+			return this;
+		}
+		
+		public UserEntityBuilder posts(List<PostEntity> posts) {
+			this.posts = posts;
+			return this;
+		}
+		
+		public UserEntity build() {
+			UserEntity userEntity = new UserEntity();
+
+			if (id != null) {
+				userEntity.setId(id);
+			}
+			
+			if (active != null) {
+				userEntity.setActive(active);
+			}
+			
+			userEntity.setEmail(email);
+			userEntity.setName(name);
+			userEntity.setPassword(password);
+
+			if (passwordResetToken != null) {
+				userEntity.setPasswordResetToken(passwordResetToken);
+			}
+			
+			if (passwordResetTokenExpiration != null) {
+				userEntity.setPasswordResetTokenExpiration(passwordResetTokenExpiration);
+			}
+			
+			if (oAuth2Provider != null) {
+				userEntity.setOAuth2Provider(oAuth2Provider);
+			}
+			
+			if (oAuth2ProviderId != null) {
+				userEntity.setOAuth2ProviderId(oAuth2ProviderId);
+			}
+
+			if (refreshToken != null) {
+				userEntity.setRefreshToken(refreshToken);
+			}
+			
+			userEntity.setUserRole(userRole);
+			
+			if (comments != null) {
+				userEntity.setComments(comments);
+			}
+			
+			if (posts != null) {
+				userEntity.setPosts(posts);
+			}
+			
+			return userEntity;
+		}
 	}
 }

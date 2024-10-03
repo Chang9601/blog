@@ -75,17 +75,21 @@ public class AdminPostControllerTest {
 	@BeforeAll
 	public void setUpAll() {
 		mockMvc = MockMvcBuilders
-				.webAppContextSetup(webApplicationContext)
-				.addFilter(new CharacterEncodingFilter("utf-8", true))
-				.apply(springSecurity()).build();
+					.webAppContextSetup(webApplicationContext)
+					.addFilter(new CharacterEncodingFilter("utf-8", true))
+					.apply(springSecurity()).build();
 				
-		categoryEntity = new CategoryEntity().name("카테고리");
+		categoryEntity = CategoryEntity.builder()
+							.name("카테고리")
+							.build();
 
-		userEntity = new UserEntity()
-					.email("user1@user1.com")
-					.name("사용자1")
-					.password("12345678Aa!@#$%")
-					.userRole(UserRole.USER);		
+
+		userEntity = UserEntity.builder()
+						.email("user1@naver.com")
+						.name("사용자1")
+						.password("12345678Aa!@#$%")
+						.userRole(UserRole.USER)
+						.build();
 	}
 	
 	@BeforeEach
@@ -95,20 +99,21 @@ public class AdminPostControllerTest {
 		content = "포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포";
 		title = "포스트";
 		
-		postEntity = new PostEntity()
-				.content(content)
-				.title(title)
-				.category(categoryEntity)
-				.user(userEntity);
+		postEntity = PostEntity.builder()
+						.content(content)	
+						.title(title)
+						.category(categoryEntity)
+						.user(userEntity)
+						.build();
 		
 		postUpdate = new PostUpdateRequest()
-				.categoryName(categoryEntity.getName())
-				.content("포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포")
-				.title("포스트2");
+							.categoryName(categoryEntity.getName())
+							.content("포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포")
+							.title("포스트2");
 		
 		post = new PostResponse()
-				.content(content)
-				.title(title);
+					.content(content)
+					.title(title);
 	}
 	
 	@DisplayName("포스트를 삭제하는데 성공한다.")
@@ -122,9 +127,9 @@ public class AdminPostControllerTest {
 		action = mockMvc.perform(delete("/api/v1/admin/posts/{id}", postEntity.getId()));
 
 		action
-		.andDo(print())
-		.andExpect(status().isOk())
-		.andExpect(jsonPath("$.metadata.code", is(Code.NO_CONTENT.getCode())));
+			.andDo(print())
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.metadata.code", is(Code.NO_CONTENT.getCode())));
 	}
 	
 	@DisplayName("포스트가 존재하지 않아 삭제하는데 실패한다.")
@@ -138,9 +143,9 @@ public class AdminPostControllerTest {
 		action = mockMvc.perform(delete("/api/v1/admin/posts/{id}", 100L));
 		
 		action
-		.andDo(print())
-		.andExpect(status().isNotFound())
-		.andExpect(result -> assertTrue(result.getResolvedException() instanceof PostNotFoundException));
+			.andDo(print())
+			.andExpect(status().isNotFound())
+			.andExpect(result -> assertTrue(result.getResolvedException() instanceof PostNotFoundException));
 	}
 	
 	@DisplayName("필요한 권한이 없어 포스트를 삭제하는데 실패한다.")
@@ -154,8 +159,8 @@ public class AdminPostControllerTest {
 		action = mockMvc.perform(delete("/api/v1/admin/posts/{id}", postEntity.getId()));
 
 		action
-		.andDo(print())
-		.andExpect(status().isForbidden());
+			.andDo(print())
+			.andExpect(status().isForbidden());
 	}
 	
 	@DisplayName("포스트(파일 O)를 수정하는데 성공한다.")
@@ -173,9 +178,8 @@ public class AdminPostControllerTest {
 			
 			file = new File(".txt", MediaType.TEXT_PLAIN_VALUE, postFile.getName(), "D:\\spring-workspace\\whooa-blog\\upload\\test1.txt", postFile.getSize());
 			
-			postEntity
-				.content(postUpdate.getContent())
-				.title(postUpdate.getTitle());
+			postEntity.setContent(postUpdate.getContent());
+			postEntity.setTitle(postUpdate.getTitle());
 
 			post = PostMapper.INSTANCE.toDto(postEntity);
 			post.files(List.of(file));
@@ -184,19 +188,19 @@ public class AdminPostControllerTest {
 		});
 		
 		action = mockMvc.perform(
-						multipart(HttpMethod.PATCH, "/api/v1/admin/posts/{id}", postEntity.getId())
-						.file(postUpdateFile)
-						.file(postFile)
-						.characterEncoding(StandardCharsets.UTF_8)
-						.contentType(MediaType.MULTIPART_FORM_DATA)
-				);
+			multipart(HttpMethod.PATCH, "/api/v1/admin/posts/{id}", postEntity.getId())
+			.file(postUpdateFile)
+			.file(postFile)
+			.characterEncoding(StandardCharsets.UTF_8)
+			.contentType(MediaType.MULTIPART_FORM_DATA)
+		);
 
 		action
-		.andDo(print())
-		.andExpect(status().isOk())
-		.andExpect(jsonPath("$.data.title", is(post.getTitle())))
-		.andExpect(jsonPath("$.data.content", is(post.getContent())))
-		.andExpect(jsonPath("$.data.files.length()", is(1)));
+			.andDo(print())
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.data.title", is(post.getTitle())))
+			.andExpect(jsonPath("$.data.content", is(post.getContent())))
+			.andExpect(jsonPath("$.data.files.length()", is(1)));
 	}
 	
 	@DisplayName("포스트(파일 X)를 수정하는데 성공한다.")
@@ -209,9 +213,8 @@ public class AdminPostControllerTest {
 		postUpdateFile = new MockMultipartFile("post", null, MediaType.APPLICATION_JSON_VALUE, SerializeDeserializeUtil.serializeToString(postUpdate).getBytes(StandardCharsets.UTF_8));
 		
 		given(adminPostService.update(any(Long.class), any(PostUpdateRequest.class), any(MultipartFile[].class))).willAnswer((answer) -> {
-			postEntity
-				.content(postUpdate.getContent())
-				.title(postUpdate.getTitle());
+			postEntity.setContent(postUpdate.getContent());
+			postEntity.setTitle(postUpdate.getTitle());
 			
 			post = PostMapper.INSTANCE.toDto(postEntity);
 			
@@ -219,18 +222,18 @@ public class AdminPostControllerTest {
 		});
 			
 		action = mockMvc.perform(
-						multipart(HttpMethod.PATCH, "/api/v1/admin/posts/{id}", postEntity.getId())
-						.file(postUpdateFile)
-						.characterEncoding(StandardCharsets.UTF_8)
-						.contentType(MediaType.MULTIPART_FORM_DATA)
-				);
+			multipart(HttpMethod.PATCH, "/api/v1/admin/posts/{id}", postEntity.getId())
+			.file(postUpdateFile)
+			.characterEncoding(StandardCharsets.UTF_8)
+			.contentType(MediaType.MULTIPART_FORM_DATA)
+		);
 
 		action
-		.andDo(print())
-		.andExpect(status().isOk())
-		.andExpect(jsonPath("$.data.title", is(post.getTitle())))
-		.andExpect(jsonPath("$.data.content", is(post.getContent())))
-		.andExpect(jsonPath("$.data.files.length()", is(0)));
+			.andDo(print())
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.data.title", is(post.getTitle())))
+			.andExpect(jsonPath("$.data.content", is(post.getContent())))
+			.andExpect(jsonPath("$.data.files.length()", is(0)));
 	}
 	
 	@DisplayName("카테고리 이름이  짧아 포스트를 수정하는데 실패한다.")
@@ -245,9 +248,8 @@ public class AdminPostControllerTest {
 		postUpdateFile = new MockMultipartFile("post", null, MediaType.APPLICATION_JSON_VALUE, SerializeDeserializeUtil.serializeToString(postUpdate).getBytes(StandardCharsets.UTF_8));
 		
 		given(adminPostService.update(any(Long.class), any(PostUpdateRequest.class), any(MultipartFile[].class))).willAnswer((answer) -> {
-			postEntity
-				.content(postUpdate.getContent())
-				.title(postUpdate.getTitle());
+			postEntity.setContent(postUpdate.getContent());
+			postEntity.setTitle(postUpdate.getTitle());
 			
 			post = PostMapper.INSTANCE.toDto(postEntity);
 			
@@ -255,15 +257,15 @@ public class AdminPostControllerTest {
 		});
 		
 		action = mockMvc.perform(
-						multipart(HttpMethod.PATCH, "/api/v1/admin/posts/{id}", postEntity.getId())
-						.file(postUpdateFile)
-						.characterEncoding(StandardCharsets.UTF_8)
-						.contentType(MediaType.MULTIPART_FORM_DATA)
-				);
+			multipart(HttpMethod.PATCH, "/api/v1/admin/posts/{id}", postEntity.getId())
+			.file(postUpdateFile)
+			.characterEncoding(StandardCharsets.UTF_8)
+			.contentType(MediaType.MULTIPART_FORM_DATA)
+		);
 
 		action
-		.andDo(print())
-		.andExpect(status().isBadRequest());
+			.andDo(print())
+			.andExpect(status().isBadRequest());
 	}
 	
 	@DisplayName("제목이  짧아 포스트를 수정하는데 실패한다.")
@@ -278,9 +280,8 @@ public class AdminPostControllerTest {
 		postUpdateFile = new MockMultipartFile("post", null, MediaType.APPLICATION_JSON_VALUE, SerializeDeserializeUtil.serializeToString(postUpdate).getBytes(StandardCharsets.UTF_8));
 		
 		given(adminPostService.update(any(Long.class), any(PostUpdateRequest.class), any(MultipartFile[].class))).willAnswer((answer) -> {
-			postEntity
-				.content(postUpdate.getContent())
-				.title(postUpdate.getTitle());
+			postEntity.setContent(postUpdate.getContent());
+			postEntity.setTitle(postUpdate.getTitle());
 			
 			post = PostMapper.INSTANCE.toDto(postEntity);
 			
@@ -288,15 +289,15 @@ public class AdminPostControllerTest {
 		});
 
 		action = mockMvc.perform(
-						multipart(HttpMethod.PATCH, "/api/v1/admin/posts/{id}", postEntity.getId())
-						.file(postUpdateFile)
-						.characterEncoding(StandardCharsets.UTF_8)
-						.contentType(MediaType.MULTIPART_FORM_DATA)
-				);
+			multipart(HttpMethod.PATCH, "/api/v1/admin/posts/{id}", postEntity.getId())
+			.file(postUpdateFile)
+			.characterEncoding(StandardCharsets.UTF_8)
+			.contentType(MediaType.MULTIPART_FORM_DATA)
+		);
 
 		action
-		.andDo(print())
-		.andExpect(status().isBadRequest());
+			.andDo(print())
+			.andExpect(status().isBadRequest());
 	}
 	
 	@DisplayName("내용이  짧아 포스트를 수정하는데 실패한다.")
@@ -310,9 +311,8 @@ public class AdminPostControllerTest {
 		postUpdateFile = new MockMultipartFile("post", null, MediaType.APPLICATION_JSON_VALUE, SerializeDeserializeUtil.serializeToString(postUpdate).getBytes(StandardCharsets.UTF_8));
 		
 		given(adminPostService.update(any(Long.class), any(PostUpdateRequest.class), any(MultipartFile[].class))).willAnswer((answer) -> {
-			postEntity
-				.content(postUpdate.getContent())
-				.title(postUpdate.getTitle());
+			postEntity.setContent(postUpdate.getContent());
+			postEntity.setTitle(postUpdate.getTitle());
 			
 			post = PostMapper.INSTANCE.toDto(postEntity);
 			
@@ -320,15 +320,15 @@ public class AdminPostControllerTest {
 		});
 			
 		action = mockMvc.perform(
-						multipart(HttpMethod.PATCH, "/api/v1/admin/posts/{id}", postEntity.getId())
-						.file(postUpdateFile)
-						.characterEncoding(StandardCharsets.UTF_8)
-						.contentType(MediaType.MULTIPART_FORM_DATA)
-				);
+			multipart(HttpMethod.PATCH, "/api/v1/admin/posts/{id}", postEntity.getId())
+			.file(postUpdateFile)
+			.characterEncoding(StandardCharsets.UTF_8)
+			.contentType(MediaType.MULTIPART_FORM_DATA)
+		);
 
 		action
-		.andDo(print())
-		.andExpect(status().isBadRequest());
+			.andDo(print())
+			.andExpect(status().isBadRequest());
 	}
 	
 	@DisplayName("포스트가 존재하지 않아 수정하는데 실패한다.")
@@ -343,16 +343,16 @@ public class AdminPostControllerTest {
 		given(adminPostService.update(any(Long.class), any(PostUpdateRequest.class), any(MultipartFile[].class))).willThrow(new PostNotFoundException(Code.NOT_FOUND, new String[] {"포스트가 존재하지 않습니다."}));
 
 		action = mockMvc.perform(
-						multipart(HttpMethod.PATCH, "/api/v1/admin/posts/{id}", 100L)
-						.file(postUpdateFile)
-						.characterEncoding(StandardCharsets.UTF_8)
-						.contentType(MediaType.MULTIPART_FORM_DATA)
-				);
+			multipart(HttpMethod.PATCH, "/api/v1/admin/posts/{id}", 100L)
+			.file(postUpdateFile)
+			.characterEncoding(StandardCharsets.UTF_8)
+			.contentType(MediaType.MULTIPART_FORM_DATA)
+		);
 
 		action
-		.andDo(print())
-		.andExpect(status().isNotFound())
-		.andExpect(result -> assertTrue(result.getResolvedException() instanceof PostNotFoundException));
+			.andDo(print())
+			.andExpect(status().isNotFound())
+			.andExpect(result -> assertTrue(result.getResolvedException() instanceof PostNotFoundException));
 	}
 	
 	@DisplayName("필요한 권한이 없어 포스트를 수정하는데 실패한다.")
@@ -365,9 +365,8 @@ public class AdminPostControllerTest {
 		postUpdateFile = new MockMultipartFile("post", null, MediaType.APPLICATION_JSON_VALUE, SerializeDeserializeUtil.serializeToString(postUpdate).getBytes(StandardCharsets.UTF_8));
 
 		given(adminPostService.update(any(Long.class), any(PostUpdateRequest.class), any(MultipartFile[].class))).willAnswer((answer) -> {
-			postEntity
-				.content(postUpdate.getContent())
-				.title(postUpdate.getTitle());
+			postEntity.setContent(postUpdate.getContent());
+			postEntity.setTitle(postUpdate.getTitle());
 			
 			post = PostMapper.INSTANCE.toDto(postEntity);
 			
@@ -375,14 +374,14 @@ public class AdminPostControllerTest {
 		});
 					
 		action = mockMvc.perform(
-						multipart(HttpMethod.PATCH, "/api/v1/admin/posts/{id}", postEntity.getId())
-						.file(postUpdateFile)
-						.characterEncoding(StandardCharsets.UTF_8)
-						.contentType(MediaType.MULTIPART_FORM_DATA)
-				);
+			multipart(HttpMethod.PATCH, "/api/v1/admin/posts/{id}", postEntity.getId())
+			.file(postUpdateFile)
+			.characterEncoding(StandardCharsets.UTF_8)
+			.contentType(MediaType.MULTIPART_FORM_DATA)
+		);
 
 		action
-		.andDo(print())
-		.andExpect(status().isForbidden());
+			.andDo(print())
+			.andExpect(status().isForbidden());
 	}			
 }

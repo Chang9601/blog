@@ -70,26 +70,32 @@ public class AdminPostIntegrationTest {
 	@BeforeAll
 	void setUpAll() {
 		mockMvc = MockMvcBuilders
-				.webAppContextSetup(webApplicationContext)
-				.addFilter(new CharacterEncodingFilter("utf-8", true))
-				.apply(springSecurity()).build();
+					.webAppContextSetup(webApplicationContext)
+					.addFilter(new CharacterEncodingFilter("utf-8", true))
+					.apply(springSecurity()).build();
 		
-		categoryEntity = categoryRepository.save(new CategoryEntity().name("카테고리"));
-		
-		userEntity = userRepository.save(
-			new UserEntity()
-			.email("admin@admin.com")
-			.name("관리자")
-			.password("12345678Aa!@#$%")
-			.userRole(UserRole.ADMIN)
+		categoryEntity = categoryRepository.save(
+			CategoryEntity.builder()
+				.name("카테고리")
+				.build()
 		);
 		
+		userEntity = userRepository.save(
+			UserEntity.builder()
+				.email("admin@naver.com")
+				.name("관리자")
+				.password("12345678Aa!@#$%")
+				.userRole(UserRole.ADMIN)
+				.build()
+		);
+			
 		userRepository.save(
-			new UserEntity()
-			.email("user@user.com")
-			.name("사용자")
-			.password("12345678Aa!@#$%")
-			.userRole(UserRole.USER)
+			UserEntity.builder()
+				.email("user@naver.com")
+				.name("관리자")
+				.password("12345678Aa!@#$%")
+				.userRole(UserRole.USER)
+				.build()
 		);
 	}
 
@@ -101,17 +107,18 @@ public class AdminPostIntegrationTest {
 		title = "포스트";
 		
 		postEntity = postRepository.save(
-			new PostEntity()
-			.content(content)
-			.title(title)
-			.category(categoryEntity)
-			.user(userEntity)
+			PostEntity.builder()
+				.content(content)
+				.title(title)
+				.category(categoryEntity)
+				.user(userEntity)
+				.build()
 		);
 		
 		postUpdate = new PostUpdateRequest()
-					.categoryName(categoryEntity.getName())
-					.content("포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2")
-					.title("포스트2");		
+							.categoryName(categoryEntity.getName())
+							.content("포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2")
+							.title("포스트2");		
 	}
 	
 	@AfterAll
@@ -128,48 +135,48 @@ public class AdminPostIntegrationTest {
 	
 	@DisplayName("포스트를 삭제하는데 성공한다.")
 	@Test
-	@WithUserDetails(value = "admin@admin.com", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")
+	@WithUserDetails(value = "admin@naver.com", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")
 	public void givenId_whenCallDeletePost_thenReturnNothing() throws Exception {
 		ResultActions action;
 		
 		action = mockMvc.perform(delete("/api/v1/admin/posts/{id}", postEntity.getId()));
 
 		action
-		.andDo(print())
-		.andExpect(status().isOk())
-		.andExpect(jsonPath("$.metadata.code", is(Code.NO_CONTENT.getCode())));
+			.andDo(print())
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.metadata.code", is(Code.NO_CONTENT.getCode())));
 	}
 	
 	@DisplayName("포스트가 존재하지 않아 삭제하는데 실패한다.")
 	@Test
-	@WithUserDetails(value = "admin@admin.com", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")
+	@WithUserDetails(value = "admin@naver.com", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")
 	public void givenId_whenCallDeletePost_thenThrowPostNotFoundException() throws Exception {
 		ResultActions action;
 		
 		action = mockMvc.perform(delete("/api/v1/posts/{id}", 100L));
 		
 		action
-		.andDo(print())
-		.andExpect(status().isNotFound())
-		.andExpect(output -> assertTrue(output.getResolvedException() instanceof PostNotFoundException));
+			.andDo(print())
+			.andExpect(status().isNotFound())
+			.andExpect(output -> assertTrue(output.getResolvedException() instanceof PostNotFoundException));
 	}
 	
 	@DisplayName("권한이 없어 포스트를 삭제하는데 실패한다.")
 	@Test
-	@WithUserDetails(value = "user@user.com", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")
+	@WithUserDetails(value = "user@naver.com", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")
 	public void givenId_whenCallDeletePost_thenThrowUnauthorizedUserException() throws Exception {
 		ResultActions action;
 		
 		action = mockMvc.perform(delete("/api/v1/admin/posts/{id}", postEntity.getId()));
 		
 		action
-		.andDo(print())
-		.andExpect(status().isForbidden());
+			.andDo(print())
+			.andExpect(status().isForbidden());
 	}
 	
 	@DisplayName("포스트(파일 X)를 수정하는데 성공한다.")
 	@Test
-	@WithUserDetails(value = "admin@admin.com", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")
+	@WithUserDetails(value = "admin@naver.com", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")
 	public void givenPostUpdate_whenCallUpdatePost_thenReturnPost() throws Exception {
 		ResultActions action;
 		MockMultipartFile postUpdateFile;
@@ -177,23 +184,22 @@ public class AdminPostIntegrationTest {
 		postUpdateFile = new MockMultipartFile("post", null, MediaType.APPLICATION_JSON_VALUE, SerializeDeserializeUtil.serializeToString(postUpdate).getBytes(StandardCharsets.UTF_8));
 
 		action = mockMvc.perform(
-						multipart(HttpMethod.PATCH, "/api/v1/admin/posts/{id}", postEntity.getId())
-						.file(postUpdateFile)
-						.characterEncoding(StandardCharsets.UTF_8)
-						.contentType(MediaType.MULTIPART_FORM_DATA)
-				);
+			multipart(HttpMethod.PATCH, "/api/v1/admin/posts/{id}", postEntity.getId())
+			.file(postUpdateFile)
+			.characterEncoding(StandardCharsets.UTF_8)
+			.contentType(MediaType.MULTIPART_FORM_DATA)
+		);
 
 		action
-		.andDo(print())
-		.andExpect(status().isOk())
-		.andExpect(jsonPath("$.data.title", is(postUpdate.getTitle())))
-		.andExpect(jsonPath("$.data.content", is(postUpdate.getContent())));
-		
+			.andDo(print())
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.data.title", is(postUpdate.getTitle())))
+			.andExpect(jsonPath("$.data.content", is(postUpdate.getContent())));
 	}
 	
 	@DisplayName("포스트(파일 O)를 수정하는데 성공한다.")
 	@Test
-	@WithUserDetails(value = "admin@admin.com", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")
+	@WithUserDetails(value = "admin@naver.com", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")
 	public void givenPostUpdate_whenCallUpdatePost_thenReturnPostWithFiles() throws Exception {
 		ResultActions action;
 		MockMultipartFile postFile;
@@ -220,7 +226,7 @@ public class AdminPostIntegrationTest {
 	
 	@DisplayName("카테고리 이름이 짧아 포스트를 수정하는데 실패한다.")
 	@Test
-	@WithUserDetails(value = "admin@admin.com", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")
+	@WithUserDetails(value = "admin@naver.com", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")
 	public void givenPostUpdate_whenCallUpdatePost_thenThrowBadRequestExceptionForCategoryName() throws Exception {
 		ResultActions action;
 		MockMultipartFile postUpdateFile;
@@ -230,20 +236,20 @@ public class AdminPostIntegrationTest {
 		postUpdateFile = new MockMultipartFile("post", null, MediaType.APPLICATION_JSON_VALUE, SerializeDeserializeUtil.serializeToString(postUpdate).getBytes(StandardCharsets.UTF_8));
 
 		action = mockMvc.perform(
-						multipart(HttpMethod.PATCH, "/api/v1/admin/posts/{id}", postEntity.getId())
-						.file(postUpdateFile)
-						.characterEncoding(StandardCharsets.UTF_8)
-						.contentType(MediaType.MULTIPART_FORM_DATA)
-				);
+			multipart(HttpMethod.PATCH, "/api/v1/admin/posts/{id}", postEntity.getId())
+			.file(postUpdateFile)
+			.characterEncoding(StandardCharsets.UTF_8)
+			.contentType(MediaType.MULTIPART_FORM_DATA)
+		);
 
 		action
-		.andDo(print())
-		.andExpect(status().isBadRequest());		
+			.andDo(print())
+			.andExpect(status().isBadRequest());		
 	}
 	
 	@DisplayName("제목이 짧아 포스트를 수정하는데 실패한다.")
 	@Test
-	@WithUserDetails(value = "admin@admin.com", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")
+	@WithUserDetails(value = "admin@naver.com", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")
 	public void givenPostUpdate_whenCallUpdatePost_thenThrowBadRequestExceptionForTitle() throws Exception {
 		ResultActions action;
 		MockMultipartFile postUpdateFile;
@@ -253,20 +259,20 @@ public class AdminPostIntegrationTest {
 		postUpdateFile = new MockMultipartFile("post", null, MediaType.APPLICATION_JSON_VALUE, SerializeDeserializeUtil.serializeToString(postUpdate).getBytes(StandardCharsets.UTF_8));
 		
 		action = mockMvc.perform(
-						multipart(HttpMethod.PATCH, "/api/v1/admin/posts/{id}", postEntity.getId())
-						.file(postUpdateFile)
-						.characterEncoding(StandardCharsets.UTF_8)
-						.contentType(MediaType.MULTIPART_FORM_DATA)
-				);
+			multipart(HttpMethod.PATCH, "/api/v1/admin/posts/{id}", postEntity.getId())
+			.file(postUpdateFile)
+			.characterEncoding(StandardCharsets.UTF_8)
+			.contentType(MediaType.MULTIPART_FORM_DATA)
+		);
 
 		action
-		.andDo(print())
-		.andExpect(status().isBadRequest());
+			.andDo(print())
+			.andExpect(status().isBadRequest());
 	}
 	
 	@DisplayName("내용이 짧아 포스트를 수정하는데 실패한다.")
 	@Test
-	@WithUserDetails(value = "admin@admin.com", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")
+	@WithUserDetails(value = "admin@naver.com", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")
 	public void givenPostUpdate_whenCallUpdatePost_thenThrowBadRequestExceptionForContent() throws Exception {
 		ResultActions action;
 		MockMultipartFile postUpdateFile;
@@ -276,20 +282,20 @@ public class AdminPostIntegrationTest {
 		postUpdateFile = new MockMultipartFile("post", null, MediaType.APPLICATION_JSON_VALUE, SerializeDeserializeUtil.serializeToString(postUpdate).getBytes(StandardCharsets.UTF_8));
 		
 		action = mockMvc.perform(
-						multipart(HttpMethod.PATCH, "/api/v1/admin/posts/{id}", postEntity.getId())
-						.file(postUpdateFile)
-						.characterEncoding(StandardCharsets.UTF_8)
-						.contentType(MediaType.MULTIPART_FORM_DATA)
-				);
+			multipart(HttpMethod.PATCH, "/api/v1/admin/posts/{id}", postEntity.getId())
+			.file(postUpdateFile)
+			.characterEncoding(StandardCharsets.UTF_8)
+			.contentType(MediaType.MULTIPART_FORM_DATA)
+		);
 
 		action
-		.andDo(print())
-		.andExpect(status().isBadRequest());
+			.andDo(print())
+			.andExpect(status().isBadRequest());
 	}
 	
 	@DisplayName("포스트가 존재하지 않아 수정하는데 실패한다.")
 	@Test
-	@WithUserDetails(value = "admin@admin.com", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")
+	@WithUserDetails(value = "admin@naver.com", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")
 	public void givenPostUpdate_whenCallUpdatePost_thenThrowPostNotFoundException() throws Exception {
 		ResultActions action;
 		MockMultipartFile postUpdateFile;
@@ -297,21 +303,21 @@ public class AdminPostIntegrationTest {
 		postUpdateFile = new MockMultipartFile("post", null, MediaType.APPLICATION_JSON_VALUE, SerializeDeserializeUtil.serializeToString(postUpdate).getBytes(StandardCharsets.UTF_8));
 
 		action = mockMvc.perform(
-						multipart(HttpMethod.PATCH, "/api/v1/admin/posts/{id}", 100L)
-						.file(postUpdateFile)
-						.characterEncoding(StandardCharsets.UTF_8)
-						.contentType(MediaType.MULTIPART_FORM_DATA)
-				);
+			multipart(HttpMethod.PATCH, "/api/v1/admin/posts/{id}", 100L)
+			.file(postUpdateFile)
+			.characterEncoding(StandardCharsets.UTF_8)
+			.contentType(MediaType.MULTIPART_FORM_DATA)
+		);
 
 		action
-		.andDo(print())
-		.andExpect(status().isNotFound())
-		.andExpect(output -> assertTrue(output.getResolvedException() instanceof PostNotFoundException));
+			.andDo(print())
+			.andExpect(status().isNotFound())
+			.andExpect(output -> assertTrue(output.getResolvedException() instanceof PostNotFoundException));
 	}
 	
 	@DisplayName("권한이 없어 포스트를 수정하는데 실패한다.")
 	@Test
-	@WithUserDetails(value = "user@user.com", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")
+	@WithUserDetails(value = "user@naver.com", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")
 	public void givenPostUpdate_whenCallUpdatePost_thenThrowUnauthorizedUserException() throws Exception {
 		ResultActions action;
 		MockMultipartFile postUpdateFile;
@@ -319,14 +325,14 @@ public class AdminPostIntegrationTest {
 		postUpdateFile = new MockMultipartFile("post", null, MediaType.APPLICATION_JSON_VALUE, SerializeDeserializeUtil.serializeToString(postUpdate).getBytes(StandardCharsets.UTF_8));
 		
 		action = mockMvc.perform(
-						multipart(HttpMethod.PATCH, "/api/v1/admin/posts/{id}", postEntity.getId())
-						.file(postUpdateFile)
-						.characterEncoding(StandardCharsets.UTF_8)
-						.contentType(MediaType.MULTIPART_FORM_DATA)
-				);
+			multipart(HttpMethod.PATCH, "/api/v1/admin/posts/{id}", postEntity.getId())
+			.file(postUpdateFile)
+			.characterEncoding(StandardCharsets.UTF_8)
+			.contentType(MediaType.MULTIPART_FORM_DATA)
+		);
 
 		action
-		.andDo(print())
-		.andExpect(status().isForbidden());
+			.andDo(print())
+			.andExpect(status().isForbidden());
 	}
 }

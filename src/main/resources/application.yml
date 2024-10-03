@@ -1,3 +1,13 @@
+file:
+  upload:
+    path: ${FILE_UPLOAD_PATH} # 디렉터리에서 파일을 저장할 경로이다.
+
+logging:
+  level:
+    '[org.springframework.data.elasticsearch.core]': DEBUG
+    '[org.elasticsearch.client]': TRACE
+    '[org.apache.http]': TRACE
+
 server:
   port: ${PORT:3000}
 
@@ -5,6 +15,7 @@ spring:
   # .env 파일을 가져온다.
   config:
     import: optional:file:.env[.properties]
+    
   data:
     elasticsearch:
       repositories:
@@ -17,9 +28,11 @@ spring:
     password: ${MYSQL_PASSWORD}
     
   elasticsearch:
+    password: ${ELASTICSEARCH_PASSWORD}  
     url: ${ELASTICSEARCH_URL}
     uris:
     - ${ELASTICSEARCH_URL}
+    username: ${ELASTICSEARCH_USERNAME}
 
   servlet:
     multipart:
@@ -39,12 +52,12 @@ spring:
             scope: ${GOOGLE_SCOPE}
             
           naver:
+            authorization-grant-type: ${NAVER_AUTHORIZATION_GRANT_TYPE}
+            client-name: ${NAVER_CLIENT_NAME}
             client-id: ${NAVER_CLIENT_ID}
             client-secret: ${NAVER_CLIENT_SECRET}
-            authorization-grant-type: ${NAVER_AUTHORIZATION_GRANT_TYPE}
             redirect-uri: ${NAVER_REDIRECT_URI}
             scope: ${NAVER_SCOPE}
-            client-name: ${NAVER_CLIENT_NAME}
             
         provider:
           naver:
@@ -75,13 +88,8 @@ spring:
       hibernate:
         '[format_sql]': true
         dialect: org.hibernate.dialect.MySQLDialect
-        # hbm2ddl.auto: update
         
 springdoc:
   version: 1.0
   api-docs:
     path: /api-docs
-            
-file:
-  upload:
-    path: ${FILE_UPLOAD_PATH} # 디렉터리에서 파일을 저장할 경로이다.

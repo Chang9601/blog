@@ -105,11 +105,12 @@ public class AdminCommentServiceTest {
 	public void givenCommentUpdate_whenCallUpdate_thenReturnComment(CommentEntity commentEntity1, PostEntity postEntity, UserEntity userEntity) {
 		CommentEntity commentEntity2;
 		
-		commentEntity2 = new CommentEntity()
-						.content(commentUpdate.getContent())
-						.parentId(null)
-						.post(postEntity)
-						.user(userEntity);
+		commentEntity2 = CommentEntity.builder()
+							.content(commentUpdate.getContent())
+							.parentId(null)
+							.post(postEntity)
+							.user(userEntity)
+							.build();
 		
 		given(commentRepository.save(any(CommentEntity.class))).willReturn(commentEntity2);
 		given(commentRepository.findById(any(Long.class))).willReturn(Optional.of(commentEntity1));
@@ -158,12 +159,13 @@ public class AdminCommentServiceTest {
 	public void givenCommentUpdate_whenCallUpdate_thenThrowCommentNotBelongingToPostException(CommentEntity commentEntity, PostEntity postEntity1, UserEntity userEntity, CategoryEntity categoryEntity) {
 		PostEntity postEntity2;
 		
-		postEntity2 = new PostEntity()
-					.content(postEntity1.getContent())
-					.title(postEntity1.getTitle())
-					.category(categoryEntity)
-					.user(userEntity);
-		postEntity2.setId(2L);
+		postEntity2 = PostEntity.builder()
+						.id(2L)
+						.content(postEntity1.getContent())
+						.title(postEntity1.getTitle())
+						.category(categoryEntity)
+						.user(userEntity)
+						.build();
 		
 		given(commentRepository.findById(any(Long.class))).willReturn(Optional.of(commentEntity));
 		given(postRepository.findById(any(Long.class))).willReturn(Optional.of(postEntity2));
@@ -178,26 +180,36 @@ public class AdminCommentServiceTest {
 	}
 	
 	private static Stream<Arguments> commentParametersProvider() {
-		CategoryEntity categoryEntity = new CategoryEntity().name("카테고리1");
+		CategoryEntity categoryEntity;
+		CommentEntity commentEntity;
+		UserEntity userEntity;
+		PostEntity postEntity;
 		
-		UserEntity userEntity = new UserEntity()
-								.email("user1@naver.com")
-								.name("사용자1")
-								.password("12345678Aa!@#$%")
-								.userRole(UserRole.USER);
-		userEntity.setId(1L);
-			
-		PostEntity postEntity = new PostEntity()
-								.content("포스트1")
-								.title("포스트1")
-								.category(categoryEntity)
-								.user(userEntity);
+		categoryEntity = CategoryEntity.builder()
+							.name("카테고리1")
+							.build();
+		
+		userEntity = UserEntity.builder()
+						.id(1L)
+						.email("user1@naver.com")
+						.name("사용자")
+						.password("12345678Aa!@#$%")
+						.userRole(UserRole.USER)
+						.build();
+					
+		postEntity = PostEntity.builder()
+						.content("포스트1")
+						.title("포스트1")
+						.category(categoryEntity)
+						.user(userEntity)
+						.build();
 
-		CommentEntity commentEntity = new CommentEntity()
-									.content("댓글1")
-									.parentId(null)
-									.post(postEntity)
-									.user(userEntity);
+		commentEntity = CommentEntity.builder()
+							.content("댓글1")
+							.parentId(null)
+							.post(postEntity)
+							.user(userEntity)
+							.build();
 
 		return Stream.of(Arguments.of(commentEntity, postEntity, userEntity, categoryEntity));
 	}		

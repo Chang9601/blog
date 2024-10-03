@@ -20,24 +20,8 @@ public class CategoryEntity extends CoreEntity {
 	@OneToMany(mappedBy = "category")
 	private List<PostEntity> posts = new ArrayList<PostEntity>();
 	
-	public CategoryEntity(Long id, String name) {
-		super(id);
-		
-		this.name = name;
-	}
-
 	public CategoryEntity() {
-		super(-1L);
-	}
-	
-	public CategoryEntity name(String name) {
-		this.name = name;
-		return this;
-	}
-	
-	public CategoryEntity posts(List<PostEntity> posts) {
-		this.posts = posts;
-		return this;
+		super(0L);
 	}
 	
 	public Long getId() {
@@ -67,5 +51,48 @@ public class CategoryEntity extends CoreEntity {
 	@Override
 	public String toString() {
 		return "CategoryEntity [id=" + super.getId() + ", name=" + name + ", posts=" + posts + "]";
+	}
+	
+	public static CategoryEntityBuilder builder() {
+		return new CategoryEntityBuilder();
+	}
+	
+	public static final class CategoryEntityBuilder {
+		private Long id;
+		private String name;
+		private List<PostEntity> posts;		
+		
+		private CategoryEntityBuilder() {}
+		
+		public CategoryEntityBuilder id(Long id) {
+			this.id = id;
+			return this;
+		}
+		
+		public CategoryEntityBuilder name(String name) {
+			this.name = name;
+			return this;
+		}
+		
+		public CategoryEntityBuilder posts(List<PostEntity> posts) {
+			this.posts = posts;
+			return this;
+		}
+		
+		public CategoryEntity build() {
+			CategoryEntity categoryEntity = new CategoryEntity();
+			
+			if (id != null) {
+				categoryEntity.setId(id);
+			}
+			
+			categoryEntity.setName(name);
+			
+			if (posts != null) {
+				categoryEntity.setPosts(posts);
+			}
+			
+			return categoryEntity;
+		}
 	}
 }

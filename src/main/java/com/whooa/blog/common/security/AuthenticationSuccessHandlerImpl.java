@@ -78,7 +78,7 @@ public class AuthenticationSuccessHandlerImpl implements AuthenticationSuccessHa
 	}
 	
 	private void setRefreshToken(UserEntity userEntity, String refreshToken) {
-		userEntity.refreshToken(refreshToken);
+		userEntity.setRefreshToken(refreshToken);
 		userRepository.save(userEntity);
 	}
 }

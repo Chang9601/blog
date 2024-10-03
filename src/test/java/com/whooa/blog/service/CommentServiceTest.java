@@ -73,14 +73,15 @@ public class CommentServiceTest {
 		
 		pagination = new PaginationUtil();
 		
-		UserEntity userEntity = new UserEntity()
+		userDetailsImpl = new UserDetailsImpl(
+			UserEntity.builder()
+				.id(1L)
 				.email("user1@naver.com")
 				.name("사용자1")
 				.password("12345678Aa!@#$%")
-				.userRole(UserRole.USER);
-		userEntity.setId(1L);
-		
-		userDetailsImpl = new UserDetailsImpl(userEntity);
+				.userRole(UserRole.USER)
+				.build()
+		);
 	}
 
 	@DisplayName("댓글을 생성하는데 성공한다.")
@@ -183,12 +184,13 @@ public class CommentServiceTest {
 	public void givenId_whenCallDelete_thenThrowCommentNotBelongingToPostException(CommentEntity commentEntity, PostEntity postEntity1, UserEntity userEntity, CategoryEntity categoryEntity) {
 		PostEntity postEntity2;
 		
-		postEntity2 = new PostEntity()
-					.content(postEntity1.getContent())
-					.title(postEntity1.getTitle())
-					.category(categoryEntity)
-					.user(userEntity);
-		postEntity2.setId(2L);
+		postEntity2 = PostEntity.builder()
+						.id(2L)
+						.content(postEntity1.getContent())
+						.title(postEntity1.getTitle())
+						.category(categoryEntity)
+						.user(userEntity)
+						.build();
 		
 		given(commentRepository.findById(any(Long.class))).willReturn(Optional.of(commentEntity));
 		given(postRepository.findById(any(Long.class))).willReturn(Optional.of(postEntity2));
@@ -208,12 +210,13 @@ public class CommentServiceTest {
 	public void givenId_whenCallDelete_thenThrowUserNotMatchedException(CommentEntity commentEntity, PostEntity postEntity, UserEntity userEntity1) {
 		UserEntity userEntity2;
 		
-		userEntity2 = new UserEntity()
-					.email("user2@naver.com")
-					.name("사용자2")
-					.password("12345678Aa!@#$%")
-					.userRole(UserRole.USER);
-		userEntity2.setId(2L);
+		userEntity2 = UserEntity.builder()
+								.id(2L)
+								.email("user2@naver.com")
+								.name("사용자2")
+								.password("12345678Aa!@#$%")
+								.userRole(UserRole.USER)
+								.build();
 		
 		given(commentRepository.findById(any(Long.class))).willReturn(Optional.of(commentEntity));
 		given(postRepository.findById(any(Long.class))).willReturn(Optional.of(postEntity));
@@ -234,11 +237,12 @@ public class CommentServiceTest {
 		CommentEntity commentEntity2;
 		PageResponse<CommentResponse> page;
 		
-		commentEntity2 = new CommentEntity()
-						.content("댓글2")
-						.parentId(null)
-						.post(postEntity)
-						.user(userEntity);
+		commentEntity2 = CommentEntity.builder()
+							.content("댓글2")
+							.parentId(null)
+							.post(postEntity)
+							.user(userEntity)
+							.build();
 
 		given(commentRepository.findByPostId(any(Long.class), any(Pageable.class))).willReturn(new PageImpl<CommentEntity>(List.of(commentEntity1, commentEntity2)));
 		given(postRepository.findById(any(Long.class))).willReturn(Optional.of(postEntity));
@@ -257,11 +261,12 @@ public class CommentServiceTest {
 	public void givenCommentCreate_whenCallReply_thenReturnComment(CommentEntity commentEntity1, PostEntity postEntity, UserEntity userEntity) {
 		CommentEntity commentEntity2;
 		
-		commentEntity2 = new CommentEntity()
-						.content("댓글2")
-						.parentId(commentEntity1.getId())
-						.post(postEntity)
-						.user(userEntity);
+		commentEntity2 = CommentEntity.builder()
+							.content("댓글2")
+							.parentId(commentEntity1.getId())
+							.post(postEntity)
+							.user(userEntity)
+							.build();
 
 		given(commentRepository.save(any(CommentEntity.class))).willReturn(commentEntity2);
 		given(commentRepository.findById(any(Long.class))).willReturn(Optional.of(commentEntity1));
@@ -318,12 +323,13 @@ public class CommentServiceTest {
 	public void givenCommentCreate_whenCallReply_thenThrowCommentNotBelongingToPostException(CommentEntity commentEntity, PostEntity postEntity1, UserEntity userEntity, CategoryEntity categoryEntity) {
 		PostEntity postEntity2;
 		
-		postEntity2 = new PostEntity()
-					.content(postEntity1.getContent())
-					.title(postEntity1.getTitle())
-					.category(categoryEntity)
-					.user(userEntity);
-		postEntity2.setId(2L);
+		postEntity2 = PostEntity.builder()
+						.id(2L)
+						.content(postEntity1.getContent())
+						.title(postEntity1.getTitle())
+						.category(categoryEntity)
+						.user(userEntity)
+						.build();
 		
 		given(commentRepository.findById(any(Long.class))).willReturn(Optional.of(commentEntity));
 		given(postRepository.findById(any(Long.class))).willReturn(Optional.of(postEntity2));
@@ -345,11 +351,12 @@ public class CommentServiceTest {
 	public void givenCommentUpdate_whenCallUpdate_thenReturnComment(CommentEntity commentEntity1, PostEntity postEntity, UserEntity userEntity, CategoryEntity categoryEntity) {
 		CommentEntity commentEntity2;
 		
-		commentEntity2 = new CommentEntity()
-						.content(commentUpdate.getContent())
-						.parentId(null)
-						.post(postEntity)
-						.user(userEntity);		
+		commentEntity2 = CommentEntity.builder()
+							.content(commentUpdate.getContent())
+							.parentId(null)
+							.post(postEntity)
+							.user(userEntity)
+							.build();
 		
 		given(commentRepository.save(any(CommentEntity.class))).willReturn(commentEntity2);
 		given(commentRepository.findById(any(Long.class))).willReturn(Optional.of(commentEntity1));
@@ -398,12 +405,13 @@ public class CommentServiceTest {
 	public void givenCommentUpdate_whenCallUpdate_thenThrowCommentNotBelongingToPostException(CommentEntity commentEntity, PostEntity postEntity1, UserEntity userEntity, CategoryEntity categoryEntity) {
 		PostEntity postEntity2;
 		
-		postEntity2 = new PostEntity()
-					.content(postEntity1.getContent())
-					.title(postEntity1.getTitle())
-					.category(categoryEntity)
-					.user(userEntity);
-		postEntity2.setId(2L);
+		postEntity2 = PostEntity.builder()
+						.id(2L)
+						.content(postEntity1.getContent())
+						.title(postEntity1.getTitle())
+						.category(categoryEntity)
+						.user(userEntity)
+						.build();
 		
 		given(commentRepository.findById(any(Long.class))).willReturn(Optional.of(commentEntity));
 		given(postRepository.findById(any(Long.class))).willReturn(Optional.of(postEntity2));
@@ -423,12 +431,13 @@ public class CommentServiceTest {
 	public void givenCommentUpdate_whenCallUpdate_thenThrowUserNotMatchedException(CommentEntity commentEntity, PostEntity postEntity, UserEntity userEntity1) {
 		UserEntity userEntity2;
 		
-		userEntity2 = new UserEntity()
-					.email("user2@naver.com")
-					.name("사용자2")
-					.password("12345678Aa!@#$%")
-					.userRole(UserRole.USER);
-		userEntity2.setId(2L);
+		userEntity2 = UserEntity.builder()
+								.id(2L)
+								.email("user2@naver.com")
+								.name("사용자2")
+								.password("12345678Aa!@#$%")
+								.userRole(UserRole.USER)
+								.build();
 		
 		given(commentRepository.findById(any(Long.class))).willReturn(Optional.of(commentEntity));
 		given(postRepository.findById(any(Long.class))).willReturn(Optional.of(postEntity));
@@ -443,26 +452,36 @@ public class CommentServiceTest {
 	}
 	
 	private static Stream<Arguments> commentParametersProvider() {
-		CategoryEntity categoryEntity = new CategoryEntity().name("카테고리1");
+		CategoryEntity categoryEntity;
+		CommentEntity commentEntity;
+		PostEntity postEntity;
+		UserEntity userEntity;
 		
-		UserEntity userEntity = new UserEntity()
-								.email("user1@naver.com")
-								.name("사용자1")
-								.password("12345678Aa!@#$%")
-								.userRole(UserRole.USER);
-		userEntity.setId(1L);
+		categoryEntity = CategoryEntity.builder()
+							.name("카테고리1")
+							.build();
+		
+		userEntity = UserEntity.builder()
+						.id(1L)
+						.email("user1@naver.com")
+						.name("사용자1")
+						.password("12345678Aa!@#$%")
+						.userRole(UserRole.USER)
+						.build();
 			
-		PostEntity postEntity = new PostEntity()
-								.content("포스트1")
-								.title("포스트1")
-								.category(categoryEntity)
-								.user(userEntity);
+		postEntity = PostEntity.builder()
+						.content("포스트1")
+						.title("포스트1")
+						.category(categoryEntity)
+						.user(userEntity)
+						.build();
 
-		CommentEntity commentEntity = new CommentEntity()
-									.content("댓글1")
-									.parentId(null)
-									.post(postEntity)
-									.user(userEntity);
+		commentEntity = CommentEntity.builder()
+							.content("댓글1")
+							.parentId(null)
+							.post(postEntity)
+							.user(userEntity)
+							.build();
 
 		return Stream.of(Arguments.of(commentEntity, postEntity, userEntity, categoryEntity));
 	}		

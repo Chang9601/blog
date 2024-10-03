@@ -38,13 +38,6 @@ public class UserDto {
 			description = "사용자 역할"
 		)		
 		private String userRole;
-		
-		public UserCreateRequest(String email, String name, String password, String userRole) {
-			this.email = email;
-			this.name = name;
-			this.password = password;
-			this.userRole = userRole;
-		}
 
 		public UserCreateRequest() {}
 		
@@ -135,13 +128,6 @@ public class UserDto {
 		)		
 		private String userRole;
 		
-		public UserAdminUpdateRequest(String email, String name, String password, String userRole) {
-			this.email = email;
-			this.name = name;
-			this.password = password;
-			this.userRole = userRole;
-		}
-		
 		public UserAdminUpdateRequest() {}
 		
 		public UserAdminUpdateRequest email(String email) {
@@ -219,12 +205,7 @@ public class UserDto {
 		@Size(min = 2, message = "이름은 최소 2자 이상입니다.")		
 		@NotBlank(message = "이름을 입력하세요.")
 		private String name;
-
-		public UserUpdateRequest(String email, String name) {
-			this.email = email;
-			this.name = name;
-		}
-
+		
 		public UserUpdateRequest() {}
 		
 		public UserUpdateRequest email(String email) {
@@ -275,11 +256,6 @@ public class UserDto {
 		@Pattern(regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[!@#$%^&*]).{8,15}$", message = "비밀번호는 최소한 하나의 소문자(a-z), 하나의 대문자(A-Z), 하나의 숫자(0-9), 하나의 특수 문자(!@#$%^&*)를 포함해야 합니다.")
 		private String oldPassword;
 		
-		public UserPasswordUpdateRequest(String newPassword, String oldPassword) {
-			this.newPassword = newPassword;
-			this.oldPassword = oldPassword;
-		}
-
 		public UserPasswordUpdateRequest() {}
 		
 		public UserPasswordUpdateRequest newPassword(String newPassword) {

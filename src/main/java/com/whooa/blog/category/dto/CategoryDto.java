@@ -16,10 +16,6 @@ public class CategoryDto {
 		@Size(min = 2, message = "이름은 최소 2자 이상입니다.")
 		@NotBlank(message = "이름을 입력하세요.")
 		private String name;
-
-		public CategoryCreateRequest(String name) {
-			this.name = name;
-		}
 		
 		public CategoryCreateRequest() {}
 		
@@ -52,10 +48,6 @@ public class CategoryDto {
 		@Size(min = 2, message = "이름은 최소 2자 이상입니다.")
 		@NotBlank(message = "이름을 입력하세요.")
 		private String name;
-
-		public CategoryUpdateRequest(String name) {
-			this.name = name;
-		}
 		
 		public CategoryUpdateRequest() {}
 
@@ -92,12 +84,12 @@ public class CategoryDto {
 		)
 		private String name;
 		
-		public CategoryResponse(Long id, String name) {
-			this.id = id;
-			this.name = name;
-		}
-		
 		public CategoryResponse() {}
+		
+		public CategoryResponse id(Long id) {
+			this.id = id;
+			return this;
+		}
 		
 		public CategoryResponse name(String name) {
 			this.name = name;
@@ -123,6 +115,36 @@ public class CategoryDto {
 		@Override
 		public String toString() {
 			return "CategoryResponse [id=" + id + ", name=" + name + "]";
+		}
+		
+		public static CategoryResponseBuilder builder() {
+			return new CategoryResponseBuilder();
+		}
+		
+		public static final class CategoryResponseBuilder {
+			private Long id;
+			private String name;
+			
+			private CategoryResponseBuilder() {}
+			
+			public CategoryResponseBuilder id(Long id) {
+				this.id = id;
+				return this;
+			}
+			
+			public CategoryResponseBuilder name(String name) {
+				this.name = name;
+				return this;
+			}
+		
+			public CategoryResponse build() {
+				CategoryResponse category = new CategoryResponse();
+				
+				category.setId(id);
+				category.setName(name);
+				
+				return category;
+			}
 		}
 	}
 }

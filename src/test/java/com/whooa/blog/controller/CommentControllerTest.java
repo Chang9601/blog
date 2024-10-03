@@ -78,30 +78,30 @@ public class CommentControllerTest {
 	private CommentUpdateRequest commentUpdate;
 	private CommentResponse comment1;
 
-	private PaginationUtil pagination;
-
 	@BeforeAll
 	public void setUpAll() {
 		mockMvc = MockMvcBuilders
-				.webAppContextSetup(webApplicationContext)
-				.addFilter(new CharacterEncodingFilter("utf-8", true))
-				.apply(springSecurity()).build();
+					.webAppContextSetup(webApplicationContext)
+					.addFilter(new CharacterEncodingFilter("utf-8", true))
+					.apply(springSecurity()).build();
 		
-		userEntity = new UserEntity()
-					.email("user1@user1.com")
-					.name("사용자1")
-					.password("12345678Aa!@#$%")
-					.userRole(UserRole.USER);
+		userEntity = UserEntity.builder()
+						.email("user1@naver.com")
+						.name("사용자1")
+						.password("12345678Aa!@#$%")
+						.userRole(UserRole.USER)
+						.build();
 
-		categoryEntity = new CategoryEntity().name("카테고리");
+		categoryEntity = CategoryEntity.builder()
+							.name("카테고리")
+							.build();
 
-		postEntity = new PostEntity()
-					.content("포스트")
-					.title("포스트")
-					.category(categoryEntity)
-					.user(userEntity);
-		
-		pagination = new PaginationUtil();
+		postEntity = PostEntity.builder()
+						.content("포스트")
+						.title("포스트")
+						.category(categoryEntity)
+						.user(userEntity)
+						.build();
 	}
 	
 	@BeforeEach
@@ -110,10 +110,12 @@ public class CommentControllerTest {
 		
 		content = "댓글1";
 		
-		commentEntity = new CommentEntity()
-						.content(content)
-						.parentId(null)
-						.post(postEntity);
+		commentEntity = CommentEntity.builder()
+							.content(content)
+							.parentId(null)
+							.post(postEntity)
+							.user(userEntity)
+							.build();
 		
 		commentCreate = new CommentCreateRequest().content(content);
 		commentUpdate = new CommentUpdateRequest().content("댓글2");
@@ -136,16 +138,16 @@ public class CommentControllerTest {
 		});
 
 		action = mockMvc.perform(
-						post("/api/v1/posts/{post-id}/comments", postEntity.getId())
-						.content(SerializeDeserializeUtil.serializeToString(commentCreate))
-						.characterEncoding(StandardCharsets.UTF_8)
-						.contentType(MediaType.APPLICATION_JSON)
-				);
+					post("/api/v1/posts/{post-id}/comments", postEntity.getId())
+					.content(SerializeDeserializeUtil.serializeToString(commentCreate))
+					.characterEncoding(StandardCharsets.UTF_8)
+					.contentType(MediaType.APPLICATION_JSON)
+		);
 
 		action
-		.andDo(print())
-		.andExpect(status().isCreated())
-		.andExpect(jsonPath("$.data.content", is(comment1.getContent())));
+			.andDo(print())
+			.andExpect(status().isCreated())
+			.andExpect(jsonPath("$.data.content", is(comment1.getContent())));
 	}
 	
 	@DisplayName("내용이 없어 댓글을 생성하는데 실패한다.")
@@ -162,15 +164,15 @@ public class CommentControllerTest {
 		
 		commentCreate.content(null);
 		action = mockMvc.perform(
-						post("/api/v1/posts/{post-id}/comments", postEntity.getId())
-						.content(SerializeDeserializeUtil.serializeToString(commentCreate))
-						.characterEncoding(StandardCharsets.UTF_8)
-						.contentType(MediaType.APPLICATION_JSON)
-				);
+			post("/api/v1/posts/{post-id}/comments", postEntity.getId())
+			.content(SerializeDeserializeUtil.serializeToString(commentCreate))
+			.characterEncoding(StandardCharsets.UTF_8)
+			.contentType(MediaType.APPLICATION_JSON)
+		);
 
 		action
-		.andDo(print())
-		.andExpect(status().isBadRequest());
+			.andDo(print())
+			.andExpect(status().isBadRequest());
 	}
 	
 	@DisplayName("포스트가 존재하지 않아 댓글을 생성하는데 실패한다.")
@@ -182,16 +184,16 @@ public class CommentControllerTest {
 		given(commentService.create(any(Long.class), any(CommentCreateRequest.class), any(UserDetailsImpl.class))).willThrow(new PostNotFoundException(Code.NOT_FOUND, new String[] {"포스트가 존재하지 않습니다."}));	
 		
 		action = mockMvc.perform(
-						post("/api/v1/posts/{post-id}/comments", postEntity.getId())
-						.content(SerializeDeserializeUtil.serializeToString(commentCreate))
-						.characterEncoding(StandardCharsets.UTF_8)
-						.contentType(MediaType.APPLICATION_JSON)
-				);
+			post("/api/v1/posts/{post-id}/comments", postEntity.getId())
+			.content(SerializeDeserializeUtil.serializeToString(commentCreate))
+			.characterEncoding(StandardCharsets.UTF_8)
+			.contentType(MediaType.APPLICATION_JSON)
+		);	
 
 		action
-		.andDo(print())
-		.andExpect(status().isNotFound())
-		.andExpect(result -> assertTrue(result.getResolvedException() instanceof PostNotFoundException));
+			.andDo(print())
+			.andExpect(status().isNotFound())
+			.andExpect(result -> assertTrue(result.getResolvedException() instanceof PostNotFoundException));
 	}
 
 	@DisplayName("인증되어 있지 않아 댓글을 생성하는데 실패한다.")
@@ -206,15 +208,15 @@ public class CommentControllerTest {
 		});
 		
 		action = mockMvc.perform(
-						post("/api/v1/posts/{post-id}/comments", postEntity.getId())
-						.content(SerializeDeserializeUtil.serializeToString(commentCreate))
-						.characterEncoding(StandardCharsets.UTF_8)
-						.contentType(MediaType.APPLICATION_JSON)
-				);
+			post("/api/v1/posts/{post-id}/comments", postEntity.getId())
+			.content(SerializeDeserializeUtil.serializeToString(commentCreate))
+			.characterEncoding(StandardCharsets.UTF_8)
+			.contentType(MediaType.APPLICATION_JSON)
+		);
 
 		action
-		.andDo(print())
-		.andExpect(status().isUnauthorized());
+			.andDo(print())
+			.andExpect(status().isUnauthorized());
 	}
 	
 	@DisplayName("댓글을 삭제하는데 성공한다.")
@@ -228,9 +230,9 @@ public class CommentControllerTest {
 		action = mockMvc.perform(delete("/api/v1/posts/{post-id}/comments/{id}", postEntity.getId(), commentEntity.getId()));
 		
 		action
-		.andDo(print())
-		.andExpect(status().isOk())
-		.andExpect(jsonPath("$.metadata.code", is(Code.NO_CONTENT.getCode())));
+			.andDo(print())
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.metadata.code", is(Code.NO_CONTENT.getCode())));
 	}
 	
 	@DisplayName("포스트가 존재하지 않아 댓글을 삭제하는데 실패한다.")
@@ -244,9 +246,9 @@ public class CommentControllerTest {
 		action = mockMvc.perform(delete("/api/v1/posts/{post-id}/comments/{id}", postEntity.getId(), commentEntity.getId()));
 		
 		action
-		.andDo(print())
-		.andExpect(status().isNotFound())
-		.andExpect(result -> assertTrue(result.getResolvedException() instanceof PostNotFoundException));
+			.andDo(print())
+			.andExpect(status().isNotFound())
+			.andExpect(result -> assertTrue(result.getResolvedException() instanceof PostNotFoundException));
 	}
 	
 	@DisplayName("댓글이 존재하지 않아 삭제하는데 실패한다.")
@@ -260,9 +262,9 @@ public class CommentControllerTest {
 		action = mockMvc.perform(delete("/api/v1/posts/{post-id}/comments/{id}", postEntity.getId(), commentEntity.getId()));
 		
 		action
-		.andDo(print())
-		.andExpect(status().isNotFound())
-		.andExpect(result -> assertTrue(result.getResolvedException() instanceof CommentNotFoundException));
+			.andDo(print())
+			.andExpect(status().isNotFound())
+			.andExpect(result -> assertTrue(result.getResolvedException() instanceof CommentNotFoundException));
 	}	
 
 	@DisplayName("댓글을 생성한 사용자가 아니라서 삭제하는데 실패한다.")
@@ -276,8 +278,8 @@ public class CommentControllerTest {
 		action = mockMvc.perform(delete("/api/v1/posts/{post-id}/comments/{id}", postEntity.getId(), commentEntity.getId()));
 		
 		action
-		.andDo(print())
-		.andExpect(result -> assertTrue(result.getResolvedException() instanceof UserNotMatchedException));
+			.andDo(print())
+			.andExpect(result -> assertTrue(result.getResolvedException() instanceof UserNotMatchedException));
 	}
 	
 	@DisplayName("인증되어 있지 않아 댓글을 삭제하는데 실패한다.")
@@ -290,8 +292,8 @@ public class CommentControllerTest {
 		action = mockMvc.perform(delete("/api/v1/posts/{post-id}/comments/{id}", postEntity.getId(), commentEntity.getId()));
 		
 		action
-		.andDo(print())
-		.andExpect(status().isUnauthorized());
+			.andDo(print())
+			.andExpect(status().isUnauthorized());
 	}	
 	
 	@DisplayName("댓글 목록을 조회하는데 성공한다.")
@@ -301,11 +303,13 @@ public class CommentControllerTest {
 		CommentResponse comment2;
 		PageResponse<CommentResponse> page;
 		MultiValueMap<String, String> params;
+		PaginationUtil pagination;
 		
 		comment2 = new CommentResponse()
 					.content("실전 내용")
 					.parentId(null);
 
+		pagination = new PaginationUtil();
 		page = PageResponse.handleResponse(List.of(comment1, comment2), pagination.getPageSize(), pagination.getPageNo(), 2, 1, true, true);
 
 		given(commentService.findAllByPostId(any(Long.class), any(PaginationUtil.class))).willReturn(page);
@@ -317,15 +321,15 @@ public class CommentControllerTest {
 		params.add("sortDir", pagination.getSortDir());
 		
 		action = mockMvc.perform(
-						get("/api/v1/posts/{post-id}/comments", postEntity.getId())
-						.params(params)
-						.characterEncoding(StandardCharsets.UTF_8)
-				);
+			get("/api/v1/posts/{post-id}/comments", postEntity.getId())
+			.params(params)
+			.characterEncoding(StandardCharsets.UTF_8)
+		);
 
 		action
-		.andDo(print())
-		.andExpect(status().isOk())
-		.andExpect(jsonPath("$.data.content.size()", is(page.getContent().size())));
+			.andDo(print())
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.data.content.size()", is(page.getContent().size())));
 	}
 	
 	@DisplayName("댓글을 수정하는데 성공한다.")
@@ -335,23 +339,23 @@ public class CommentControllerTest {
 		ResultActions action;
 		
 		given(commentService.update(any(Long.class), any(Long.class), any(CommentUpdateRequest.class), any(UserDetailsImpl.class))).willAnswer((answer) -> {
-			commentEntity.content(commentUpdate.getContent());
+			commentEntity.setContent(commentUpdate.getContent());
 			comment1 = CommentMapper.INSTANCE.toDto(commentEntity);
 			
 			return comment1;
 		});
 	
 		action = mockMvc.perform(
-						patch("/api/v1/posts/{post-id}/comments/{id}", postEntity.getId(), commentEntity.getId())
-						.content(SerializeDeserializeUtil.serializeToString(commentUpdate))
-						.characterEncoding(StandardCharsets.UTF_8)
-						.contentType(MediaType.APPLICATION_JSON)
-				);
+			patch("/api/v1/posts/{post-id}/comments/{id}", postEntity.getId(), commentEntity.getId())
+			.content(SerializeDeserializeUtil.serializeToString(commentUpdate))
+			.characterEncoding(StandardCharsets.UTF_8)
+			.contentType(MediaType.APPLICATION_JSON)
+		);
 
 		action
-		.andDo(print())
-		.andExpect(status().isOk())
-		.andExpect(jsonPath("$.data.content", is(comment1.getContent())));
+			.andDo(print())
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.data.content", is(comment1.getContent())));
 	}
 	
 	@DisplayName("내용이 없어 댓글을 수정하는데 실패한다.")
@@ -361,7 +365,7 @@ public class CommentControllerTest {
 		ResultActions action;
 		
 		given(commentService.update(any(Long.class), any(Long.class), any(CommentUpdateRequest.class), any(UserDetailsImpl.class))).willAnswer((answer) -> {
-			commentEntity.content(commentUpdate.getContent());
+			commentEntity.setContent(commentUpdate.getContent());
 			comment1 = CommentMapper.INSTANCE.toDto(commentEntity);
 			
 			return comment1;
@@ -369,15 +373,15 @@ public class CommentControllerTest {
 	
 		commentUpdate.content(null);
 		action = mockMvc.perform(
-						patch("/api/v1/posts/{post-id}/comments/{id}", postEntity.getId(), commentEntity.getId())
-						.content(SerializeDeserializeUtil.serializeToString(commentUpdate))
-						.characterEncoding(StandardCharsets.UTF_8)
-						.contentType(MediaType.APPLICATION_JSON)
-				);
+			patch("/api/v1/posts/{post-id}/comments/{id}", postEntity.getId(), commentEntity.getId())
+			.content(SerializeDeserializeUtil.serializeToString(commentUpdate))
+			.characterEncoding(StandardCharsets.UTF_8)
+			.contentType(MediaType.APPLICATION_JSON)
+		);
 
 		action
-		.andDo(print())
-		.andExpect(status().isBadRequest());
+			.andDo(print())
+			.andExpect(status().isBadRequest());
 	}
 	
 	@DisplayName("포스트가 존재하지 않아 댓글을 수정하는데 실패한다.")
@@ -389,16 +393,16 @@ public class CommentControllerTest {
 		given(commentService.update(any(Long.class), any(Long.class), any(CommentUpdateRequest.class), any(UserDetailsImpl.class))).willThrow(new PostNotFoundException(Code.NOT_FOUND, new String[] {"포스트가 존재하지 않습니다."}));
 
 		action = mockMvc.perform(
-						patch("/api/v1/posts/{post-id}/comments/{id}", postEntity.getId(), commentEntity.getId())
-						.content(SerializeDeserializeUtil.serializeToString(commentUpdate))
-						.characterEncoding(StandardCharsets.UTF_8)
-						.contentType(MediaType.APPLICATION_JSON)
-				);
+			patch("/api/v1/posts/{post-id}/comments/{id}", postEntity.getId(), commentEntity.getId())
+			.content(SerializeDeserializeUtil.serializeToString(commentUpdate))
+			.characterEncoding(StandardCharsets.UTF_8)
+			.contentType(MediaType.APPLICATION_JSON)
+		);
 		
 		action
-		.andDo(print())
-		.andExpect(status().isNotFound())
-		.andExpect(result -> assertTrue(result.getResolvedException() instanceof PostNotFoundException));
+			.andDo(print())
+			.andExpect(status().isNotFound())
+			.andExpect(result -> assertTrue(result.getResolvedException() instanceof PostNotFoundException));
 	}
 
 	@DisplayName("댓글을 생성한 사용자가 아니라서 수정하는데 실패한다.")
@@ -410,16 +414,16 @@ public class CommentControllerTest {
 		given(commentService.update(any(Long.class), any(Long.class), any(CommentUpdateRequest.class), any(UserDetailsImpl.class))).willThrow(new UserNotMatchedException(Code.USER_NOT_MATCHED, new String[] {"로그인한 사용자와 댓글을 생성한 사용자가 일치하지 않습니다."}));
 
 		action = mockMvc.perform(
-						patch("/api/v1/posts/{post-id}/comments/{id}", postEntity.getId(), commentEntity.getId())
-						.contentType(MediaType.APPLICATION_JSON)
-						.content(SerializeDeserializeUtil.serializeToString(commentUpdate))
-						.characterEncoding(StandardCharsets.UTF_8)
-						.contentType(MediaType.APPLICATION_JSON)
-				);
+			patch("/api/v1/posts/{post-id}/comments/{id}", postEntity.getId(), commentEntity.getId())
+			.contentType(MediaType.APPLICATION_JSON)
+			.content(SerializeDeserializeUtil.serializeToString(commentUpdate))
+			.characterEncoding(StandardCharsets.UTF_8)
+			.contentType(MediaType.APPLICATION_JSON)
+		);
 
 		action
-		.andDo(print())
-		.andExpect(result -> assertTrue(result.getResolvedException() instanceof UserNotMatchedException));
+			.andDo(print())
+			.andExpect(result -> assertTrue(result.getResolvedException() instanceof UserNotMatchedException));
 	}
 	
 	@DisplayName("댓글이 존재하지 않아 수정하는데 실패한다.")
@@ -431,17 +435,17 @@ public class CommentControllerTest {
 		given(commentService.update(any(Long.class), any(Long.class), any(CommentUpdateRequest.class), any(UserDetailsImpl.class))).willThrow(new CommentNotFoundException(Code.NOT_FOUND, new String[] {"댓글이 존재하지 않습니다."}));
 
 		action = mockMvc.perform(
-						patch("/api/v1/posts/{post-id}/comments/{id}", postEntity.getId(), commentEntity.getId())
-						.contentType(MediaType.APPLICATION_JSON)
-						.content(SerializeDeserializeUtil.serializeToString(commentUpdate))
-						.characterEncoding(StandardCharsets.UTF_8)
-						.contentType(MediaType.APPLICATION_JSON)
-				);
+			patch("/api/v1/posts/{post-id}/comments/{id}", postEntity.getId(), commentEntity.getId())
+			.contentType(MediaType.APPLICATION_JSON)
+			.content(SerializeDeserializeUtil.serializeToString(commentUpdate))
+			.characterEncoding(StandardCharsets.UTF_8)
+			.contentType(MediaType.APPLICATION_JSON)
+		);
 		
 		action
-		.andDo(print())
-		.andExpect(status().isNotFound())
-		.andExpect(result -> assertTrue(result.getResolvedException() instanceof CommentNotFoundException));
+			.andDo(print())
+			.andExpect(status().isNotFound())
+			.andExpect(result -> assertTrue(result.getResolvedException() instanceof CommentNotFoundException));
 	}
 	
 	@DisplayName("인증되어 있지 않아 댓글을 수정하는데 실패한다.")
@@ -450,21 +454,21 @@ public class CommentControllerTest {
 		ResultActions action;
 		
 		given(commentService.update(any(Long.class), any(Long.class), any(CommentUpdateRequest.class), any(UserDetailsImpl.class))).willAnswer((answer) -> {
-			commentEntity.content(commentUpdate.getContent());
+			commentEntity.setContent(commentUpdate.getContent());
 			comment1 = CommentMapper.INSTANCE.toDto(commentEntity);
 			
 			return comment1;
 		});
 	
 		action = mockMvc.perform(
-						patch("/api/v1/posts/{post-id}/comments/{id}", postEntity.getId(), commentEntity.getId())
-						.content(SerializeDeserializeUtil.serializeToString(commentUpdate))
-						.characterEncoding(StandardCharsets.UTF_8)
-						.contentType(MediaType.APPLICATION_JSON)
-				);
+			patch("/api/v1/posts/{post-id}/comments/{id}", postEntity.getId(), commentEntity.getId())
+			.content(SerializeDeserializeUtil.serializeToString(commentUpdate))
+			.characterEncoding(StandardCharsets.UTF_8)
+			.contentType(MediaType.APPLICATION_JSON)
+		);
 
 		action
-		.andDo(print())
-		.andExpect(status().isUnauthorized());
+			.andDo(print())
+			.andExpect(status().isUnauthorized());
 	}
 }

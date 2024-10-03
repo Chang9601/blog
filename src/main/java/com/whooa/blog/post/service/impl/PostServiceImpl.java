@@ -70,11 +70,12 @@ public class PostServiceImpl implements PostService {
 		
 		categoryEntity = categoryRepository.findByName(categoryName).orElseThrow(() -> new CategoryNotFoundException(Code.NOT_FOUND, new String[] {"카테고리가 존재하지 않습니다."}));
 		userEntity = userRepository.findById(userDetailsImpl.getId()).orElseThrow(() -> new UserNotFoundException(Code.NOT_FOUND, new String[] {"아이디에 해당하는 사용자가 존재하지 않습니다."}));
-		postEntity = new PostEntity()
-				.content(content)
-				.title(title)
-				.category(categoryEntity)
-				.user(userEntity);
+		postEntity = PostEntity.builder()
+								.content(content)
+								.title(title)
+								.category(categoryEntity)
+								.user(userEntity)
+								.build();
 	
 		// TODO: Mapper에서 연관관계 정리.
 		// PostEntity postEntity = postRepository.save(PostMapper.INSTANCE.toEntity(postCreate));
@@ -190,15 +191,15 @@ public class PostServiceImpl implements PostService {
 		title = postUpdate.getContent();
 
 		if (StringUtil.notEmpty(categoryName)) {
-			postEntity.category(categoryEntity);
+			postEntity.setCategory(categoryEntity);
 		}
 		
 		if (StringUtil.notEmpty(content)) {
-			postEntity.content(postUpdate.getContent());
+			postEntity.setContent(postUpdate.getContent());
 		}
 		
 		if (StringUtil.notEmpty(title)) {
-			postEntity.title(postUpdate.getTitle());
+			postEntity.setTitle(postUpdate.getTitle());
 		}
 
 		if (uploadFiles != null && uploadFiles.length > 0) {

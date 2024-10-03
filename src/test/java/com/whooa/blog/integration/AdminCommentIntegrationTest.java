@@ -85,34 +85,41 @@ public class AdminCommentIntegrationTest {
 	@BeforeAll
 	void setUpAll() {
 		mockMvc = MockMvcBuilders
-				.webAppContextSetup(webApplicationContext)
-				.addFilter(new CharacterEncodingFilter("utf-8", true))
-				.apply(springSecurity()).build();
+					.webAppContextSetup(webApplicationContext)
+					.addFilter(new CharacterEncodingFilter("utf-8", true))
+					.apply(springSecurity()).build();
 
 		userEntity = userRepository.save(
-			new UserEntity()
-			.email("admin@admin.com")
-			.name("관리자")
-			.password("12345678Aa!@#$%")
-			.userRole(UserRole.ADMIN)
+			UserEntity.builder()
+				.email("admin@naver.com")
+				.name("관리자")
+				.password("12345678Aa!@#$%")
+				.userRole(UserRole.ADMIN)
+				.build()
 		);
 		
 		userRepository.save(
-			new UserEntity()
-			.email("user1@user1.com")
-			.name("사용자1")
-			.password("12345678Aa!@#$%")
-			.userRole(UserRole.USER)
+			UserEntity.builder()
+				.email("user1@naver.com")
+				.name("사용자1")
+				.password("12345678Aa!@#$%")
+				.userRole(UserRole.USER)
+				.build()
 		);
 		
-		categoryEntity = categoryRepository.save(new CategoryEntity().name("카테고리"));
+		categoryEntity = categoryRepository.save(
+			CategoryEntity.builder()
+				.name("카테고리")
+				.build()
+		);
 		
 		postEntity = postRepository.save(
-			new PostEntity()
-			.category(categoryEntity)
-			.content("포스트")
-			.title("포스트")
-			.user(userEntity)
+			PostEntity.builder()
+				.category(categoryEntity)
+				.content("포스트")
+				.title("포스트")
+				.user(userEntity)
+				.build()
 		);
 
 		new UserDetailsImpl(userEntity);
@@ -121,10 +128,11 @@ public class AdminCommentIntegrationTest {
 	@BeforeEach
 	void setUpEach() {	
 		commentEntity = commentRepository.save(
-			new CommentEntity()
-			.content("댓글1")
-			.post(postEntity)
-			.user(userEntity)
+			 CommentEntity.builder()
+				.content("댓글1")
+				.post(postEntity)
+				.user(userEntity)
+				.build()
 		);
 	
 		commentUpdate = new CommentUpdateRequest().content("댓글2");
@@ -145,132 +153,132 @@ public class AdminCommentIntegrationTest {
 	   
 	@DisplayName("댓글을 삭제하는데 성공한다.")
 	@Test
-	@WithUserDetails(value = "admin@admin.com", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")
+	@WithUserDetails(value = "admin@naver.com", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")
 	public void givenId_whenCallDeleteComment_thenReturnNothing() throws Exception {
 		ResultActions action;
 		
 		action = mockMvc.perform(delete("/api/v1/admin/posts/{post-id}/comments/{id}", postEntity.getId(), commentEntity.getId()));
 		
 		action
-		.andDo(print())
-		.andExpect(status().isOk())
-		.andExpect(jsonPath("$.metadata.code", is(Code.NO_CONTENT.getCode())));
+			.andDo(print())
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.metadata.code", is(Code.NO_CONTENT.getCode())));
 	}
 	
 	@DisplayName("포스트가 존재하지 않아 댓글을 삭제하는데 실패한다.")
 	@Test
-	@WithUserDetails(value = "admin@admin.com", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")
+	@WithUserDetails(value = "admin@naver.com", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")
 	public void givenId_whenCallDeleteComment_thenThrowPostNotFoundException() throws Exception {
 		ResultActions action;
 		
 		action = mockMvc.perform(delete("/api/v1/admin/posts/{post-id}/comments/{id}", 100L, commentEntity.getId()));
 		
 		action
-		.andDo(print())
-		.andExpect(status().isNotFound())
-		.andExpect(exception -> assertTrue(exception.getResolvedException() instanceof PostNotFoundException));
+			.andDo(print())
+			.andExpect(status().isNotFound())
+			.andExpect(exception -> assertTrue(exception.getResolvedException() instanceof PostNotFoundException));
 	}
 	
 	@DisplayName("댓글이 존재하지 않아 삭제하는데 실패한다.")
 	@Test
-	@WithUserDetails(value = "admin@admin.com", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")
+	@WithUserDetails(value = "admin@naver.com", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")
 	public void givenId_whenCallDeleteComment_thenThrowCommentNotFoundException() throws Exception {
 		ResultActions action;
 		
 		action = mockMvc.perform(delete("/api/v1/admin/posts/{post-id}/comments/{id}", postEntity.getId(), 100L));
 		
 		action
-		.andDo(print())
-		.andExpect(status().isNotFound())
-		.andExpect(output -> assertTrue(output.getResolvedException() instanceof CommentNotFoundException));
+			.andDo(print())
+			.andExpect(status().isNotFound())
+			.andExpect(output -> assertTrue(output.getResolvedException() instanceof CommentNotFoundException));
 	}
 	
 	@DisplayName("권한이 없어 댓글을 삭제하는데 실패한다.")
 	@Test
-	@WithUserDetails(value = "user1@user1.com", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")
+	@WithUserDetails(value = "user1@naver.com", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")
 	public void givenId_whenCallDeleteComment_thenThrowUnauthenticatedUserException() throws Exception {
 		ResultActions action;
 		
 		action = mockMvc.perform(delete("/api/v1/admin/posts/{post-id}/comments/{id}", postEntity.getId(), commentEntity.getId()));
 		
 		action
-		.andDo(print())
-		.andExpect(status().isForbidden());
+			.andDo(print())
+			.andExpect(status().isForbidden());
 	}
 	
 	@DisplayName("댓글을 수정하는데 성공한다.")
 	@Test
-	@WithUserDetails(value = "admin@admin.com", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")
+	@WithUserDetails(value = "admin@naver.com", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")
 	public void givenCommentUpdate_whenCallUpdateComment_thenReturnComment() throws Exception {
 		ResultActions action;
 		
 		action = mockMvc.perform(
-						patch("/api/v1/admin/posts/{post-id}/comments/{id}", postEntity.getId(), commentEntity.getId())
-						.content(SerializeDeserializeUtil.serializeToString(commentUpdate))
-						.characterEncoding(StandardCharsets.UTF_8)
-						.contentType(MediaType.APPLICATION_JSON)
-				);
+			patch("/api/v1/admin/posts/{post-id}/comments/{id}", postEntity.getId(), commentEntity.getId())
+			.content(SerializeDeserializeUtil.serializeToString(commentUpdate))
+			.characterEncoding(StandardCharsets.UTF_8)
+			.contentType(MediaType.APPLICATION_JSON)
+		);
 
 		action
-		.andDo(print())
-		.andExpect(status().isOk())
-		.andExpect(jsonPath("$.data.content", is(commentUpdate.getContent())));
+			.andDo(print())
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.data.content", is(commentUpdate.getContent())));
 	}
 	
 	@DisplayName("포스트가 존재하지 않아 댓글을 수정하는데 실패한다.")
 	@Test
-	@WithUserDetails(value = "admin@admin.com", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")
+	@WithUserDetails(value = "admin@naver.com", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")
 	public void givenCommentUpdate_whenCallUpdateComment_thenThrowPostNotFoundException() throws Exception {
 		ResultActions action;
 		
 		action = mockMvc.perform(
-						patch("/api/v1/posts/{post-id}/comments/{id}", 100L, commentEntity.getId())
-						.content(SerializeDeserializeUtil.serializeToString(commentUpdate))
-						.characterEncoding(StandardCharsets.UTF_8)
-						.contentType(MediaType.APPLICATION_JSON)
-				);
+			patch("/api/v1/posts/{post-id}/comments/{id}", 100L, commentEntity.getId())
+			.content(SerializeDeserializeUtil.serializeToString(commentUpdate))
+			.characterEncoding(StandardCharsets.UTF_8)
+			.contentType(MediaType.APPLICATION_JSON)
+		);
 		
 		action
-		.andDo(print())
-		.andExpect(status().isNotFound())
-		.andExpect(output -> assertTrue(output.getResolvedException() instanceof PostNotFoundException));
+			.andDo(print())
+			.andExpect(status().isNotFound())
+			.andExpect(output -> assertTrue(output.getResolvedException() instanceof PostNotFoundException));
 	}
 	
 	@DisplayName("댓글이 존재하지 않아 수정하는데 실패한다.")
 	@Test
-	@WithUserDetails(value = "admin@admin.com", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")
+	@WithUserDetails(value = "admin@naver.com", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")
 	public void givenCommentUpdate_whenCallUpdateComment_thenThrowCommentNotFoundException() throws Exception {
 		ResultActions action;
 		
 		action = mockMvc.perform(
-						patch("/api/v1/posts/{post-id}/comments/{id}", postEntity.getId(), 100L)
-						.contentType(MediaType.APPLICATION_JSON)
-						.content(SerializeDeserializeUtil.serializeToString(commentUpdate))
-						.characterEncoding(StandardCharsets.UTF_8)
-						.contentType(MediaType.APPLICATION_JSON)
-				);
+			patch("/api/v1/posts/{post-id}/comments/{id}", postEntity.getId(), 100L)
+			.contentType(MediaType.APPLICATION_JSON)
+			.content(SerializeDeserializeUtil.serializeToString(commentUpdate))
+			.characterEncoding(StandardCharsets.UTF_8)
+			.contentType(MediaType.APPLICATION_JSON)
+		);
 		
 		action
-		.andDo(print())
-		.andExpect(status().isNotFound())
-		.andExpect(output -> assertTrue(output.getResolvedException() instanceof CommentNotFoundException));
+			.andDo(print())
+			.andExpect(status().isNotFound())
+			.andExpect(output -> assertTrue(output.getResolvedException() instanceof CommentNotFoundException));
 	}
 	
 	@DisplayName("권한이 없어 댓글을 수정하는데 실패한다.")
 	@Test
-	@WithUserDetails(value = "user1@user1.com", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")	
+	@WithUserDetails(value = "user1@naver.com", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")	
 	public void givenCommentUpdate_whenCallUpdateComment_thenThrowUnauthenticatedUserException() throws Exception {
 		ResultActions action;
 		
 		action = mockMvc.perform(
-						patch("/api/v1/posts/{post-id}/comments/{id}", postEntity.getId(), commentEntity.getId())
-						.content(SerializeDeserializeUtil.serializeToString(commentUpdate))
-						.characterEncoding(StandardCharsets.UTF_8)
-						.contentType(MediaType.APPLICATION_JSON)
-				);
+			patch("/api/v1/posts/{post-id}/comments/{id}", postEntity.getId(), commentEntity.getId())
+			.content(SerializeDeserializeUtil.serializeToString(commentUpdate))
+			.characterEncoding(StandardCharsets.UTF_8)
+			.contentType(MediaType.APPLICATION_JSON)
+		);
 
 		action
-		.andDo(print())
-		.andExpect(status().isForbidden());
+			.andDo(print())
+			.andExpect(status().isForbidden());
 	}	
 }

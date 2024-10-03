@@ -14,11 +14,7 @@ public class CommentDto {
 		)
 		@NotBlank(message = "내용을 입력하세요.")
 		private String content;
-
-		public CommentCreateRequest(String content) {
-			this.content = content;
-		}
-
+		
 		public CommentCreateRequest() {}
 		
 		public CommentCreateRequest content(String content) {
@@ -49,11 +45,7 @@ public class CommentDto {
 		)
 		@NotBlank(message = "내용을 입력하세요.")
 		private String content;
-		
-		public CommentUpdateRequest(String content) {
-			this.content = content;
-		}
-		
+
 		public CommentUpdateRequest() {}
 		
 		public CommentUpdateRequest content(String content) {
@@ -94,12 +86,6 @@ public class CommentDto {
 			description = "대댓글 아이디"
 		)		
 		private Long parentId;
-
-		public CommentResponse(Long id, String content, Long parentId) {
-			this.id = id;
-			this.content = content;
-			this.parentId = parentId;
-		}
 
 		public CommentResponse() {}
 		
@@ -152,5 +138,45 @@ public class CommentDto {
 		 *	 return post;
 		 * }
 		 */
+		
+		public static CommentResponseBuilder builder() {
+			return new CommentResponseBuilder();
+		}
+		
+		public static final class CommentResponseBuilder {
+			private Long id;
+			private String content;
+			private Long parentId;
+			
+			private CommentResponseBuilder() {}
+			
+			public CommentResponseBuilder id(Long id) {
+				this.id = id;
+				return this;
+			}
+			
+			public CommentResponseBuilder content(String content) {
+				this.content = content;
+				return this;
+			}
+			
+			public CommentResponseBuilder parentId(Long parentId) {
+				this.parentId = parentId;
+				return this;
+			}
+			
+			public CommentResponse build() {
+				CommentResponse comment = new CommentResponse();
+				
+				comment.setId(id);
+				comment.setContent(content);
+				
+				if (parentId != null) {
+					comment.setParentId(parentId);
+				}
+				
+				return comment;
+			}
+		}
 	}
 }

@@ -32,12 +32,6 @@ public class PostDto {
 		@Size(min = 2, message = "제목은 최소 2자 이상입니다.")
 		@NotBlank(message = "제목을 입력하세요.")
 		private String title;
-		
-		public PostCreateRequest(String categoryName, String content, String title) {
-			this.categoryName = categoryName;
-			this.content = content;
-			this.title = title;
-		}
 
 		public PostCreateRequest() {}
 
@@ -100,12 +94,6 @@ public class PostDto {
 		@NotBlank(message = "제목을 입력하세요.")
 		private String title;
 
-		public PostUpdateRequest(String categoryName, String content, String title) {
-			this.categoryName = categoryName;
-			this.content = content;
-			this.title = title;
-		}
-
 		public PostUpdateRequest() {}
 		
 		public PostUpdateRequest categoryName(String categoryName) {
@@ -165,16 +153,6 @@ public class PostDto {
 		private String content;
 		private List<File> files;
 		private String title;
-
-		public PostResponse(Long id, CategoryResponse category, List<CommentResponse> comments, String content,
-				List<File> files, String title) {
-			this.id = id;
-			this.category = category;
-			this.comments = comments;
-			this.content = content;
-			this.files = files;
-			this.title = title;
-		}
 
 		public PostResponse() {}
 		

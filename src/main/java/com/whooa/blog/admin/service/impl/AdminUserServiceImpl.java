@@ -30,13 +30,14 @@ public class AdminUserServiceImpl implements AdminUserService {
 	public AdminUserServiceImpl(UserRepository userRepository) {
 		this.userRepository = userRepository;
 	}
-
+	
 	@Override
 	public void delete(Long id) {
 		UserEntity userEntity;
 		
 		userEntity = userRepository.findByIdAndActiveTrue(id).orElseThrow(() -> new UserNotFoundException(Code.NOT_FOUND, new String[] {"아이디에 해당하는 사용자가 존재하지 않습니다."}));
-		userEntity.active(false);
+		
+		userEntity.setActive(false);
 		
 		userRepository.save(userEntity);
 	}
@@ -91,19 +92,19 @@ public class AdminUserServiceImpl implements AdminUserService {
 				throw new DuplicateUserException(Code.CONFLICT, new String[] {"이메일을 사용하는 사용자가 이미 존재합니다."});
 			}
 			
-			userEntity.email(email);
+			userEntity.setEmail(email);
 		}
 		
 		if (StringUtil.notEmpty(name)) {
-			userEntity.name(name);
+			userEntity.setName(name);
 		}
 		
 		if (StringUtil.notEmpty(password)) {
-			userEntity.password(PasswordUtil.hash(password));
+			userEntity.setPassword(PasswordUtil.hash(password));
 		}
 		
 		if (!StringUtil.notEmpty(userRole)) {
-			userEntity.userRole(UserRoleMapper.map(userRole));
+			userEntity.setUserRole(UserRoleMapper.map(userRole));
 		}
 		
 		return UserMapper.INSTANCE.toDto(userRepository.save(userEntity));

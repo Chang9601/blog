@@ -107,13 +107,16 @@ public class AdminPostServiceTest {
 		CategoryEntity categoryEntity2;
 		PostEntity postEntity2;
 		
-		categoryEntity2= new CategoryEntity().name("카테고리2");
+		categoryEntity2 = CategoryEntity.builder()
+							.name("카테고리2")
+							.build();
 		
-		postEntity2 = new PostEntity()
-					.content(postUpdate.getContent())
-					.title(postUpdate.getTitle())
-					.category(categoryEntity2)
-					.user(userEntity);
+		postEntity2 = PostEntity.builder()
+						.content(postUpdate.getContent())
+						.title(postUpdate.getTitle())
+						.category(categoryEntity2)
+						.user(userEntity)
+						.build();
 			
 		given(postRepository.save(any(PostEntity.class))).willReturn(postEntity2);
 		given(postRepository.findById(any(Long.class))).willReturn(Optional.of(postEntity1));
@@ -138,13 +141,16 @@ public class AdminPostServiceTest {
 		CategoryEntity categoryEntity2;
 		PostEntity postEntity2;
 		
-		categoryEntity2 = new CategoryEntity().name("카테고리2");
-		
-		postEntity2 = new PostEntity()
-					.content(postUpdate.getContent())
-					.title(postUpdate.getTitle())
-					.category(categoryEntity2)
-					.user(userEntity);
+		categoryEntity2 = CategoryEntity.builder()
+							.name("카테고리2")
+							.build();
+
+		postEntity2 = PostEntity.builder()
+						.content(postUpdate.getContent())
+						.title(postUpdate.getTitle())
+						.category(categoryEntity2)
+						.user(userEntity)
+						.build();
 
 		given(postRepository.save(any(PostEntity.class))).willReturn(postEntity2);
 		given(postRepository.findById(any(Long.class))).willReturn(Optional.of(postEntity1));
@@ -197,20 +203,28 @@ public class AdminPostServiceTest {
 	}
 	
 	private static Stream<Arguments> postParametersProvider() {
-		CategoryEntity categoryEntity = new CategoryEntity().name("카테고리1");
+		CategoryEntity categoryEntity;
+		PostEntity postEntity;
+		UserEntity userEntity;
 		
-		UserEntity userEntity = new UserEntity()
-								.email("user1@naver.com")
-								.name("사용자1")
-								.password("12345678Aa!@#$%")
-								.userRole(UserRole.USER);
-		userEntity.setId(1L);
-			
-		PostEntity postEntity = new PostEntity()
-								.content("포스트1")
-								.title("포스트1")
-								.category(categoryEntity)
-								.user(userEntity);
+		categoryEntity = CategoryEntity.builder()
+							.name("카테고리1")
+							.build();
+		
+		userEntity = UserEntity.builder()
+						.id(1L)
+						.email("user@user.com")
+						.name("사용자")
+						.password("12345678Aa!@#$%")
+						.userRole(UserRole.USER)
+						.build();
+							
+		postEntity = PostEntity.builder()
+						.content("포스트1")
+						.title("포스트1")
+						.category(categoryEntity)
+						.user(userEntity)
+						.build();
 
 		return Stream.of(Arguments.of(postEntity, categoryEntity, userEntity));
 	}		

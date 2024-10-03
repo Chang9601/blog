@@ -3,7 +3,6 @@ package com.whooa.blog.post.doc;
 import java.util.Date;
 import java.util.List;
 
-import org.springframework.data.annotation.Id;
 import org.springframework.data.elasticsearch.annotations.Document;
 import org.springframework.data.elasticsearch.annotations.Field;
 import org.springframework.data.elasticsearch.annotations.FieldType;
@@ -12,13 +11,10 @@ import org.springframework.data.elasticsearch.annotations.JoinTypeRelations;
 import org.springframework.data.elasticsearch.core.join.JoinField;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.whooa.blog.common.doc.CoreDoc;
 
 @Document(indexName = "posts")
-public class PostDoc {
-	@Id
-	@Field(type = FieldType.Keyword)
-	private String id;
-	
+public class PostDoc extends CoreDoc {
 	@Field(type = FieldType.Text, name = "category_name")
 	private String categoryName;
 	
@@ -40,6 +36,12 @@ public class PostDoc {
 	@JsonFormat(pattern = "yyyy-MM-dd")
 	private Date createdAt;
 	
+	@JsonFormat(pattern = "yyyy-MM-dd")
+	private Date updatedAt;
+	
+	@JsonFormat(pattern = "yyyy-MM-dd")
+	private Date deletedAt;
+	
 	@JoinTypeRelations(
 		relations = {
 			@JoinTypeRelation(parent = "category", children = "post"),
@@ -54,11 +56,11 @@ public class PostDoc {
 	}
 
 	public String getId() {
-		return id;
+		return super.getId();
 	}
 
 	public void setId(String id) {
-		this.id = id;
+		super.setId(id);
 	}
 	
 	public String getCategoryName() {
@@ -93,6 +95,14 @@ public class PostDoc {
 		this.categoryId = categoryId;
 	}
 	
+	public List<Long> getCommentIds() {
+		return commentIds;
+	}
+
+	public void setCommentIds(List<Long> commentIds) {
+		this.commentIds = commentIds;
+	}
+
 	public Long getUserId() {
 		return userId;
 	}
@@ -145,6 +155,11 @@ public class PostDoc {
 			return this;
 		}
 		
+		public PostDocBuilder commentIds(List<Long> commentIds) {
+			this.commentIds = commentIds;
+			return this;
+		}
+		
 		public PostDocBuilder userId(Long userId) {
 			this.userId = userId;
 			return this;
@@ -153,12 +168,19 @@ public class PostDoc {
 		public PostDoc build() {
 			PostDoc postDoc = new PostDoc();
 			
-			postDoc.setId(id);
+			if (id != null) {
+				postDoc.setId(id);
+			}
+			
 			postDoc.setCategoryName(categoryName);
 			postDoc.setContent(content);
 			postDoc.setTitle(title);
 			postDoc.setCategoryId(categoryId);
 			postDoc.setUserId(userId);
+			
+			if (commentIds != null) {
+				postDoc.setCommentIds(commentIds);
+			}
 			
 			return postDoc;
 		}

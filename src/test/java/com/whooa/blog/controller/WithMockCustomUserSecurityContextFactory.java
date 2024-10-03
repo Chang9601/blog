@@ -16,11 +16,12 @@ public class WithMockCustomUserSecurityContextFactory implements WithSecurityCon
 		String email = mockCustomUser.email();
 		String userRole = mockCustomUser.userRole();
 				
-		UserEntity userEntity = new UserEntity()
-				.email(email)
-				.name("테스트 이름")
-				.password("12345678Aa!@#$%")
-				.userRole(UserRoleMapper.map(userRole));
+		UserEntity userEntity = UserEntity.builder()
+											.email(email)
+											.name("사용자")
+											.password("12345678Aa!@#$%")
+											.userRole(UserRoleMapper.map(userRole))
+											.build();
 		
 		UserDetailsImpl userDetailsImpl = new UserDetailsImpl(userEntity);
 		

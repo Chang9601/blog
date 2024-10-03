@@ -79,45 +79,50 @@ public class CommentIntegrationTest {
 	private CommentCreateRequest commentCreate1;
 	private CommentUpdateRequest commentUpdate;
 
-	private PaginationUtil pagination;
 	private UserDetailsImpl userDetailsImpl;
 	
 	@BeforeAll
 	void setUpAll() {
 		mockMvc = MockMvcBuilders
-				.webAppContextSetup(webApplicationContext)
-				.addFilter(new CharacterEncodingFilter("utf-8", true))
-				.apply(springSecurity()).build();
+					.webAppContextSetup(webApplicationContext)
+					.addFilter(new CharacterEncodingFilter("utf-8", true))
+					.apply(springSecurity()).build();
 
 		userEntity = userRepository.save(
-			new UserEntity()
-			.email("user1@user1.com")
-			.name("사용자1")
-			.password("12345678Aa!@#$%")
-			.userRole(UserRole.USER)
+			UserEntity.builder()
+				.email("user1@naver.com")
+				.name("사용자1")
+				.password("12345678Aa!@#$%")
+				.userRole(UserRole.USER)
+				.build()
 		);
 		
 		userRepository.save(
-			new UserEntity()
-			.email("user2@user2.com")
-			.name("사용자2")
-			.password("12345678Aa!@#$%")
-			.userRole(UserRole.USER)
+			UserEntity.builder()
+				.email("user2@naver.com")
+				.name("사용자2")
+				.password("12345678Aa!@#$%")
+				.userRole(UserRole.USER)
+				.build()
 		);
 		
-		categoryEntity = categoryRepository.save(new CategoryEntity().name("카테고리"));
+		categoryEntity = categoryRepository.save(
+			CategoryEntity.builder()
+				.name("카테고리")
+				.build()
+		);
 		
 		postEntity = postRepository.save(
-			new PostEntity()
-			.category(categoryEntity)
-			.content("포스트")
-			.title("포스트")
-			.user(userEntity)
+			 PostEntity.builder()
+				.content("포스트")
+				.title("포스트")
+				.category(categoryEntity)
+				.user(userEntity)
+				.build()
 		);
 		
 		userDetailsImpl = new UserDetailsImpl(userEntity);
 
-		pagination = new PaginationUtil();
 	}
 	
 	@BeforeEach
@@ -146,16 +151,16 @@ public class CommentIntegrationTest {
 		ResultActions action;
 		
 		action = mockMvc.perform(
-						post("/api/v1/posts/{post-id}/comments", postEntity.getId())
-						.content(SerializeDeserializeUtil.serializeToString(commentCreate1))
-						.characterEncoding(StandardCharsets.UTF_8)
-						.contentType(MediaType.APPLICATION_JSON)
-				);
+			post("/api/v1/posts/{post-id}/comments", postEntity.getId())
+			.content(SerializeDeserializeUtil.serializeToString(commentCreate1))
+			.characterEncoding(StandardCharsets.UTF_8)
+			.contentType(MediaType.APPLICATION_JSON)
+		);
 
 		action
-		.andDo(print())
-		.andExpect(status().isCreated())
-		.andExpect(jsonPath("$.data.content", is(commentCreate1.getContent())));
+			.andDo(print())
+			.andExpect(status().isCreated())
+			.andExpect(jsonPath("$.data.content", is(commentCreate1.getContent())));
 	}
 	
 	@DisplayName("포스트가 존재하지 않아 댓글을 생성하는데 실패한다.")
@@ -165,16 +170,16 @@ public class CommentIntegrationTest {
 		ResultActions action;
 		
 		action = mockMvc.perform(
-						post("/api/v1/posts/{post-id}/comments", 100L)
-						.content(SerializeDeserializeUtil.serializeToString(commentCreate1))
-						.characterEncoding(StandardCharsets.UTF_8)
-						.contentType(MediaType.APPLICATION_JSON)
-				);
+			post("/api/v1/posts/{post-id}/comments", 100L)
+			.content(SerializeDeserializeUtil.serializeToString(commentCreate1))
+			.characterEncoding(StandardCharsets.UTF_8)
+			.contentType(MediaType.APPLICATION_JSON)
+		);
 
 		action
-		.andDo(print())
-		.andExpect(status().isNotFound())
-		.andExpect(output -> assertTrue(output.getResolvedException() instanceof PostNotFoundException));
+			.andDo(print())
+			.andExpect(status().isNotFound())
+			.andExpect(output -> assertTrue(output.getResolvedException() instanceof PostNotFoundException));
 	}
 
 	@DisplayName("인증되어 있지 않아 댓글을 생성하는데 실패한다.")
@@ -183,15 +188,15 @@ public class CommentIntegrationTest {
 		ResultActions action;
 		
 		action = mockMvc.perform(
-						post("/api/v1/posts/{post-id}/comments", postEntity.getId())
-						.content(SerializeDeserializeUtil.serializeToString(commentCreate1))
-						.characterEncoding(StandardCharsets.UTF_8)
-						.contentType(MediaType.APPLICATION_JSON)
-				);
+			post("/api/v1/posts/{post-id}/comments", postEntity.getId())
+			.content(SerializeDeserializeUtil.serializeToString(commentCreate1))
+			.characterEncoding(StandardCharsets.UTF_8)
+			.contentType(MediaType.APPLICATION_JSON)
+		);
 
 		action
-		.andDo(print())
-		.andExpect(status().isUnauthorized());
+			.andDo(print())
+			.andExpect(status().isUnauthorized());
 	}
 	
 	@DisplayName("댓글을 삭제하는데 성공한다.")
@@ -203,21 +208,21 @@ public class CommentIntegrationTest {
 		MvcResult result;
 		
 		result = mockMvc.perform(
-						post("/api/v1/posts/{post-id}/comments", postEntity.getId())
-						.content(SerializeDeserializeUtil.serializeToString(commentCreate1))
-						.characterEncoding(StandardCharsets.UTF_8)
-						.contentType(MediaType.APPLICATION_JSON))
-						.andExpect(status().isCreated())
-						.andReturn();
+			post("/api/v1/posts/{post-id}/comments", postEntity.getId())
+			.content(SerializeDeserializeUtil.serializeToString(commentCreate1))
+			.characterEncoding(StandardCharsets.UTF_8)
+			.contentType(MediaType.APPLICATION_JSON))
+			.andExpect(status().isCreated())
+			.andReturn();
 		
 		id = JsonPath.read(result.getResponse().getContentAsString(), "$.data.id");
 
 		action = mockMvc.perform(delete("/api/v1/posts/{post-id}/comments/{id}", postEntity.getId(), id));
 		
 		action
-		.andDo(print())
-		.andExpect(status().isOk())
-		.andExpect(jsonPath("$.metadata.code", is(Code.NO_CONTENT.getCode())));
+			.andDo(print())
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.metadata.code", is(Code.NO_CONTENT.getCode())));
 	}
 	
 	@DisplayName("포스트가 존재하지 않아 댓글을 삭제하는데 실패한다.")
@@ -229,21 +234,21 @@ public class CommentIntegrationTest {
 		MvcResult result;
 		
 		result = mockMvc.perform(
-						post("/api/v1/posts/{post-id}/comments", postEntity.getId())
-						.content(SerializeDeserializeUtil.serializeToString(commentCreate1))
-						.characterEncoding(StandardCharsets.UTF_8)
-						.contentType(MediaType.APPLICATION_JSON))
-						.andExpect(status().isCreated())
-						.andReturn();
+			post("/api/v1/posts/{post-id}/comments", postEntity.getId())
+			.content(SerializeDeserializeUtil.serializeToString(commentCreate1))
+			.characterEncoding(StandardCharsets.UTF_8)
+			.contentType(MediaType.APPLICATION_JSON))
+			.andExpect(status().isCreated())
+			.andReturn();
 
 		id = JsonPath.read(result.getResponse().getContentAsString(), "$.data.id");
 
 		action = mockMvc.perform(delete("/api/v1/posts/{post-id}/comments/{id}", 100L, id));
 		
 		action
-		.andDo(print())
-		.andExpect(status().isNotFound())
-		.andExpect(exception -> assertTrue(exception.getResolvedException() instanceof PostNotFoundException));
+			.andDo(print())
+			.andExpect(status().isNotFound())
+			.andExpect(exception -> assertTrue(exception.getResolvedException() instanceof PostNotFoundException));
 	}
 	
 	@DisplayName("댓글이 존재하지 않아 삭제하는데 실패한다.")
@@ -255,9 +260,9 @@ public class CommentIntegrationTest {
 		action = mockMvc.perform(delete("/api/v1/posts/{post-id}/comments/{id}", postEntity.getId(), 100L));
 		
 		action
-		.andDo(print())
-		.andExpect(status().isNotFound())
-		.andExpect(output -> assertTrue(output.getResolvedException() instanceof CommentNotFoundException));
+			.andDo(print())
+			.andExpect(status().isNotFound())
+			.andExpect(output -> assertTrue(output.getResolvedException() instanceof CommentNotFoundException));
 	}	
 
 	@DisplayName("댓글을 생성한 사용자가 아니라서 삭제하는데 실패한다.")
@@ -271,21 +276,21 @@ public class CommentIntegrationTest {
 		userDetailsImpl = new UserDetailsImpl(userRepository.findByEmailAndActiveTrue("user2@user2.com").get());
 
 		result = mockMvc.perform(
-						post("/api/v1/posts/{post-id}/comments", postEntity.getId())
-						.with(user(userDetailsImpl))
-						.content(SerializeDeserializeUtil.serializeToString(commentCreate1))
-						.characterEncoding(StandardCharsets.UTF_8)
-						.contentType(MediaType.APPLICATION_JSON))
-						.andExpect(status().isCreated())
-						.andReturn();
+			post("/api/v1/posts/{post-id}/comments", postEntity.getId())
+			.with(user(userDetailsImpl))
+			.content(SerializeDeserializeUtil.serializeToString(commentCreate1))
+			.characterEncoding(StandardCharsets.UTF_8)
+			.contentType(MediaType.APPLICATION_JSON))
+			.andExpect(status().isCreated())
+			.andReturn();
 
 		id = JsonPath.read(result.getResponse().getContentAsString(), "$.data.id");
 
 		action = mockMvc.perform(delete("/api/v1/posts/{post-id}/comments/{id}", postEntity.getId(), id));
 		
 		action
-		.andDo(print())
-		.andExpect(exception -> assertTrue(exception.getResolvedException() instanceof UserNotMatchedException));
+			.andDo(print())
+			.andExpect(exception -> assertTrue(exception.getResolvedException() instanceof UserNotMatchedException));
 	}
 	
 	@DisplayName("인증되어 있지 않아 댓글을 삭제하는데 실패한다.")
@@ -296,21 +301,21 @@ public class CommentIntegrationTest {
 		MvcResult result;
 		
 		result = mockMvc.perform(
-						post("/api/v1/posts/{post-id}/comments", postEntity.getId())
-						.with(user(userDetailsImpl))
-						.content(SerializeDeserializeUtil.serializeToString(commentCreate1))
-						.characterEncoding(StandardCharsets.UTF_8)
-						.contentType(MediaType.APPLICATION_JSON))
-						.andExpect(status().isCreated())
-						.andReturn();
+			post("/api/v1/posts/{post-id}/comments", postEntity.getId())
+			.with(user(userDetailsImpl))
+			.content(SerializeDeserializeUtil.serializeToString(commentCreate1))
+			.characterEncoding(StandardCharsets.UTF_8)
+			.contentType(MediaType.APPLICATION_JSON))
+			.andExpect(status().isCreated())
+			.andReturn();
 		
 		id = JsonPath.read(result.getResponse().getContentAsString(), "$.data.id");
 
 		action = mockMvc.perform(delete("/api/v1/posts/{post-id}/comments/{id}", postEntity.getId(), id));
 		
 		action
-		.andDo(print())
-		.andExpect(status().isUnauthorized());
+			.andDo(print())
+			.andExpect(status().isUnauthorized());
 	}
 	
 	@DisplayName("포스트의 댓글 목록을 조회하는데 성공한다.")
@@ -319,23 +324,26 @@ public class CommentIntegrationTest {
 		ResultActions action;
 		CommentCreateRequest commentCreate2;
 		MultiValueMap<String, String> params;
-		
+		PaginationUtil pagination;
+
 		commentCreate2 = new CommentCreateRequest().content("실전 내용");
 
 		mockMvc.perform(post("/api/v1/posts/{post-id}/comments", postEntity.getId())
-				.with(user(userDetailsImpl))
-				.content(SerializeDeserializeUtil.serializeToString(commentCreate1))
-				.characterEncoding(StandardCharsets.UTF_8)
-				.contentType(MediaType.APPLICATION_JSON))
-				.andExpect(status().isCreated());
+			.with(user(userDetailsImpl))
+			.content(SerializeDeserializeUtil.serializeToString(commentCreate1))
+			.characterEncoding(StandardCharsets.UTF_8)
+			.contentType(MediaType.APPLICATION_JSON))
+			.andExpect(status().isCreated());
 		 
 		mockMvc.perform(post("/api/v1/posts/{post-id}/comments", postEntity.getId())
-				.with(user(userDetailsImpl))
-				.content(SerializeDeserializeUtil.serializeToString(commentCreate2))
-				.characterEncoding(StandardCharsets.UTF_8)
-				.contentType(MediaType.APPLICATION_JSON))
-				.andExpect(status().isCreated());
+			.with(user(userDetailsImpl))
+			.content(SerializeDeserializeUtil.serializeToString(commentCreate2))
+			.characterEncoding(StandardCharsets.UTF_8)
+			.contentType(MediaType.APPLICATION_JSON))
+			.andExpect(status().isCreated());
 
+		pagination = new PaginationUtil();
+		
 		params = new LinkedMultiValueMap<String, String>();
 		params.add("pageNo", String.valueOf(pagination.getPageNo()));
 		params.add("pageSize", String.valueOf(pagination.getPageSize()));
@@ -343,15 +351,15 @@ public class CommentIntegrationTest {
 		params.add("sortDir", pagination.getSortDir());
 		
 		action = mockMvc.perform(
-						get("/api/v1/posts/{post-id}/comments", postEntity.getId())
-						.params(params)
-						.characterEncoding(StandardCharsets.UTF_8)
-				);
+			get("/api/v1/posts/{post-id}/comments", postEntity.getId())
+			.params(params)
+			.characterEncoding(StandardCharsets.UTF_8)
+		);
 
 		action
-		.andDo(print())
-		.andExpect(status().isOk())
-		.andExpect(jsonPath("$.data.content.size()", is(2)));
+			.andDo(print())
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.data.content.size()", is(2)));
 	}
 
 	@DisplayName("댓글을 수정하는데 성공한다.")
@@ -363,26 +371,26 @@ public class CommentIntegrationTest {
 		MvcResult result;
 		
 		result = mockMvc.perform(
-						post("/api/v1/posts/{post-id}/comments", postEntity.getId())
-						.content(SerializeDeserializeUtil.serializeToString(commentCreate1))
-						.characterEncoding(StandardCharsets.UTF_8)
-						.contentType(MediaType.APPLICATION_JSON))
-						.andExpect(status().isCreated())
-						.andReturn();
+			post("/api/v1/posts/{post-id}/comments", postEntity.getId())
+			.content(SerializeDeserializeUtil.serializeToString(commentCreate1))
+			.characterEncoding(StandardCharsets.UTF_8)
+			.contentType(MediaType.APPLICATION_JSON))
+			.andExpect(status().isCreated())
+			.andReturn();
 
 		id = JsonPath.read(result.getResponse().getContentAsString(), "$.data.id");
 
 		action = mockMvc.perform(
-						patch("/api/v1/posts/{post-id}/comments/{id}", postEntity.getId(), id)
-						.content(SerializeDeserializeUtil.serializeToString(commentUpdate))
-						.characterEncoding(StandardCharsets.UTF_8)
-						.contentType(MediaType.APPLICATION_JSON)
-				);
+			patch("/api/v1/posts/{post-id}/comments/{id}", postEntity.getId(), id)
+			.content(SerializeDeserializeUtil.serializeToString(commentUpdate))
+			.characterEncoding(StandardCharsets.UTF_8)
+			.contentType(MediaType.APPLICATION_JSON)
+		);
 
 		action
-		.andDo(print())
-		.andExpect(status().isOk())
-		.andExpect(jsonPath("$.data.content", is(commentUpdate.getContent())));
+			.andDo(print())
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.data.content", is(commentUpdate.getContent())));
 	}
 	
 	@DisplayName("포스트가 존재하지 않아 댓글을 수정하는데 실패한다.")
@@ -394,26 +402,26 @@ public class CommentIntegrationTest {
 		MvcResult result;
 		
 		result = mockMvc.perform(
-						post("/api/v1/posts/{post-id}/comments", postEntity.getId())
-						.with(user(userDetailsImpl))
-						.content(SerializeDeserializeUtil.serializeToString(commentCreate1))
-						.characterEncoding(StandardCharsets.UTF_8)
-						.contentType(MediaType.APPLICATION_JSON))
-						.andExpect(status().isCreated())
-						.andReturn();
+			post("/api/v1/posts/{post-id}/comments", postEntity.getId())
+			.with(user(userDetailsImpl))
+			.content(SerializeDeserializeUtil.serializeToString(commentCreate1))
+			.characterEncoding(StandardCharsets.UTF_8)
+			.contentType(MediaType.APPLICATION_JSON))
+			.andExpect(status().isCreated())
+			.andReturn();
 		
 		id = JsonPath.read(result.getResponse().getContentAsString(), "$.data.id");
 
 		action = mockMvc.perform(
-						patch("/api/v1/posts/{post-id}/comments/{id}", 100L, id)
-						.content(SerializeDeserializeUtil.serializeToString(commentUpdate))
-						.characterEncoding(StandardCharsets.UTF_8)
-						.contentType(MediaType.APPLICATION_JSON));
+			patch("/api/v1/posts/{post-id}/comments/{id}", 100L, id)
+			.content(SerializeDeserializeUtil.serializeToString(commentUpdate))
+			.characterEncoding(StandardCharsets.UTF_8)
+			.contentType(MediaType.APPLICATION_JSON));
 
 		action
-		.andDo(print())
-		.andExpect(status().isNotFound())
-		.andExpect(output -> assertTrue(output.getResolvedException() instanceof PostNotFoundException));
+			.andDo(print())
+			.andExpect(status().isNotFound())
+			.andExpect(output -> assertTrue(output.getResolvedException() instanceof PostNotFoundException));
 	}
 	
 	@DisplayName("댓글이 존재하지 않아 수정하는데 실패한다.")
@@ -423,17 +431,17 @@ public class CommentIntegrationTest {
 		ResultActions action;
 		
 		action = mockMvc.perform(
-						patch("/api/v1/posts/{post-id}/comments/{id}", postEntity.getId(), 100L)
-						.contentType(MediaType.APPLICATION_JSON)
-						.content(SerializeDeserializeUtil.serializeToString(commentUpdate))
-						.characterEncoding(StandardCharsets.UTF_8)
-						.contentType(MediaType.APPLICATION_JSON)
-				);
+			patch("/api/v1/posts/{post-id}/comments/{id}", postEntity.getId(), 100L)
+			.contentType(MediaType.APPLICATION_JSON)
+			.content(SerializeDeserializeUtil.serializeToString(commentUpdate))
+			.characterEncoding(StandardCharsets.UTF_8)
+			.contentType(MediaType.APPLICATION_JSON)
+		);
 		
 		action
-		.andDo(print())
-		.andExpect(status().isNotFound())
-		.andExpect(output -> assertTrue(output.getResolvedException() instanceof CommentNotFoundException));
+			.andDo(print())
+			.andExpect(status().isNotFound())
+			.andExpect(output -> assertTrue(output.getResolvedException() instanceof CommentNotFoundException));
 	}
 	
 	@DisplayName("댓글을 생성한 사용자가 아니라서 수정하는데 실패한다.")
@@ -447,26 +455,26 @@ public class CommentIntegrationTest {
 		userDetailsImpl = new UserDetailsImpl(userRepository.findByEmailAndActiveTrue("user2@user2.com").get());
 
 		result = mockMvc.perform(
-						post("/api/v1/posts/{post-id}/comments", postEntity.getId())
-						.with(user(userDetailsImpl))
-						.content(SerializeDeserializeUtil.serializeToString(commentCreate1))
-						.characterEncoding(StandardCharsets.UTF_8)
-						.contentType(MediaType.APPLICATION_JSON))
-						.andExpect(status().isCreated())
-						.andReturn();
+			post("/api/v1/posts/{post-id}/comments", postEntity.getId())
+			.with(user(userDetailsImpl))
+			.content(SerializeDeserializeUtil.serializeToString(commentCreate1))
+			.characterEncoding(StandardCharsets.UTF_8)
+			.contentType(MediaType.APPLICATION_JSON))
+			.andExpect(status().isCreated())
+			.andReturn();
 
 		id = JsonPath.read(result.getResponse().getContentAsString(), "$.data.id");
 
 		action = mockMvc.perform(
-						patch("/api/v1/posts/{post-id}/comments/{id}", postEntity.getId(), id)
-						.content(SerializeDeserializeUtil.serializeToString(commentUpdate))
-						.characterEncoding(StandardCharsets.UTF_8)
-						.contentType(MediaType.APPLICATION_JSON)
-				);
+			patch("/api/v1/posts/{post-id}/comments/{id}", postEntity.getId(), id)
+			.content(SerializeDeserializeUtil.serializeToString(commentUpdate))
+			.characterEncoding(StandardCharsets.UTF_8)
+			.contentType(MediaType.APPLICATION_JSON)
+		);
 				
 		action
-		.andDo(print())
-		.andExpect(output -> assertTrue(output.getResolvedException() instanceof UserNotMatchedException));
+			.andDo(print())
+			.andExpect(output -> assertTrue(output.getResolvedException() instanceof UserNotMatchedException));
 	}
 		
 	@DisplayName("인증되어 있지 않아 댓글을 수정하는데 실패한다.")
@@ -477,25 +485,25 @@ public class CommentIntegrationTest {
 		MvcResult result;
 		
 		result = mockMvc.perform(
-						post("/api/v1/posts/{post-id}/comments", postEntity.getId())
-						.with(user(userDetailsImpl))
-						.content(SerializeDeserializeUtil.serializeToString(commentCreate1))
-						.characterEncoding(StandardCharsets.UTF_8)
-						.contentType(MediaType.APPLICATION_JSON))
-						.andExpect(status().isCreated())
-						.andReturn();
+			post("/api/v1/posts/{post-id}/comments", postEntity.getId())
+			.with(user(userDetailsImpl))
+			.content(SerializeDeserializeUtil.serializeToString(commentCreate1))
+			.characterEncoding(StandardCharsets.UTF_8)
+			.contentType(MediaType.APPLICATION_JSON))
+			.andExpect(status().isCreated())
+			.andReturn();
 
 		id = JsonPath.read(result.getResponse().getContentAsString(), "$.data.id");
 		
 		action = mockMvc.perform(
-						patch("/api/v1/posts/{post-id}/comments/{id}", postEntity.getId(), id)
-						.content(SerializeDeserializeUtil.serializeToString(commentUpdate))
-						.characterEncoding(StandardCharsets.UTF_8)
-						.contentType(MediaType.APPLICATION_JSON)
-				);
+			patch("/api/v1/posts/{post-id}/comments/{id}", postEntity.getId(), id)
+			.content(SerializeDeserializeUtil.serializeToString(commentUpdate))
+			.characterEncoding(StandardCharsets.UTF_8)
+			.contentType(MediaType.APPLICATION_JSON)
+		);
 
 		action
-		.andDo(print())
-		.andExpect(status().isUnauthorized());
+			.andDo(print())
+			.andExpect(status().isUnauthorized());
 	}
 }

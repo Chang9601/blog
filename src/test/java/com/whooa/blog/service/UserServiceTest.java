@@ -55,18 +55,20 @@ public class UserServiceTest {
 		password = "12345678Aa!@#$%";
 		userRole = "USER";
 		
-		UserEntity userEntity = new UserEntity()
-				.email(email)
-				.name(name)
-				.password(password)
-				.userRole(UserRole.USER);
+		UserEntity userEntity = UserEntity.builder()
+									.email(email)
+									.name(name)
+									.password(password)
+									.userRole(UserRole.USER)
+									.build();
+		
 		userEntity.setId(1L);
 	
 		userCreate = new UserCreateRequest()
-					.email(email)
-					.name(name)
-					.password(password)
-					.userRole(userRole);
+						.email(email)
+						.name(name)
+						.password(password)
+						.userRole(userRole);
 				
 		userDetailsImpl = new UserDetailsImpl(userEntity);
 	}
@@ -164,12 +166,15 @@ public class UserServiceTest {
 	}
 	
 	private static Stream<Arguments> userParametersProvider() {		
-		UserEntity userEntity = new UserEntity()
-								.email("user1@naver.com")
-								.name("사용자1")
-								.password("12345678Aa!@#$%")
-								.userRole(UserRole.USER);
-		userEntity.setId(1L);
+		UserEntity userEntity;
+		
+		userEntity = UserEntity.builder()
+						.id(1L)
+						.email("user1@naver.com")
+						.name("사용자1")
+						.password("12345678Aa!@#$%")
+						.userRole(UserRole.USER)
+						.build();
 			
 		return Stream.of(Arguments.of(userEntity));
 	}		

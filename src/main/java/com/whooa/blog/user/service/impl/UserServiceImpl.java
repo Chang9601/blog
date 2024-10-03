@@ -30,24 +30,26 @@ public class UserServiceImpl implements UserService {
 	
 	@Override
 	public UserResponse create(UserCreateRequest userCreate) {
-		String email, plainPassword, hashedPassword, userRole;
+		String email, name, password, userRole;
 		UserEntity userEntity;
 		
-		email = userCreate.getEmail();
-		
 		// TODO: 실제로 삭제하지 않고 active 필드만 false로 둘 경우 처리방법.
-		if (userRepository.existsByEmail(email)) {
+		if (userRepository.existsByEmail(userCreate.getEmail())) {
 			throw new DuplicateUserException(Code.CONFLICT, new String[] {"이메일을 사용하는 사용자가 존재합니다."});
 		}
 		
+		email = userCreate.getEmail();
+		name = userCreate.getName();
 		userRole = userCreate.getUserRole();
-		userEntity = UserMapper.INSTANCE.toEntity(userCreate);
+		password = PasswordUtil.hash(userCreate.getPassword());
+		
+		userEntity = UserEntity.builder()
+								.email(email)
+								.name(name)
+								.password(password)
+								.userRole(UserRoleMapper.map(userRole))
+								.build();
 
-		plainPassword = userEntity.getPassword();
-		hashedPassword = PasswordUtil.hash(plainPassword);
-		
-		userEntity.password(hashedPassword).userRole(UserRoleMapper.map(userRole));
-		
 		return UserMapper.INSTANCE.toDto(userRepository.save(userEntity));
 	}
 		
@@ -59,7 +61,7 @@ public class UserServiceImpl implements UserService {
 		id = userDetailsImpl.getId();
 		
 		userEntity = userRepository.findByIdAndActiveTrue(id).orElseThrow(() -> new UserNotFoundException(Code.NOT_FOUND, new String[] {"아이디에 해당하는 사용자가 존재하지 않습니다."}));
-		userEntity.active(false);
+		userEntity.setActive(false);
 		
 		userRepository.save(userEntity);
 	}
@@ -92,11 +94,11 @@ public class UserServiceImpl implements UserService {
 				throw new DuplicateUserException(Code.CONFLICT, new String[] {"이메일을 사용하는 사용자가 존재합니다."});
 			}
 			
-			userEntity.email(email);
+			userEntity.setEmail(email);
 		}
 		
 		if (StringUtil.notEmpty(name)) {
-			userEntity.name(name);
+			userEntity.setName(name);
 		}
 		
 		return UserMapper.INSTANCE.toDto(userRepository.save(userEntity));
@@ -123,7 +125,7 @@ public class UserServiceImpl implements UserService {
 			throw new SamePasswordException(Code.BAD_REQUEST, new String[] {"새 비밀번호는 현재 비밀번호와 달라야 합니다."});
 		}
 		
-		userEntity.password(PasswordUtil.hash(newPassword));
+		userEntity.setPassword(PasswordUtil.hash(newPassword));
 
 		return UserMapper.INSTANCE.toDto(userRepository.save(userEntity));
 	}

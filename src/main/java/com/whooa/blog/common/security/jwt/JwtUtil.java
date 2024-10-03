@@ -77,7 +77,7 @@ public class JwtUtil {
 		 *    중복 로그인 허용할 수 있도록 새로고침 토큰을 여러개 저장하는 방법이 있다.
 		 */
 		if (savedRefreshToken.isEmpty() || !savedRefreshToken.equals(refreshToken)) {
-			userEntity.refreshToken(null);
+			userEntity.setRefreshToken(null);
 			throw new JwtRefreshTokenNotMatched(Code.JWT_REFRESH_TOKEN_NOT_MATCHED, new String[] {"데이터베이스에 저장된 JWT 새로고침 토큰과 일치하지 않습니다."});
 		}
 		

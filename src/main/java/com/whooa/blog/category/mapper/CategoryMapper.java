@@ -1,16 +1,36 @@
 package com.whooa.blog.category.mapper;
 
-import org.mapstruct.Mapper;
-import org.mapstruct.factory.Mappers;
+import org.springframework.stereotype.Component;
 
 import com.whooa.blog.category.dto.CategoryDto.CategoryCreateRequest;
 import com.whooa.blog.category.dto.CategoryDto.CategoryResponse;
 import com.whooa.blog.category.entity.CategoryEntity;
 
-@Mapper
-public interface CategoryMapper {
-	CategoryMapper INSTANCE = Mappers.getMapper(CategoryMapper.class);
+@Component
+public class CategoryMapper {
 
-	public abstract CategoryResponse toDto(CategoryEntity categoryEntity);
-	public abstract CategoryEntity toEntity(CategoryCreateRequest categoryCreate);
+	public CategoryEntity toEntity(CategoryCreateRequest categoryCreate) {
+		if (categoryCreate == null) {
+			return null;
+		}
+		
+		CategoryEntity categoryEntity = CategoryEntity.builder()
+			.name(categoryCreate.getName())
+			.build();	
+		
+		return categoryEntity;
+	}
+	
+	public CategoryResponse fromEntity(CategoryEntity categoryEntity) {
+        if (categoryEntity == null) {
+            return null;
+        }
+        
+        CategoryResponse categoryResponse = CategoryResponse.builder()
+        	.id(categoryEntity.getId())
+        	.name(categoryEntity.getName())
+        	.build();
+        
+       return categoryResponse;	
+	}
 }

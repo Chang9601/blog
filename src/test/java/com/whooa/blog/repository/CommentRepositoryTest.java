@@ -19,7 +19,6 @@ import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabas
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 
 import com.whooa.blog.category.entity.CategoryEntity;
@@ -52,28 +51,32 @@ public class CommentRepositoryTest {
 	private static CategoryEntity categoryEntity;
 	private static PostEntity postEntity;
 	private static UserEntity userEntity;
-
-	private PaginationUtil pagination;
-	private Pageable pageable;
 	
 	@BeforeAll
 	public void setUp() {
-		categoryEntity = categoryRepository.save(new CategoryEntity().name("카테고리"));
+		categoryEntity = categoryRepository.save(
+			CategoryEntity.builder()
+				.name("카테고리")
+				.build()
+		);
 
-		userEntity = userRepository.save(new UserEntity()
-					.email("user@user.com")
-					.name("사용자")
-					.password("12345678Aa!@#$%")
-					.userRole(UserRole.USER));
+		userEntity = userRepository.save(
+			UserEntity.builder()
+				.email("user@naver.com")
+				.name("사용자")
+				.password("12345678Aa!@#$%")
+				.userRole(UserRole.USER)
+				.build()
+		);
 		
-		postEntity = postRepository.save(new PostEntity()
-					.content("포스트")
-					.title("포스트")
-					.category(categoryEntity)
-					.user(userEntity));
-	
-		pagination = new PaginationUtil();
-		pageable = pagination.makePageable();
+		postEntity = postRepository.save(
+			PostEntity.builder()
+				.content("포스트")
+				.title("포스트")
+				.category(categoryEntity)
+				.user(userEntity)
+				.build()
+		);
 	}
 	
 	@AfterAll
@@ -174,15 +177,16 @@ public class CommentRepositoryTest {
 		CommentEntity commentEntity2;
 		Page<CommentEntity> page;
 		
-		commentEntity2 = new CommentEntity()
-						.content("댓글2")
-						.post(postEntity)
-						.user(userEntity);
+		commentEntity2 = CommentEntity.builder()
+										.content("댓글2")
+										.post(postEntity)
+										.user(userEntity)
+										.build();
 		
 		commentRepository.save(commentEntity1);
 		commentRepository.save(commentEntity2);
 		
-		page = commentRepository.findByPostId(postEntity.getId(), pageable);
+		page = commentRepository.findByPostId(postEntity.getId(), new PaginationUtil().makePageable());
 				
 		assertEquals(2, page.getTotalElements());
 	}
@@ -204,7 +208,7 @@ public class CommentRepositoryTest {
 		savedCommentEntity = commentRepository.save(commentEntity);
 		foundCommentEntity = commentRepository.findById(savedCommentEntity.getId()).get();
 		
-		foundCommentEntity.content("실전 내용");
+		foundCommentEntity.setContent("실전 내용");
 		
 		updatedCommentEntity = commentRepository.save(foundCommentEntity);
 		
@@ -228,11 +232,14 @@ public class CommentRepositoryTest {
 	}
 	
 	private static Stream<Arguments> commentParametersProvider() {
-		return Stream.of(Arguments.of(
-						new CommentEntity()
-						.content("댓글1")
-						.post(postEntity)
-						.user(userEntity))
+		return Stream.of(
+					Arguments.of(
+						CommentEntity.builder()
+							.content("댓글1")
+							.post(postEntity)
+							.user(userEntity)
+							.build()
+					)
 				);
 	}	
 }

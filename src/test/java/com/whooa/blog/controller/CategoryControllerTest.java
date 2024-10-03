@@ -63,30 +63,30 @@ public class CategoryControllerTest {
  
 	@MockBean
 	private CategoryService categoryService;
-	
+	@MockBean
+    private CategoryMapper categoryMapper;
+
 	private CategoryEntity categoryEntity;
 	
 	private CategoryCreateRequest categoryCreate;
 	private CategoryUpdateRequest categoryUpdate;
 	private CategoryResponse category1;
-
-	private PaginationUtil pagination;
 	
 	@BeforeAll
 	public void setUpAll() {
 		mockMvc = MockMvcBuilders
-				.webAppContextSetup(webApplicationContext)
-				.addFilter(new CharacterEncodingFilter("utf-8", true))
-				.apply(springSecurity()).build();
-				
-		pagination = new PaginationUtil();
+					.webAppContextSetup(webApplicationContext)
+					.addFilter(new CharacterEncodingFilter("utf-8", true))
+					.apply(springSecurity()).build();
 	}
 	
 	@BeforeEach
 	public void setUpEach() {
 		String name = "카테고리1";
 		
-		categoryEntity = new CategoryEntity().name(name);
+		categoryEntity = CategoryEntity.builder()
+							.name(name)
+							.build();
 
 		categoryCreate = new CategoryCreateRequest().name(name);
 		categoryUpdate = new CategoryUpdateRequest().name("카테고리2");
@@ -100,23 +100,22 @@ public class CategoryControllerTest {
 	public void givenCategoryCreate_whenCallCreateCategory_thenReturnCategory() throws Exception {
 		ResultActions action;
 		
+		given(categoryMapper.fromEntity(any(CategoryEntity.class))).willReturn(category1);
 		given(categoryService.create(any(CategoryCreateRequest.class))).willAnswer((answer) -> {
-			category1 = CategoryMapper.INSTANCE.toDto(categoryEntity);
-			
-			return category1;
+			return categoryMapper.fromEntity(categoryEntity);			
 		});
 
 		action = mockMvc.perform(
-						post("/api/v1/categories")
-						.content(SerializeDeserializeUtil.serializeToString(categoryCreate))
-						.characterEncoding(StandardCharsets.UTF_8)
-						.contentType(MediaType.APPLICATION_JSON)
-				);
+			post("/api/v1/categories")
+			.content(SerializeDeserializeUtil.serializeToString(categoryCreate))
+			.characterEncoding(StandardCharsets.UTF_8)
+			.contentType(MediaType.APPLICATION_JSON)
+		);
 
 		action
-		.andDo(print())
-		.andExpect(status().isCreated())
-		.andExpect(jsonPath("$.data.name", is(category1.getName())));
+			.andDo(print())
+			.andExpect(status().isCreated())
+			.andExpect(jsonPath("$.data.name", is(category1.getName())));
 	}
 	
 	@DisplayName("이름이  짧아 카테고리를 생성하는데 실패한다.")
@@ -126,22 +125,22 @@ public class CategoryControllerTest {
 		ResultActions action;
 		
 		given(categoryService.create(any(CategoryCreateRequest.class))).willAnswer((answer) -> {
-			category1 = CategoryMapper.INSTANCE.toDto(categoryEntity);
+			category1 = categoryMapper.fromEntity(categoryEntity);
 			
 			return category1;
 		});
 
 		categoryCreate.name("가");
 		action = mockMvc.perform(
-						post("/api/v1/categories")
-						.content(SerializeDeserializeUtil.serializeToString(categoryCreate))
-						.characterEncoding(StandardCharsets.UTF_8)
-						.contentType(MediaType.APPLICATION_JSON)
-				);
+			post("/api/v1/categories")
+			.content(SerializeDeserializeUtil.serializeToString(categoryCreate))
+			.characterEncoding(StandardCharsets.UTF_8)
+			.contentType(MediaType.APPLICATION_JSON)
+		);
 
 		action
-		.andDo(print())
-		.andExpect(status().isBadRequest());
+			.andDo(print())
+			.andExpect(status().isBadRequest());
 	}
 	
 	@DisplayName("카테고리가 이미 존재하여 생성하는데 실패한다.")
@@ -153,15 +152,16 @@ public class CategoryControllerTest {
 		given(categoryService.create(any(CategoryCreateRequest.class))).willThrow(new DuplicateCategoryException(Code.CONFLICT, new String[] {"카테고리가 존재합니다."}));
 
 		action = mockMvc.perform(
-						post("/api/v1/categories")
-						.content(SerializeDeserializeUtil.serializeToString(categoryCreate))
-						.characterEncoding(StandardCharsets.UTF_8)
-						.contentType(MediaType.APPLICATION_JSON));
+			post("/api/v1/categories")
+			.content(SerializeDeserializeUtil.serializeToString(categoryCreate))
+			.characterEncoding(StandardCharsets.UTF_8)
+			.contentType(MediaType.APPLICATION_JSON)
+		);
 		
 		action
-		.andDo(print())
-		.andExpect(status().isConflict())
-		.andExpect(result -> assertTrue(result.getResolvedException() instanceof DuplicateCategoryException));
+			.andDo(print())
+			.andExpect(status().isConflict())
+			.andExpect(result -> assertTrue(result.getResolvedException() instanceof DuplicateCategoryException));
 	}
 
 	@DisplayName("카테고리를 생성하는데 필요한 권한이 없어 실패한다.")
@@ -171,21 +171,19 @@ public class CategoryControllerTest {
 		ResultActions action;
 		
 		given(categoryService.create(any(CategoryCreateRequest.class))).willAnswer((answer) -> {
-			category1 = CategoryMapper.INSTANCE.toDto(categoryEntity);
-			
-			return category1;
+			return categoryMapper.fromEntity(categoryEntity);
 		});
 
 		action = mockMvc.perform(
-						post("/api/v1/categories")
-						.content(SerializeDeserializeUtil.serializeToString(categoryCreate))
-						.characterEncoding(StandardCharsets.UTF_8)
-						.contentType(MediaType.APPLICATION_JSON)
-				);
+			post("/api/v1/categories")
+			.content(SerializeDeserializeUtil.serializeToString(categoryCreate))
+			.characterEncoding(StandardCharsets.UTF_8)
+			.contentType(MediaType.APPLICATION_JSON)
+		);
 
 		action
-		.andDo(print())
-		.andExpect(status().isForbidden());
+			.andDo(print())
+			.andExpect(status().isForbidden());
 	}
 	
 	@DisplayName("카테고리를 삭제하는데 성공한다.")
@@ -199,9 +197,9 @@ public class CategoryControllerTest {
 		action = mockMvc.perform(delete("/api/v1/categories/{id}", categoryEntity.getId()));
 		
 		action
-		.andDo(print())
-		.andExpect(status().isOk())
-		.andExpect(jsonPath("$.metadata.code", is(Code.NO_CONTENT.getCode())));
+			.andDo(print())
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.metadata.code", is(Code.NO_CONTENT.getCode())));
 	}
 
 	@DisplayName("카테고리가 존재하지 않아 삭제하는데 실패한다.")
@@ -215,9 +213,9 @@ public class CategoryControllerTest {
 		action = mockMvc.perform(delete("/api/v1/categories/{id}", categoryEntity.getId()));
 		
 		action
-		.andDo(print())
-		.andExpect(status().isNotFound())
-		.andExpect(result -> assertTrue(result.getResolvedException() instanceof CategoryNotFoundException));
+			.andDo(print())
+			.andExpect(status().isNotFound())
+			.andExpect(result -> assertTrue(result.getResolvedException() instanceof CategoryNotFoundException));
 	}
 
 	@DisplayName("카테고리를 삭제하는데 필요한 권한이 없어 실패한다.")
@@ -231,8 +229,8 @@ public class CategoryControllerTest {
 		action = mockMvc.perform(delete("/api/v1/categories/{id}", categoryEntity.getId()));
 		
 		action
-		.andDo(print())
-		.andExpect(status().isForbidden());
+			.andDo(print())
+			.andExpect(status().isForbidden());
 	}
 	
 	@DisplayName("카테고리 목록을 조회하는데 성공한다.")
@@ -242,9 +240,11 @@ public class CategoryControllerTest {
 		CategoryResponse category2;
 		PageResponse<CategoryResponse> page;
 		MultiValueMap<String, String> params;
+		PaginationUtil pagination;
 		
 		category2 = new CategoryResponse().name("카테고리2");
-
+		pagination = new PaginationUtil();
+		
 		page = PageResponse.handleResponse(List.of(category1, category2), pagination.getPageSize(), pagination.getPageNo(), 2, 1, true, true);
 
 		given(categoryService.findAll(any(PaginationUtil.class))).willReturn(page);
@@ -256,15 +256,15 @@ public class CategoryControllerTest {
 		params.add("sortDir", pagination.getSortDir());
 		
 		action = mockMvc.perform(
-						get("/api/v1/categories")
-						.params(params)
-						.characterEncoding(StandardCharsets.UTF_8)
-				);
+			get("/api/v1/categories")
+			.params(params)
+			.characterEncoding(StandardCharsets.UTF_8)
+		);
 		
 		action
-		.andDo(print())
-		.andExpect(status().isOk())
-		.andExpect(jsonPath("$.data.content.size()", is(page.getContent().size())));
+			.andDo(print())
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.data.content.size()", is(page.getContent().size())));
 	}
 	
 	@DisplayName("카테고리를 수정하는데 성공한다.")
@@ -273,25 +273,24 @@ public class CategoryControllerTest {
 	public void givenCategoryUpdate_whenCallUpdateCategory_thenReturnCategory() throws Exception {
 		ResultActions action;
 		
+		given(categoryMapper.fromEntity(any(CategoryEntity.class))).willReturn(category1.name(categoryUpdate.getName()));
 		given(categoryService.update(any(Long.class), any(CategoryUpdateRequest.class))).willAnswer((answer) -> {
-			categoryEntity.name(categoryUpdate.getName());
+			categoryEntity.setName(categoryUpdate.getName());
 			
-			category1 = CategoryMapper.INSTANCE.toDto(categoryEntity);
-			
-			return category1;
+			return categoryMapper.fromEntity(categoryEntity);
 		});
 		
 		action = mockMvc.perform(
-						patch("/api/v1/categories/{id}", categoryEntity.getId())
-						.content(SerializeDeserializeUtil.serializeToString(categoryUpdate))
-						.characterEncoding(StandardCharsets.UTF_8)
-						.contentType(MediaType.APPLICATION_JSON)
-				);
+			patch("/api/v1/categories/{id}", categoryEntity.getId())
+			.content(SerializeDeserializeUtil.serializeToString(categoryUpdate))
+			.characterEncoding(StandardCharsets.UTF_8)
+			.contentType(MediaType.APPLICATION_JSON)
+		);
 		
 		action
-		.andDo(print())
-		.andExpect(status().isOk())
-		.andExpect(jsonPath("$.data.name", is(category1.getName())));
+			.andDo(print())
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.data.name", is(category1.getName())));
 	}
 
 	@DisplayName("이름이  짧아 카테고리를 수정하는데 실패한다.")
@@ -301,24 +300,22 @@ public class CategoryControllerTest {
 		ResultActions action;
 		
 		given(categoryService.update(any(Long.class), any(CategoryUpdateRequest.class))).willAnswer((answer) -> {
-			categoryEntity.name(categoryUpdate.getName());
+			categoryEntity.setName(categoryUpdate.getName());
 			
-			category1 = CategoryMapper.INSTANCE.toDto(categoryEntity);
-			
-			return category1;
+			return categoryMapper.fromEntity(categoryEntity);
 		});
 		
 		categoryUpdate.name("가");
 		action = mockMvc.perform(
-						patch("/api/v1/categories/{id}", categoryEntity.getId())
-						.content(SerializeDeserializeUtil.serializeToString(categoryUpdate))
-						.characterEncoding(StandardCharsets.UTF_8)
-						.contentType(MediaType.APPLICATION_JSON)
-				);
+			patch("/api/v1/categories/{id}", categoryEntity.getId())
+			.content(SerializeDeserializeUtil.serializeToString(categoryUpdate))
+			.characterEncoding(StandardCharsets.UTF_8)
+			.contentType(MediaType.APPLICATION_JSON)
+		);
 		
 		action
-		.andDo(print())
-		.andExpect(status().isBadRequest());
+			.andDo(print())
+			.andExpect(status().isBadRequest());
 	}
 	
 	@DisplayName("카테고리가 존재하지 않아 수정하는데 실패한다.")
@@ -330,16 +327,16 @@ public class CategoryControllerTest {
 		given(categoryService.update(any(Long.class), any(CategoryUpdateRequest.class))).willThrow(new CategoryNotFoundException(Code.NOT_FOUND, new String[] {"카테고리가 존재하지 않습니다."}));
 		
 		action = mockMvc.perform(
-						patch("/api/v1/categories/{id}", categoryEntity.getId())
-						.content(SerializeDeserializeUtil.serializeToString(categoryUpdate))
-						.characterEncoding(StandardCharsets.UTF_8)
-						.contentType(MediaType.APPLICATION_JSON)
-				);
+			patch("/api/v1/categories/{id}", 100L)
+			.content(SerializeDeserializeUtil.serializeToString(categoryUpdate))
+			.characterEncoding(StandardCharsets.UTF_8)
+			.contentType(MediaType.APPLICATION_JSON)
+		);
 
 		action
-		.andDo(print())
-		.andExpect(status().isNotFound())
-		.andExpect(result -> assertTrue(result.getResolvedException() instanceof CategoryNotFoundException));
+			.andDo(print())
+			.andExpect(status().isNotFound())
+			.andExpect(result -> assertTrue(result.getResolvedException() instanceof CategoryNotFoundException));
 	}
 	
 	@DisplayName("카테고리를 수정하는데 필요한 권한이 없어 실패한다.")
@@ -349,20 +346,20 @@ public class CategoryControllerTest {
 		ResultActions action;
 		
 		given(categoryService.update(any(Long.class), any(CategoryUpdateRequest.class))).willAnswer((answer) -> {
-			categoryEntity.name(categoryUpdate.getName());
+			categoryEntity.setName(categoryUpdate.getName());
 			
-			category1 = CategoryMapper.INSTANCE.toDto(categoryEntity);
-			
-			return category1;
+			return categoryMapper.fromEntity(categoryEntity);
 		});
 		
-		action = mockMvc.perform(patch("/api/v1/categories/{id}", categoryEntity.getId())
-										.content(SerializeDeserializeUtil.serializeToString(categoryUpdate))
-										.characterEncoding(StandardCharsets.UTF_8)
-										.contentType(MediaType.APPLICATION_JSON));
+		action = mockMvc.perform(
+			patch("/api/v1/categories/{id}", categoryEntity.getId())
+			.content(SerializeDeserializeUtil.serializeToString(categoryUpdate))
+			.characterEncoding(StandardCharsets.UTF_8)
+			.contentType(MediaType.APPLICATION_JSON)
+		);
 
 		action
-		.andDo(print())
-		.andExpect(status().isForbidden());
+			.andDo(print())
+			.andExpect(status().isForbidden());
 	}		
 }

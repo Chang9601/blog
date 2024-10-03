@@ -33,49 +33,8 @@ public class CommentEntity extends CoreEntity {
 	@JoinColumn(name = "user_id", nullable = false)
 	private UserEntity user;
 	
-	public CommentEntity(Long id, String content, Long parentId, PostEntity post, UserEntity user) {
-		super(id);
-		
-		this.content = content;
-		this.parentId = parentId;
-		this.post = post;
-		this.user = user;
-	}
-
 	public CommentEntity() {
-		super(-1L);
-	}
-	
-	public CommentEntity content(String content) {
-		this.content = content;
-		return this;
-	}
-	
-	public CommentEntity parentId(Long parentId) {
-		this.parentId = parentId;
-		return this;
-	}
-	
-	public CommentEntity post(PostEntity post) {
-		if (this.post != null) {
-			this.post.getComments().remove(this);
-		}
-		
-		this.post = post;
-		post.getComments().add(this);
-		
-		return this;
-	}
-	
-	public CommentEntity user(UserEntity user) {
-		if (this.user != null) {
-			this.user.getComments().remove(this);
-		}
-
-		this.user = user;
-		user.getComments().add(this);
-		
-		return this;
+		super(0L);
 	}
 
 	public Long getId() {
@@ -131,5 +90,64 @@ public class CommentEntity extends CoreEntity {
 	@Override
 	public String toString() {
 		return "CommentEntity [id=" + super.getId() + ", content=" + content + ", parentId=" + parentId + ", post=" + post + ", user=" + user + "]";
+	}
+	
+	public static CommentEntityBuilder builder() {
+		return new CommentEntityBuilder();
+	}
+	
+	public static final class CommentEntityBuilder {
+		private Long id;
+		private String content;
+		private Long parentId;
+		private PostEntity post;
+		private UserEntity user;
+		
+		private CommentEntityBuilder() {}
+		
+		public CommentEntityBuilder id(Long id) {
+			this.id = id;
+			return this;
+		}
+		
+		public CommentEntityBuilder content(String content) {
+			this.content = content;
+			return this;
+		}
+		
+		public CommentEntityBuilder parentId(Long parentId) {
+			this.parentId = parentId;
+			return this;
+		}
+		
+		public CommentEntityBuilder post(PostEntity post) {
+			this.post = post;
+			return this;
+		}
+		
+		public CommentEntityBuilder user(UserEntity user) {
+			this.user = user;
+			return this;
+		}
+		
+		
+		public CommentEntity build() {
+			CommentEntity commentEntity = new CommentEntity();
+			
+			if (id != null) {
+				commentEntity.setId(id);
+			}
+			
+			commentEntity.setContent(content);
+			
+			if (parentId != null) {
+				commentEntity.setParentId(parentId);
+			}
+			
+			commentEntity.setPost(post);
+			commentEntity.setUser(user);
+			
+			return commentEntity;
+		}
 	}
 }

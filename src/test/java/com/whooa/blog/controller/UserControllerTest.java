@@ -75,43 +75,44 @@ public class UserControllerTest {
 	@BeforeAll
 	public void setUpAll() {		
 		mockMvc = MockMvcBuilders
-				.webAppContextSetup(webApplicationContext)
-				.addFilter(new CharacterEncodingFilter("utf-8", true))
-				.apply(springSecurity()).build();
+					.webAppContextSetup(webApplicationContext)
+					.addFilter(new CharacterEncodingFilter("utf-8", true))
+					.apply(springSecurity()).build();
 	}
 	
 	@BeforeEach
 	public void setUpEach() {
 		String email, name, password, userRole;
 		
-		email = "user1@user1.com";
+		email = "user1@naver.com";
 		name = "사용자1";
 		password = "12345678Aa!@#$%";
 		userRole = "USER";
 		
-		userEntity = new UserEntity()
-					.email(email)
-					.name(name)
-					.password(password)
-					.userRole(UserRole.USER);
+		userEntity = UserEntity.builder()
+						.email(email)
+						.name(name)
+						.password(password)
+						.userRole(UserRole.USER)
+						.build();
 		
 		userCreate = new UserCreateRequest()
-					.email(email)
-					.name(name)
-					.password(password)
-					.userRole(userRole);
+							.email(email)
+							.name(name)
+							.password(password)
+							.userRole(userRole);
 		
 		userUpdate = new UserUpdateRequest()
-					.email("user2@user2.com")
-					.name("사용자2");
+							.email("user2@naver.com")
+							.name("사용자2");
 		
 		userPasswordUpdate = new UserPasswordUpdateRequest()
-							.oldPassword(password)
-							.newPassword("12345679Aa!@#$%");
+									.oldPassword(password)
+									.newPassword("12345679Aa!@#$%");
 
 		user = new UserResponse()
-				.email(email)
-				.userRole(UserRole.USER);
+					.email(email)
+					.userRole(UserRole.USER);
 	}
 	
 	@DisplayName("회원가입에 성공한다.")
@@ -120,24 +121,28 @@ public class UserControllerTest {
 		ResultActions action;
 		
 		given(userService.create(any(UserCreateRequest.class))).willAnswer((answer) -> {
-			userEntity.password(PasswordUtil.hash(userCreate.getPassword())).userRole(UserRoleMapper.map(userCreate.getUserRole()));
-			user = UserMapper.INSTANCE.toDto(userEntity);
-			
-			return user;
+			return UserMapper.INSTANCE.toDto(
+				UserEntity.builder()
+					.email(userCreate.getEmail())
+					.name(userCreate.getName())
+					.password(PasswordUtil.hash(userCreate.getPassword()))
+					.userRole(UserRoleMapper.map(userCreate.getUserRole()))
+					.build()
+			);
 		});
 
 		action = mockMvc.perform(
-						post("/api/v1/users")
-						.content(SerializeDeserializeUtil.serializeToString(userCreate))
-						.characterEncoding(StandardCharsets.UTF_8)
-						.contentType(MediaType.APPLICATION_JSON)
-				);
+			post("/api/v1/users")
+			.content(SerializeDeserializeUtil.serializeToString(userCreate))
+			.characterEncoding(StandardCharsets.UTF_8)
+			.contentType(MediaType.APPLICATION_JSON)
+		);
 				
 		action
-		.andDo(print())
-		.andExpect(status().isCreated())
-		.andExpect(jsonPath("$.data.email", is(user.getEmail())))
-		.andExpect(jsonPath("$.data.userRole", is(user.getUserRole().getRole())));
+			.andDo(print())
+			.andExpect(status().isCreated())
+			.andExpect(jsonPath("$.data.email", is(user.getEmail())))
+			.andExpect(jsonPath("$.data.userRole", is(user.getUserRole().getRole())));
 	}
 	
 	@DisplayName("이름이  짧아 회원가입에 실패한다.")
@@ -146,23 +151,25 @@ public class UserControllerTest {
 		ResultActions action;
 		
 		given(userService.create(any(UserCreateRequest.class))).willAnswer((answer) -> {
-			userEntity.password(PasswordUtil.hash(userCreate.getPassword())).userRole(UserRoleMapper.map(userCreate.getUserRole()));
-			user = UserMapper.INSTANCE.toDto(userEntity);
-			
-			return user;
+			return UserMapper.INSTANCE.toDto(
+				UserEntity.builder()
+							.password(PasswordUtil.hash(userCreate.getPassword()))
+							.userRole(UserRoleMapper.map(userCreate.getUserRole()))
+							.build()
+			);
 		});
 
 		userCreate.name("테");
 		action = mockMvc.perform(
-						post("/api/v1/users")
-						.content(SerializeDeserializeUtil.serializeToString(userCreate))
-						.characterEncoding(StandardCharsets.UTF_8)
-						.contentType(MediaType.APPLICATION_JSON)
-				);
+			post("/api/v1/users")
+			.content(SerializeDeserializeUtil.serializeToString(userCreate))
+			.characterEncoding(StandardCharsets.UTF_8)
+			.contentType(MediaType.APPLICATION_JSON)
+		);
 				
 		action
-		.andDo(print())
-		.andExpect(status().isBadRequest());
+			.andDo(print())
+			.andExpect(status().isBadRequest());
 	}
 
 	@DisplayName("이메일이 유효하지 않아 회원가입에 실패한다.")
@@ -171,23 +178,25 @@ public class UserControllerTest {
 		ResultActions action;
 		
 		given(userService.create(any(UserCreateRequest.class))).willAnswer((answer) -> {
-			userEntity.password(PasswordUtil.hash(userCreate.getPassword())).userRole(UserRoleMapper.map(userCreate.getUserRole()));
-			user = UserMapper.INSTANCE.toDto(userEntity);
-			
-			return user;
+			return UserMapper.INSTANCE.toDto(
+				UserEntity.builder()
+					.password(PasswordUtil.hash(userCreate.getPassword()))
+					.userRole(UserRoleMapper.map(userCreate.getUserRole()))
+					.build()
+			);
 		});
 
 		userCreate.email("ttesttest.com");
 		action = mockMvc.perform(
-						post("/api/v1/users")
-						.content(SerializeDeserializeUtil.serializeToString(userCreate))
-						.characterEncoding(StandardCharsets.UTF_8)
-						.contentType(MediaType.APPLICATION_JSON)
-				);
+			post("/api/v1/users")
+			.content(SerializeDeserializeUtil.serializeToString(userCreate))
+			.characterEncoding(StandardCharsets.UTF_8)
+			.contentType(MediaType.APPLICATION_JSON)
+		);
 				
 		action
-		.andDo(print())
-		.andExpect(status().isBadRequest());
+			.andDo(print())
+			.andExpect(status().isBadRequest());
 	}
 	
 	@DisplayName("비밀번호가 유효하지 않아 회원가입에 실패한다.")
@@ -196,23 +205,25 @@ public class UserControllerTest {
 		ResultActions action;
 		
 		given(userService.create(any(UserCreateRequest.class))).willAnswer((answer) -> {
-			userEntity.password(PasswordUtil.hash(userCreate.getPassword())).userRole(UserRoleMapper.map(userCreate.getUserRole()));
-			user = UserMapper.INSTANCE.toDto(userEntity);
-			
-			return user;
+			return UserMapper.INSTANCE.toDto(
+				UserEntity.builder()
+					.password(PasswordUtil.hash(userCreate.getPassword()))
+					.userRole(UserRoleMapper.map(userCreate.getUserRole()))
+					.build()
+			);
 		});
 
 		userCreate.password("12314241");
 		action = mockMvc.perform(
-						post("/api/v1/users")
-						.content(SerializeDeserializeUtil.serializeToString(userCreate))
-						.characterEncoding(StandardCharsets.UTF_8)
-						.contentType(MediaType.APPLICATION_JSON)
-				);
+			post("/api/v1/users")
+			.content(SerializeDeserializeUtil.serializeToString(userCreate))
+			.characterEncoding(StandardCharsets.UTF_8)
+			.contentType(MediaType.APPLICATION_JSON)
+		);
 				
 		action
-		.andDo(print())
-		.andExpect(status().isBadRequest());
+			.andDo(print())
+			.andExpect(status().isBadRequest());
 	}
 	
 	@DisplayName("사용자가 이미 존재하여 회원가입에 실패한다.")
@@ -223,16 +234,16 @@ public class UserControllerTest {
 		given(userService.create(any(UserCreateRequest.class))).willThrow(new DuplicateUserException(Code.CONFLICT, new String[] {"이메일을 사용하는 사용자가 존재합니다."}));
 
 		action = mockMvc.perform(
-						post("/api/v1/users")
-						.content(SerializeDeserializeUtil.serializeToString(userCreate))
-						.characterEncoding(StandardCharsets.UTF_8)
-						.contentType(MediaType.APPLICATION_JSON)
-				);
+			post("/api/v1/users")
+			.content(SerializeDeserializeUtil.serializeToString(userCreate))
+			.characterEncoding(StandardCharsets.UTF_8)
+			.contentType(MediaType.APPLICATION_JSON)
+		);
 		
 		action
-		.andDo(print())
-		.andExpect(status().isConflict())
-		.andExpect(result -> assertTrue(result.getResolvedException() instanceof DuplicateUserException));
+			.andDo(print())
+			.andExpect(status().isConflict())
+			.andExpect(result -> assertTrue(result.getResolvedException() instanceof DuplicateUserException));
 	}
 	
 	@DisplayName("회원탈퇴에 성공한다.")
@@ -246,9 +257,9 @@ public class UserControllerTest {
 		action = mockMvc.perform(delete("/api/v1/users"));
 		
 		action
-		.andDo(print())
-		.andExpect(status().isOk())
-		.andExpect(jsonPath("$.metadata.code", is(Code.NO_CONTENT.getCode())));
+			.andDo(print())
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.metadata.code", is(Code.NO_CONTENT.getCode())));
 	}
 	
 	@DisplayName("사용자가 존재하지 않아 회원탈퇴에 실패한다.")
@@ -262,9 +273,9 @@ public class UserControllerTest {
 		action = mockMvc.perform(delete("/api/v1/users"));
 		
 		action
-		.andDo(print())
-		.andExpect(status().isNotFound())
-		.andExpect(result -> assertTrue(result.getResolvedException() instanceof UserNotFoundException));
+			.andDo(print())
+			.andExpect(status().isNotFound())
+			.andExpect(result -> assertTrue(result.getResolvedException() instanceof UserNotFoundException));
 	}
 	
 	// TODO: UnauthenticatedUserException 예외 클래스로 처리하는 방법.
@@ -278,8 +289,8 @@ public class UserControllerTest {
 		action = mockMvc.perform(delete("/api/v1/users"));
 		
 		action
-		.andDo(print())
-		.andExpect(status().isUnauthorized());
+			.andDo(print())
+			.andExpect(status().isUnauthorized());
 	}
 	
 	@DisplayName("회원조회에 성공한다.")
@@ -291,14 +302,14 @@ public class UserControllerTest {
 		given(userService.find(any(UserDetailsImpl.class))).willReturn(user);
 
 		action = mockMvc.perform(
-						get("/api/v1/users")
-						.characterEncoding(StandardCharsets.UTF_8)
-				);
+			get("/api/v1/users")
+			.characterEncoding(StandardCharsets.UTF_8)
+		);
 		
 		action
-		.andDo(print())
-		.andExpect(status().isOk())
-		.andExpect(jsonPath("$.data.email", is(user.getEmail())));
+			.andDo(print())
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.data.email", is(user.getEmail())));
 	}
 	
 	@DisplayName("사용자가 존재하지 않아 회원조회에 실패한다.")
@@ -310,14 +321,14 @@ public class UserControllerTest {
 		given(userService.find(any(UserDetailsImpl.class))).willThrow(new UserNotFoundException(Code.NOT_FOUND, new String[] {"아이디에 해당하는 사용자가 존재하지 않습니다."}));
 
 		action = mockMvc.perform(
-						get("/api/v1/users")
-						.characterEncoding(StandardCharsets.UTF_8)
-				);
+			get("/api/v1/users")
+			.characterEncoding(StandardCharsets.UTF_8)
+		);
 
 		action
-		.andDo(print())
-		.andExpect(status().isNotFound())
-		.andExpect(result -> assertTrue(result.getResolvedException() instanceof UserNotFoundException));
+			.andDo(print())
+			.andExpect(status().isNotFound())
+			.andExpect(result -> assertTrue(result.getResolvedException() instanceof UserNotFoundException));
 	}	
 	
 	@DisplayName("인증되어 있지 않아 회원조회에 실패한다.")
@@ -328,13 +339,13 @@ public class UserControllerTest {
 		given(userService.find(any(UserDetailsImpl.class))).willReturn(user);
 
 		action = mockMvc.perform(
-						get("/api/v1/users")
-						.characterEncoding(StandardCharsets.UTF_8)
-				);
+			get("/api/v1/users")
+			.characterEncoding(StandardCharsets.UTF_8)
+		);
 		
 		action
-		.andDo(print())
-		.andExpect(status().isUnauthorized());
+			.andDo(print())
+			.andExpect(status().isUnauthorized());
 	}
 	
 	@DisplayName("회원수정에 성공한다.")
@@ -344,23 +355,23 @@ public class UserControllerTest {
 		ResultActions action;
 		
 		given(userService.update(any(UserUpdateRequest.class), any(UserDetailsImpl.class))).willAnswer((answer) -> {
-			userEntity.email(userUpdate.getEmail());
+			userEntity.setEmail(userUpdate.getEmail());
 			user = UserMapper.INSTANCE.toDto(userEntity);
 			
 			return user;
 		});
 		
 		action = mockMvc.perform(
-						patch("/api/v1/users")
-						.content(SerializeDeserializeUtil.serializeToString(userUpdate))
-						.characterEncoding(StandardCharsets.UTF_8)
-						.contentType(MediaType.APPLICATION_JSON)
-				);
+			patch("/api/v1/users")
+			.content(SerializeDeserializeUtil.serializeToString(userUpdate))
+			.characterEncoding(StandardCharsets.UTF_8)
+			.contentType(MediaType.APPLICATION_JSON)
+		);
 
 		action
-		.andDo(print())
-		.andExpect(status().isOk())
-		.andExpect(jsonPath("$.data.email", is(user.getEmail())));
+			.andDo(print())
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.data.email", is(user.getEmail())));
 	}
 	
 	
@@ -371,7 +382,7 @@ public class UserControllerTest {
 		ResultActions action;
 		
 		given(userService.update(any(UserUpdateRequest.class), any(UserDetailsImpl.class))).willAnswer((answer) -> {
-			userEntity.email(userUpdate.getEmail());
+			userEntity.setEmail(userUpdate.getEmail());
 			user = UserMapper.INSTANCE.toDto(userEntity);
 			
 			return user;
@@ -379,15 +390,15 @@ public class UserControllerTest {
 
 		userUpdate.name("테");
 		action = mockMvc.perform(
-						patch("/api/v1/users")
-						.content(SerializeDeserializeUtil.serializeToString(userUpdate))
-						.characterEncoding(StandardCharsets.UTF_8)
-						.contentType(MediaType.APPLICATION_JSON)
-				);
+			patch("/api/v1/users")
+			.content(SerializeDeserializeUtil.serializeToString(userUpdate))
+			.characterEncoding(StandardCharsets.UTF_8)
+			.contentType(MediaType.APPLICATION_JSON)
+		);
 				
 		action
-		.andDo(print())
-		.andExpect(status().isBadRequest());
+			.andDo(print())
+			.andExpect(status().isBadRequest());
 	}
 
 	@DisplayName("이메일이 유효하지 않아 회원수정에 실패한다.")
@@ -397,7 +408,7 @@ public class UserControllerTest {
 		ResultActions action;
 		
 		given(userService.update(any(UserUpdateRequest.class), any(UserDetailsImpl.class))).willAnswer((answer) -> {
-			userEntity.email(userUpdate.getEmail());
+			userEntity.setEmail(userUpdate.getEmail());
 			user = UserMapper.INSTANCE.toDto(userEntity);
 			
 			return user;
@@ -405,15 +416,15 @@ public class UserControllerTest {
 
 		userUpdate.email("ttesttest.com");
 		action = mockMvc.perform(
-						patch("/api/v1/users")
-						.content(SerializeDeserializeUtil.serializeToString(userUpdate))
-						.characterEncoding(StandardCharsets.UTF_8)
-						.contentType(MediaType.APPLICATION_JSON)
-				);
+			patch("/api/v1/users")
+			.content(SerializeDeserializeUtil.serializeToString(userUpdate))
+			.characterEncoding(StandardCharsets.UTF_8)
+			.contentType(MediaType.APPLICATION_JSON)
+		);
 				
 		action
-		.andDo(print())
-		.andExpect(status().isBadRequest());
+			.andDo(print())
+			.andExpect(status().isBadRequest());
 	}
 
 	@DisplayName("사용자 이미 존재하여 회원수정에 실패한다.")
@@ -425,16 +436,16 @@ public class UserControllerTest {
 		given(userService.update(any(UserUpdateRequest.class), any(UserDetailsImpl.class))).willThrow(new DuplicateUserException(Code.CONFLICT, new String[] {"이메일을 사용하는 사용자가 존재합니다."}));
 
 		action = mockMvc.perform(
-						patch("/api/v1/users")
-						.content(SerializeDeserializeUtil.serializeToString(userUpdate))
-					.	characterEncoding(StandardCharsets.UTF_8)
-						.contentType(MediaType.APPLICATION_JSON)
-				);
+			patch("/api/v1/users")
+			.content(SerializeDeserializeUtil.serializeToString(userUpdate))
+		.	characterEncoding(StandardCharsets.UTF_8)
+			.contentType(MediaType.APPLICATION_JSON)
+		);
 		
 		action
-		.andDo(print())
-		.andExpect(status().isConflict())
-		.andExpect(result -> assertTrue(result.getResolvedException() instanceof DuplicateUserException));
+			.andDo(print())
+			.andExpect(status().isConflict())
+			.andExpect(result -> assertTrue(result.getResolvedException() instanceof DuplicateUserException));
 	}
 	
 	@DisplayName("인증되어 있지 않아 회원수정에 실패한다.")
@@ -443,22 +454,22 @@ public class UserControllerTest {
 		ResultActions action;
 		
 		given(userService.update(any(UserUpdateRequest.class), any(UserDetailsImpl.class))).willAnswer((answer) -> {
-			userEntity.email(userUpdate.getEmail());
+			userEntity.setEmail(userUpdate.getEmail());
 			user = UserMapper.INSTANCE.toDto(userEntity);
 			
 			return user;
 		});
 		
 		action = mockMvc.perform(
-						patch("/api/v1/users")
-						.content(SerializeDeserializeUtil.serializeToString(userUpdate))
-						.characterEncoding(StandardCharsets.UTF_8)
-						.contentType(MediaType.APPLICATION_JSON)
-				);
+			patch("/api/v1/users")
+			.content(SerializeDeserializeUtil.serializeToString(userUpdate))
+			.characterEncoding(StandardCharsets.UTF_8)
+			.contentType(MediaType.APPLICATION_JSON)
+		);
 		
 		action
-		.andDo(print())
-		.andExpect(status().isUnauthorized());
+			.andDo(print())
+			.andExpect(status().isUnauthorized());
 	}
 	
 	@DisplayName("비밀번호 수정에 성공한다.")
@@ -468,22 +479,22 @@ public class UserControllerTest {
 		ResultActions action;
 		
 		given(userService.updatePassowrd(any(UserPasswordUpdateRequest.class), any(UserDetailsImpl.class))).willAnswer((answer) -> {
-			userEntity.password(PasswordUtil.hash(userPasswordUpdate.getNewPassword()));
+			userEntity.setPassword(PasswordUtil.hash(userPasswordUpdate.getNewPassword()));
 			user = UserMapper.INSTANCE.toDto(userEntity);			
 
 			return user;
 		});
 		
 		action = mockMvc.perform(
-						patch("/api/v1/users/update-my-password")
-						.content(SerializeDeserializeUtil.serializeToString(userPasswordUpdate))
-						.characterEncoding(StandardCharsets.UTF_8)
-						.contentType(MediaType.APPLICATION_JSON)
-				);
+			patch("/api/v1/users/update-my-password")
+			.content(SerializeDeserializeUtil.serializeToString(userPasswordUpdate))
+			.characterEncoding(StandardCharsets.UTF_8)
+			.contentType(MediaType.APPLICATION_JSON)
+		);
 				
 		action
-		.andDo(print())
-		.andExpect(status().isOk());
+			.andDo(print())
+			.andExpect(status().isOk());
 	}
 
 	@DisplayName("새 비밀번호가 유효하지 않아 비밀번호 수정에 실패한다.")
@@ -493,7 +504,7 @@ public class UserControllerTest {
 		ResultActions action;
 		
 		given(userService.updatePassowrd(any(UserPasswordUpdateRequest.class), any(UserDetailsImpl.class))).willAnswer((answer) -> {
-			userEntity.password(PasswordUtil.hash(userPasswordUpdate.getNewPassword()));
+			userEntity.setPassword(PasswordUtil.hash(userPasswordUpdate.getNewPassword()));
 			user = UserMapper.INSTANCE.toDto(userEntity);			
 
 			return user;
@@ -501,15 +512,15 @@ public class UserControllerTest {
 		
 		userPasswordUpdate.newPassword("12314241");
 		action = mockMvc.perform(
-						patch("/api/v1/users/update-my-password")
-						.content(SerializeDeserializeUtil.serializeToString(userPasswordUpdate))
-						.characterEncoding(StandardCharsets.UTF_8)
-						.contentType(MediaType.APPLICATION_JSON)
-				);
+			patch("/api/v1/users/update-my-password")
+			.content(SerializeDeserializeUtil.serializeToString(userPasswordUpdate))
+			.characterEncoding(StandardCharsets.UTF_8)
+			.contentType(MediaType.APPLICATION_JSON)
+		);
 
 		action
-		.andDo(print())
-		.andExpect(status().isBadRequest());
+			.andDo(print())
+			.andExpect(status().isBadRequest());
 	}
 	
 	@DisplayName("비밀번호가 정확하지 않아 비밀번호 수정에 실패한다.")
@@ -522,16 +533,16 @@ public class UserControllerTest {
 		
 		userPasswordUpdate.oldPassword("12345678bB!@#$%");
 		action = mockMvc.perform(
-						patch("/api/v1/users/update-my-password")
-						.content(SerializeDeserializeUtil.serializeToString(userPasswordUpdate))
-						.characterEncoding(StandardCharsets.UTF_8)
-						.contentType(MediaType.APPLICATION_JSON)
-				);
+			patch("/api/v1/users/update-my-password")
+			.content(SerializeDeserializeUtil.serializeToString(userPasswordUpdate))
+			.characterEncoding(StandardCharsets.UTF_8)
+			.contentType(MediaType.APPLICATION_JSON)
+		);
 				
 		action
-		.andDo(print())
-		.andExpect(status().isBadRequest())
-		.andExpect(result -> assertTrue(result.getResolvedException() instanceof InvalidCredentialsException));
+			.andDo(print())
+			.andExpect(status().isBadRequest())
+			.andExpect(result -> assertTrue(result.getResolvedException() instanceof InvalidCredentialsException));
 	}
 	
 	@DisplayName("새 비밀번호와 구 비밀번호가 일치하여 비밀번호 수정에 실패한다.")
@@ -544,16 +555,16 @@ public class UserControllerTest {
 		
 		userPasswordUpdate.newPassword(userPasswordUpdate.getOldPassword());
 		action = mockMvc.perform(
-						patch("/api/v1/users/update-my-password")
-						.content(SerializeDeserializeUtil.serializeToString(userPasswordUpdate))
-						.characterEncoding(StandardCharsets.UTF_8)
-						.contentType(MediaType.APPLICATION_JSON)
-				);
+			patch("/api/v1/users/update-my-password")
+			.content(SerializeDeserializeUtil.serializeToString(userPasswordUpdate))
+			.characterEncoding(StandardCharsets.UTF_8)
+			.contentType(MediaType.APPLICATION_JSON)
+		);
 
 		action
-		.andDo(print())
-		.andExpect(status().isBadRequest())
-		.andExpect(result -> assertTrue(result.getResolvedException() instanceof SamePasswordException));
+			.andDo(print())
+			.andExpect(status().isBadRequest())
+			.andExpect(result -> assertTrue(result.getResolvedException() instanceof SamePasswordException));
 	}
 	
 	@DisplayName("인증되어 있지 않아 비밀번호 수정에 실패한다.")
@@ -562,21 +573,21 @@ public class UserControllerTest {
 		ResultActions action;
 		
 		given(userService.updatePassowrd(any(UserPasswordUpdateRequest.class), any(UserDetailsImpl.class))).willAnswer((answer) -> {
-			userEntity.password(PasswordUtil.hash(userPasswordUpdate.getNewPassword()));
+			userEntity.setPassword(PasswordUtil.hash(userPasswordUpdate.getNewPassword()));
 			user = UserMapper.INSTANCE.toDto(userEntity);			
 
 			return user;
 		});
 		
 		action = mockMvc.perform(
-						patch("/api/v1/users/update-my-password")
-						.content(SerializeDeserializeUtil.serializeToString(userPasswordUpdate))
-						.characterEncoding(StandardCharsets.UTF_8)
-						.contentType(MediaType.APPLICATION_JSON)
-				);
+			patch("/api/v1/users/update-my-password")
+			.content(SerializeDeserializeUtil.serializeToString(userPasswordUpdate))
+			.characterEncoding(StandardCharsets.UTF_8)
+			.contentType(MediaType.APPLICATION_JSON)
+		);	
 
 		action
-		.andDo(print())
-		.andExpect(status().isUnauthorized());
+			.andDo(print())
+			.andExpect(status().isUnauthorized());
 	}	
 }

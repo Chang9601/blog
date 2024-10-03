@@ -34,11 +34,13 @@ public class CommentServiceImpl implements CommentService {
 	private CommentRepository commentRepository;
 	private PostRepository postRepository;
 	private UserRepository userRepository;
+	private CommentMapper commentMapper;
 
-	public CommentServiceImpl(CommentRepository commentRepository, PostRepository postRepository, UserRepository userRepository) {
+	public CommentServiceImpl(CommentRepository commentRepository, PostRepository postRepository, UserRepository userRepository, CommentMapper commentMapper) {
 		this.commentRepository = commentRepository;
 		this.postRepository = postRepository;
 		this.userRepository = userRepository;
+		this.commentMapper = commentMapper;
 	}
 	
 	@Override
@@ -52,11 +54,10 @@ public class CommentServiceImpl implements CommentService {
 
 		postEntity = postRepository.findById(postId).orElseThrow(() -> new PostNotFoundException(Code.NOT_FOUND, new String[] {"포스트가 존재하지 않습니다."}));	
 		userEntity = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(Code.NOT_FOUND, new String[] {"사용자가 존재하지 않습니다."}));
-		commentEntity = CommentMapper.INSTANCE.toEntity(commentCreate);
 		
-		commentEntity.post(postEntity).user(userEntity);
+		commentEntity = commentMapper.toEntity(commentCreate, postEntity, userEntity);
 	
-		return CommentMapper.INSTANCE.toDto(commentRepository.save(commentEntity));
+		return commentMapper.fromEntity(commentRepository.save(commentEntity));
 	}
 	
 	@Override
@@ -105,7 +106,7 @@ public class CommentServiceImpl implements CommentService {
 		isLast = page.isLast();
 		isFirst = page.isFirst();
 		
-		commentResponse = commentEntities.stream().map((commentEntity) -> CommentMapper.INSTANCE.toDto(commentEntity)).collect(Collectors.toList());
+		commentResponse = commentEntities.stream().map((commentEntity) -> commentMapper.fromEntity(commentEntity)).collect(Collectors.toList());
 		
 		return PageResponse.handleResponse(commentResponse, pageSize, pageNo, totalElements, totalPages, isLast, isFirst);
 	}
@@ -127,11 +128,14 @@ public class CommentServiceImpl implements CommentService {
 			throw new CommentNotBelongingToPostException(Code.COMMENT_NOT_IN_POST, new String[] {"댓글이 포스트에 속하지 않습니다."});
 		}
 		
-		commentEntity = CommentMapper.INSTANCE.toEntity(commentCreate);
+		commentEntity = CommentEntity.builder()
+							.content(commentCreate.getContent())
+							.parentId(parentCommentEntity.getId())
+							.post(postEntity)
+							.user(userEntity)
+							.build();
 		
-		commentEntity.parentId(parentCommentEntity.getId()).post(postEntity).user(userEntity);
-				
-		return CommentMapper.INSTANCE.toDto(commentRepository.save(commentEntity));
+		return commentMapper.fromEntity(commentRepository.save(commentEntity));
 	}
 	
 	@Override
@@ -157,9 +161,9 @@ public class CommentServiceImpl implements CommentService {
 		content = commentUpdate.getContent();
 			
 		if (StringUtil.notEmpty(content)) {
-			commentEntity.content(content);
+			commentEntity.setContent(content);
 		}
 		
-		return CommentMapper.INSTANCE.toDto(commentRepository.save(commentEntity));
+		return commentMapper.fromEntity(commentRepository.save(commentEntity));
 	}
 }

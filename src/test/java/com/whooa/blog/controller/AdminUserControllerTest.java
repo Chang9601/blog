@@ -63,16 +63,12 @@ public class AdminUserControllerTest {
 
 	private UserResponse user1;
 
-	private PaginationUtil pagination;
-
 	@BeforeAll
 	public void setUpAll() {		
 		mockMvc = MockMvcBuilders
-				.webAppContextSetup(webApplicationContext)
-				.addFilter(new CharacterEncodingFilter("utf-8", true))
-				.apply(springSecurity()).build();
-		
-		pagination = new PaginationUtil();
+					.webAppContextSetup(webApplicationContext)
+					.addFilter(new CharacterEncodingFilter("utf-8", true))
+					.apply(springSecurity()).build();
 	}
 	
 	@BeforeEach
@@ -83,15 +79,16 @@ public class AdminUserControllerTest {
 		name = "사용자1";
 		password = "12345678Aa!@#$%";
 		
-		userEntity = new UserEntity()
-					.email(email)
-					.name(name)
-					.password(password)
-					.userRole(UserRole.USER);
+		userEntity = UserEntity.builder()
+						.email(email)
+						.name(name)
+						.password(password)
+						.userRole(UserRole.USER)
+						.build();
 	
 		user1 = new UserResponse()
-				.email(email)
-				.userRole(UserRole.USER);
+						.email(email)
+						.userRole(UserRole.USER);
 	}
 	
 	@DisplayName("사용자를 삭제하는데 성공한다.")
@@ -105,9 +102,9 @@ public class AdminUserControllerTest {
 		action = mockMvc.perform(delete("/api/v1/admin/users/{id}", userEntity.getId()));
 		
 		action
-		.andDo(print())
-		.andExpect(status().isOk())
-		.andExpect(jsonPath("$.metadata.code", is(Code.NO_CONTENT.getCode())));
+			.andDo(print())
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.metadata.code", is(Code.NO_CONTENT.getCode())));
 	}	
 
 	@DisplayName("사용자가 존재하지 않아 삭제하는데 실패한다.")
@@ -121,9 +118,9 @@ public class AdminUserControllerTest {
 		action = mockMvc.perform(delete("/api/v1/admin/users/{id}", 100L));
 		
 		action
-		.andDo(print())
-		.andExpect(status().isNotFound())
-		.andExpect(result -> assertTrue(result.getResolvedException() instanceof UserNotFoundException));
+			.andDo(print())
+			.andExpect(status().isNotFound())
+			.andExpect(result -> assertTrue(result.getResolvedException() instanceof UserNotFoundException));
 	}
 	
 	@DisplayName("사용자를 삭제하는데 필요한 권한이 없어 실패한다.")
@@ -137,8 +134,8 @@ public class AdminUserControllerTest {
 		action = mockMvc.perform(delete("/api/v1/admin/users/{id}", userEntity.getId()));
 		
 		action
-		.andDo(print())
-		.andExpect(status().isForbidden());
+			.andDo(print())
+			.andExpect(status().isForbidden());
 	}	
 	
 	@DisplayName("사용자를 조회하는데 성공한다.")
@@ -150,14 +147,14 @@ public class AdminUserControllerTest {
 		given(adminUserService.find(any(Long.class))).willReturn(user1);
 
 		action = mockMvc.perform(
-						get("/api/v1/admin/users/{id}", userEntity.getId())
-						.characterEncoding(StandardCharsets.UTF_8)
-				);
+			get("/api/v1/admin/users/{id}", userEntity.getId())
+			.characterEncoding(StandardCharsets.UTF_8)
+		);
 		
 		action
-		.andDo(print())
-		.andExpect(status().isOk())
-		.andExpect(jsonPath("$.data.email", is(user1.getEmail())));
+			.andDo(print())
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.data.email", is(user1.getEmail())));
 	}
 	
 	@DisplayName("사용자가 존재하지 않아 조회하는데 실패한다.")
@@ -169,14 +166,14 @@ public class AdminUserControllerTest {
 		given(adminUserService.find(any(Long.class))).willThrow(new UserNotFoundException(Code.NOT_FOUND, new String[] {"아이디에 해당하는 사용자가 존재하지 않습니다."}));
 
 		action = mockMvc.perform(
-						get("/api/v1/admin/users/{id}", userEntity.getId())
-						.characterEncoding(StandardCharsets.UTF_8)
-				);
+			get("/api/v1/admin/users/{id}", userEntity.getId())
+			.characterEncoding(StandardCharsets.UTF_8)
+		);
 		
 		action
-		.andDo(print())
-		.andExpect(status().isNotFound())
-		.andExpect(result -> assertTrue(result.getResolvedException() instanceof UserNotFoundException));
+			.andDo(print())
+			.andExpect(status().isNotFound())
+			.andExpect(result -> assertTrue(result.getResolvedException() instanceof UserNotFoundException));
 	}
 	
 	@DisplayName("사용자를 조회하는데 필요한 권한이 없어 실패한다.")
@@ -188,13 +185,13 @@ public class AdminUserControllerTest {
 		given(adminUserService.find(any(Long.class))).willReturn(user1);
 
 		action = mockMvc.perform(
-						get("/api/v1/admin/users/{id}", userEntity.getId())
-						.characterEncoding(StandardCharsets.UTF_8)
-				);
+			get("/api/v1/admin/users/{id}", userEntity.getId())
+			.characterEncoding(StandardCharsets.UTF_8)
+		);
 		
 		action
-		.andDo(print())
-		.andExpect(status().isForbidden());
+			.andDo(print())
+			.andExpect(status().isForbidden());
 	}
 	
 	@DisplayName("사용자 목록을 조회하는데 성공한다.")
@@ -205,11 +202,13 @@ public class AdminUserControllerTest {
 		PageResponse<UserResponse> page;
 		MultiValueMap<String, String> params;
 		UserResponse user2;
+		PaginationUtil pagination;
 		
 		user2 = new UserResponse()
-				.email("user2@user2.com")
-				.userRole(UserRole.USER);
+						.email("user2@naver.com")
+						.userRole(UserRole.USER);
 		
+		pagination = new PaginationUtil();
 		page = PageResponse.handleResponse(List.of(user1, user2), pagination.getPageSize(), pagination.getPageNo(), 2, 1, true, true);
 
 		given(adminUserService.findAll(any(PaginationUtil.class))).willReturn(page);
@@ -221,15 +220,15 @@ public class AdminUserControllerTest {
 		params.add("sortDir", pagination.getSortDir());
 		
 		action = mockMvc.perform(
-						get("/api/v1/admin/users")
-						.params(params)
-						.characterEncoding(StandardCharsets.UTF_8)
-				);
+			get("/api/v1/admin/users")
+			.params(params)
+			.characterEncoding(StandardCharsets.UTF_8)
+		);
 		
 		action
-		.andDo(print())
-		.andExpect(status().isOk())
-		.andExpect(jsonPath("$.data.content.size()", is(page.getContent().size())));
+			.andDo(print())
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.data.content.size()", is(page.getContent().size())));
 	}
 	
 	@DisplayName("사용자 목록을 조회하는데 필요한 권한이 없어 실패한다.")
@@ -240,11 +239,13 @@ public class AdminUserControllerTest {
 		PageResponse<UserResponse> page;
 		MultiValueMap<String, String> params;
 		UserResponse user2;
-		
+		PaginationUtil pagination;
+
 		user2 = new UserResponse()
-				.email("real@real.com")
-				.userRole(UserRole.USER);
+						.email("user2@naver.com")
+						.userRole(UserRole.USER);
 		
+		pagination = new PaginationUtil();
 		page = PageResponse.handleResponse(List.of(user1, user2), pagination.getPageSize(), pagination.getPageNo(), 2, 1, true, true);
 
 		given(adminUserService.findAll(any(PaginationUtil.class))).willReturn(page);
@@ -256,13 +257,13 @@ public class AdminUserControllerTest {
 		params.add("sortDir", pagination.getSortDir());
 		
 		action = mockMvc.perform(
-						get("/api/v1/admin/users")
-						.params(params)
-						.characterEncoding(StandardCharsets.UTF_8)
-				);
+			get("/api/v1/admin/users")
+			.params(params)
+			.characterEncoding(StandardCharsets.UTF_8)
+		);	
 		
 		action
-		.andDo(print())
-		.andExpect(status().isForbidden());
+			.andDo(print())
+			.andExpect(status().isForbidden());
 	}	
 }

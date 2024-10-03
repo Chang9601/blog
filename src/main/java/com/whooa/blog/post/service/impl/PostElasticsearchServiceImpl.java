@@ -26,7 +26,6 @@ import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.elasticsearch.core.SearchRequest;
 import co.elastic.clients.elasticsearch.core.SearchResponse;
 import co.elastic.clients.elasticsearch.core.search.Hit;
-import co.elastic.clients.elasticsearch.core.search.HitsMetadata;
 
 @Service
 public class PostElasticsearchServiceImpl implements PostElasticsearchService {
@@ -54,23 +53,25 @@ public class PostElasticsearchServiceImpl implements PostElasticsearchService {
 		categoryId = categoryEntity.getId();
 		userId = userDetailsImpl.getId();
 		
-		PostDocBuilder postDocBuilder = PostDoc.builder();	
+		PostDocBuilder postDocBuilder = PostDoc.builder();
 		PostDoc postDoc = postDocBuilder
-							.categoryName(categoryName)
-							.content(content)
-							.title(title)
-							.categoryId(categoryId)
-							.userId(userId)
-							.build();
-
+			.categoryName(categoryName)
+			.content(content)
+			.title(title)
+			.categoryId(categoryId)
+			.userId(userId)
+			.build();
+		
+		postDoc = postElasticsearchRepository.save(postDoc);
+		
 		return postDoc;
 	}
 
 	@Override
 	public PostDoc find(Long id) {
-		PostDoc postDocument = postElasticsearchRepository.findById(id).orElse(null);
+		PostDoc postDoc = postElasticsearchRepository.findById(id).orElse(null);
 		
-		return postDocument;
+		return postDoc;
 	}
 
 	@Override
@@ -92,10 +93,7 @@ public class PostElasticsearchServiceImpl implements PostElasticsearchService {
 	}
 
 	@Override
-	public List<PostDoc> search(QueryDto queryDto) {
-		
-		System.out.println("?????");
-		
+	public List<PostDoc> search(QueryDto queryDto) {		
 		SearchRequest searchRequest = QueryUtil.buildSearchRequest(Index.POST_INDEX, queryDto);
 		
 		return searchHelper(searchRequest);
@@ -111,6 +109,9 @@ public class PostElasticsearchServiceImpl implements PostElasticsearchService {
 		if (searchRequest == null) {
 			return Collections.emptyList();
 		}
+		
+		System.out.println("hi");
+		System.out.println(searchRequest);
 		
 		try {
 			SearchResponse searchResponse = elasticsearchClient.search(searchRequest, PostDoc.class);

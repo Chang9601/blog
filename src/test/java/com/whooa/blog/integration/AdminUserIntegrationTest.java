@@ -62,52 +62,52 @@ public class AdminUserIntegrationTest {
 
 	private UserAdminUpdateRequest userAdminUpdate;
 	
-	private PaginationUtil pagination;
 	private UserDetailsImpl userDetailsImpl;
 
 	@BeforeAll
 	void setUpAll() {
 		mockMvc = MockMvcBuilders
-				.webAppContextSetup(webApplicationContext)
-				.addFilter(new CharacterEncodingFilter("utf-8", true))
-				.apply(springSecurity()).build();
+					.webAppContextSetup(webApplicationContext)
+					.addFilter(new CharacterEncodingFilter("utf-8", true))
+					.apply(springSecurity()).build();
 		
 		new UserDetailsImpl(
 			userRepository.save(
-				new UserEntity()
-				.email("admin@admin.com")
-				.name("관리자")
-				.password("12345678Aa!@#$%")
-				.userRole(UserRole.ADMIN)
+				UserEntity.builder()
+					.email("admin@naver.com")
+					.name("관리자")
+					.password("12345678Aa!@#$%")
+					.userRole(UserRole.ADMIN)
+					.build()
 			)
 		);
-
-		pagination = new PaginationUtil();
 	}
 	
 	@BeforeEach
 	void setUpEach() {
 		userEntity = userRepository.save(
-			new UserEntity()
-			.email("user1@user1.com")
-			.name("사용자1")
-			.password("12345678Aa!@#$%")
-			.userRole(UserRole.USER)
+			UserEntity.builder()
+				.email("user1@naver.com")
+				.name("사용자1")
+				.password("12345678Aa!@#$%")
+				.userRole(UserRole.USER)
+				.build()
 		);
 		
 		userRepository.save(
-			new UserEntity()
-			.email("user2@user2.com")
-			.name("사용자2")
-			.password("12345678Aa!@#$%")
-			.userRole(UserRole.USER)
+			UserEntity.builder()
+				.email("user2@naver.com")
+				.name("사용자2")
+				.password("12345678Aa!@#$%")
+				.userRole(UserRole.USER)
+				.build()
 		);
 		
 		userAdminUpdate = new UserAdminUpdateRequest()
-							.email("user3@user3.com")
-							.name("사용자3")
-							.password("87654321Aa!@#$%")
-							.userRole("MANAGER");
+								.email("user3@naver.com")
+								.name("사용자3")
+								.password("87654321Aa!@#$%")
+								.userRole("MANAGER");
 	}
 	
 	@AfterAll
@@ -122,7 +122,7 @@ public class AdminUserIntegrationTest {
 		userEntities = userRepository.findAll();
 		
 		for (UserEntity userEntity: userEntities) {
-			if (!userEntity.getEmail().equals("admin@admin.com")) {
+			if (!userEntity.getEmail().equals("admin@naver.com")) {
 				userRepository.delete(userEntity);
 			}
 		}
@@ -130,16 +130,16 @@ public class AdminUserIntegrationTest {
 
 	@DisplayName("사용자를 삭제하는데 성공한다.")
 	@Test
-	@WithUserDetails(value = "admin@admin.com", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")	
+	@WithUserDetails(value = "admin@naver.com", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")	
 	public void givenId_whenCallDeleteUser_thenReturnNothing() throws Exception {			
 		ResultActions action;
 
 		action = mockMvc.perform(delete("/api/v1/admin/users/{id}", userEntity.getId()).characterEncoding(StandardCharsets.UTF_8));
 		
 		action
-		.andDo(print())
-		.andExpect(status().isOk())
-		.andExpect(jsonPath("$.metadata.code", is(Code.NO_CONTENT.getCode())));
+			.andDo(print())
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.metadata.code", is(Code.NO_CONTENT.getCode())));
 	}
 	
 	@DisplayName("권한이 없어 사용자를 삭제하는데 실패한다.")
@@ -147,72 +147,75 @@ public class AdminUserIntegrationTest {
 	public void givenId_whenCallDeleteUser_thenThrowUnauthorizedUserException() throws Exception {
 		ResultActions action;
 		
-		userDetailsImpl = new UserDetailsImpl(userRepository.findByEmailAndActiveTrue("user1@user1.com").get());
+		userDetailsImpl = new UserDetailsImpl(userRepository.findByEmailAndActiveTrue("user1@naver.com").get());
 		
 		action = mockMvc.perform(
-						delete("/api/v1/admin/users/{id}", userEntity.getId())
-						.with(user(userDetailsImpl))
-						.characterEncoding(StandardCharsets.UTF_8)
-				);
+			delete("/api/v1/admin/users/{id}", userEntity.getId())
+			.with(user(userDetailsImpl))
+			.characterEncoding(StandardCharsets.UTF_8)
+		);
 		
 		action
-		.andDo(print())
-		.andExpect(status().isForbidden());
+			.andDo(print())
+			.andExpect(status().isForbidden());
 	}	
 	
 	@DisplayName("사용자를 조회하는데 성공한다.")
 	@Test
-	@WithUserDetails(value = "admin@admin.com", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")	
+	@WithUserDetails(value = "admin@naver.com", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")	
 	public void givenId_whenCallGetUser_thenReturnUser() throws Exception {
 		ResultActions action;
 				
 		action = mockMvc.perform(get("/api/v1/admin/users/{id}", userEntity.getId()).characterEncoding(StandardCharsets.UTF_8));
 		
 		action
-		.andDo(print())
-		.andExpect(status().isOk())
-		.andExpect(jsonPath("$.data.email", is(userEntity.getEmail())));
+			.andDo(print())
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.data.email", is(userEntity.getEmail())));
 	}
 	
 	@DisplayName("사용자가 존재하지 않아 조회하는데 실패한다.")
 	@Test
-	@WithUserDetails(value = "admin@admin.com", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")	
+	@WithUserDetails(value = "admin@naver.com", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")	
 	public void givenId_whenCallGetUser_thenUserNotFoundException() throws Exception {					
 		ResultActions action;
 		
 		action = mockMvc.perform(get("/api/v1/admin/users/{id}", 100L).characterEncoding(StandardCharsets.UTF_8));
 		
 		action
-		.andDo(print())
-		.andExpect(status().isNotFound())
-		.andExpect(result -> assertTrue(result.getResolvedException() instanceof UserNotFoundException));
+			.andDo(print())
+			.andExpect(status().isNotFound())
+			.andExpect(result -> assertTrue(result.getResolvedException() instanceof UserNotFoundException));
 	}	
 	
 	@DisplayName("권한이 없어 사용자를 조회하는데 실패한다.")
 	@Test
-	@WithUserDetails(value = "user1@user1.com", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")	
+	@WithUserDetails(value = "user1@naver.com", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")	
 	public void givenId_whenCallGetUser_thenThrowUnauthorizedUserException() throws Exception {
 		ResultActions action;
 		
-		userDetailsImpl = new UserDetailsImpl(userRepository.findByEmailAndActiveTrue("user1@user1.com").get());
+		userDetailsImpl = new UserDetailsImpl(userRepository.findByEmailAndActiveTrue("user1@naver.com").get());
 
 		action = mockMvc.perform(
-						get("/api/v1/admin/users/{id}", userEntity.getId())
-						.with(user(userDetailsImpl))
-						.characterEncoding(StandardCharsets.UTF_8)
-				);
+			get("/api/v1/admin/users/{id}", userEntity.getId())
+			.with(user(userDetailsImpl))
+			.characterEncoding(StandardCharsets.UTF_8)
+		);
 		
 		action
-		.andDo(print())
-		.andExpect(status().isForbidden());
+			.andDo(print())
+			.andExpect(status().isForbidden());
 	}
 	
 	@DisplayName("사용자 목록을 조회하는데 성공한다.")
 	@Test
-	@WithUserDetails(value = "admin@admin.com", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")	
+	@WithUserDetails(value = "admin@naver.com", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")	
 	public void givenPagination_whenCallGetUsers_thenReturnUsers() throws Exception {
 		ResultActions action;
-		MultiValueMap<String, String> params; 
+		MultiValueMap<String, String> params;
+		PaginationUtil pagination;
+		
+		pagination = new PaginationUtil();
 		
 		params = new LinkedMultiValueMap<String, String>();
 		params.add("pageNo", String.valueOf(pagination.getPageNo()));
@@ -221,15 +224,15 @@ public class AdminUserIntegrationTest {
 		params.add("sortDir", pagination.getSortDir());
 		
 		action = mockMvc.perform(
-						get("/api/v1/admin/users")
-						.params(params)
-						.characterEncoding(StandardCharsets.UTF_8)
-				);
+			get("/api/v1/admin/users")
+			.params(params)
+			.characterEncoding(StandardCharsets.UTF_8)
+		);
 		
 		action
-		.andDo(print())
-		.andExpect(status().isOk())
-		.andExpect(jsonPath("$.data.content.size()", is(3)));
+			.andDo(print())
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.data.content.size()", is(3)));
 	}
 	
 	@DisplayName("권한이 없어 사용자 목록을 조회하는데 실패한다.")
@@ -237,8 +240,12 @@ public class AdminUserIntegrationTest {
 	public void givenPagination_whenCallGetUsers_thenThrowUnauthorizedUserException() throws Exception {
 		ResultActions action;
 		MultiValueMap<String, String> params;
+		PaginationUtil pagination;
 		
-		userDetailsImpl = new UserDetailsImpl(userRepository.findByEmailAndActiveTrue("user1@user1.com").get());
+		pagination = new PaginationUtil();
+		
+		userDetailsImpl = new UserDetailsImpl(userRepository.findByEmailAndActiveTrue("user1@naver.com").get());
+		
 		params = new LinkedMultiValueMap<String, String>();
 		params.add("pageNo", String.valueOf(pagination.getPageNo()));
 		params.add("pageSize", String.valueOf(pagination.getPageSize()));
@@ -246,113 +253,113 @@ public class AdminUserIntegrationTest {
 		params.add("sortDir", pagination.getSortDir());
 		
 		action = mockMvc.perform(
-						get("/api/v1/admin/users")
-						.with(user(userDetailsImpl))
-						.params(params)
-						.characterEncoding(StandardCharsets.UTF_8)
-				);
+			get("/api/v1/admin/users")
+			.with(user(userDetailsImpl))
+			.params(params)
+			.characterEncoding(StandardCharsets.UTF_8)
+		);
 		
 		action
-		.andDo(print())
-		.andExpect(status().isForbidden());
+			.andDo(print())
+			.andExpect(status().isForbidden());
 	}
 	
 	@DisplayName("사용자를 수정하는데 성공한다.")
 	@Test
-	@WithUserDetails(value = "admin@admin.com", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")	
+	@WithUserDetails(value = "admin@naver.com", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")	
 	public void givenUserUpdate_whenCallUpdateUser_thenReturnUser() throws Exception {
 		ResultActions action;		
 
 		action = mockMvc.perform(
-						patch("/api/v1/admin/users/{id}", userEntity.getId())
-						.content(SerializeDeserializeUtil.serializeToString(userAdminUpdate))
-						.characterEncoding(StandardCharsets.UTF_8)
-						.contentType(MediaType.APPLICATION_JSON)
-				);
+			patch("/api/v1/admin/users/{id}", userEntity.getId())
+			.content(SerializeDeserializeUtil.serializeToString(userAdminUpdate))
+			.characterEncoding(StandardCharsets.UTF_8)
+			.contentType(MediaType.APPLICATION_JSON)
+		);
 		
 		action
-		.andDo(print())
-		.andExpect(status().isOk())
-		.andExpect(jsonPath("$.data.email", is(userAdminUpdate.getEmail())));
+			.andDo(print())
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.data.email", is(userAdminUpdate.getEmail())));
 	}
 	
 	@DisplayName("이름이  짧아 사용자를 수정하는데 실패한다.")
 	@Test
-	@WithUserDetails(value = "admin@admin.com", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")	
+	@WithUserDetails(value = "admin@naver.com", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")	
 	public void givenUserUpdate_whenCallUpdateUser_thenThrowBadRequestExceptionForName() throws Exception {
 		ResultActions action;
 		
 		userAdminUpdate.name("없");
 		
 		action = mockMvc.perform(
-						patch("/api/v1/admin/users/{id}", userEntity.getId())
-						.content(SerializeDeserializeUtil.serializeToString(userAdminUpdate))
-						.characterEncoding(StandardCharsets.UTF_8)
-						.contentType(MediaType.APPLICATION_JSON)
-				);
+			patch("/api/v1/admin/users/{id}", userEntity.getId())
+			.content(SerializeDeserializeUtil.serializeToString(userAdminUpdate))
+			.characterEncoding(StandardCharsets.UTF_8)
+			.contentType(MediaType.APPLICATION_JSON)
+		);
 		
 		action
-		.andDo(print())
-		.andExpect(status().isBadRequest());
+			.andDo(print())
+			.andExpect(status().isBadRequest());
 	}
 	
 	@DisplayName("이메일이 유효하지 않아 사용자를 수정하는데 실패한다.")
 	@Test
-	@WithUserDetails(value = "admin@admin.com", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")	
+	@WithUserDetails(value = "admin@naver.com", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")	
 	public void givenUserUpdate_whenCallUpdateUser_thenThrowBadRequestExceptionForEmail() throws Exception {
 		ResultActions action;
 		
 		userAdminUpdate.email("user3user3.com");
 		
 		action = mockMvc.perform(
-						patch("/api/v1/admin/users/{id}", userEntity.getId())
-						.content(SerializeDeserializeUtil.serializeToString(userAdminUpdate))
-						.characterEncoding(StandardCharsets.UTF_8)
-						.contentType(MediaType.APPLICATION_JSON)
-				);
+			patch("/api/v1/admin/users/{id}", userEntity.getId())
+			.content(SerializeDeserializeUtil.serializeToString(userAdminUpdate))
+			.characterEncoding(StandardCharsets.UTF_8)
+			.contentType(MediaType.APPLICATION_JSON)
+		);
 
 		action
-		.andDo(print())
-		.andExpect(status().isBadRequest());
+			.andDo(print())
+			.andExpect(status().isBadRequest());
 	}
 	
 	@DisplayName("사용자가 존재하지 않아 수정하는데 실패한다.")
 	@Test
-	@WithUserDetails(value = "admin@admin.com", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")	
+	@WithUserDetails(value = "admin@naver.com", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")	
 	public void givenUserUpdate_whenCallUpdateUser_thenThrowUserNotFoundException() throws Exception {
 		ResultActions action;
 		
 		action = mockMvc.perform(
-						patch("/api/v1/admin/users/{id}", 100L)
-						.content(SerializeDeserializeUtil.serializeToString(userAdminUpdate))
-						.characterEncoding(StandardCharsets.UTF_8)
-						.contentType(MediaType.APPLICATION_JSON)
-				);
+			patch("/api/v1/admin/users/{id}", 100L)
+			.content(SerializeDeserializeUtil.serializeToString(userAdminUpdate))
+			.characterEncoding(StandardCharsets.UTF_8)
+			.contentType(MediaType.APPLICATION_JSON)
+		);
 		
 		action
-		.andDo(print())
-		.andExpect(status().isNotFound())
-		.andExpect(result -> assertTrue(result.getResolvedException() instanceof UserNotFoundException));
+			.andDo(print())
+			.andExpect(status().isNotFound())
+			.andExpect(result -> assertTrue(result.getResolvedException() instanceof UserNotFoundException));
 	}
 	
 	@DisplayName("사용자 이미 존재하여 수정하는데 실패한다.")
 	@Test
-	@WithUserDetails(value = "admin@admin.com", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")	
+	@WithUserDetails(value = "admin@naver.com", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")	
 	public void givenUserUpdate_whenCallUpdateUser_thenThrowDuplicateUserException() throws Exception {
 		ResultActions action;
 		
 		userAdminUpdate.email("user2@user2.com");
 		
 		action = mockMvc.perform(
-						patch("/api/v1/admin/users/{id}", userEntity.getId())
-						.content(SerializeDeserializeUtil.serializeToString(userAdminUpdate))
-						.characterEncoding(StandardCharsets.UTF_8)
-						.contentType(MediaType.APPLICATION_JSON)
-				);
+			patch("/api/v1/admin/users/{id}", userEntity.getId())
+			.content(SerializeDeserializeUtil.serializeToString(userAdminUpdate))
+			.characterEncoding(StandardCharsets.UTF_8)
+			.contentType(MediaType.APPLICATION_JSON)
+		);
 		
 		action
-		.andDo(print())
-		.andExpect(status().isConflict());
+			.andDo(print())
+			.andExpect(status().isConflict());
 	}
 	
 	@DisplayName("권한이 없어 사용자를 수정하는데 성공한다.")
@@ -360,18 +367,18 @@ public class AdminUserIntegrationTest {
 	public void givenUserUpdate_whenCallUpdateUser_thenThrowUnauthorizedUserException() throws Exception {
 		ResultActions action;
 		
-		userDetailsImpl = new UserDetailsImpl(userRepository.findByEmailAndActiveTrue("user1@user1.com").get());
+		userDetailsImpl = new UserDetailsImpl(userRepository.findByEmailAndActiveTrue("user1@naver.com").get());
 
 		action = mockMvc.perform(
-						patch("/api/v1/admin/users/{id}", userEntity.getId())
-						.with(user(userDetailsImpl))
-						.content(SerializeDeserializeUtil.serializeToString(userAdminUpdate))
-						.characterEncoding(StandardCharsets.UTF_8)
-						.contentType(MediaType.APPLICATION_JSON)
-				);
+			patch("/api/v1/admin/users/{id}", userEntity.getId())
+			.with(user(userDetailsImpl))
+			.content(SerializeDeserializeUtil.serializeToString(userAdminUpdate))
+			.characterEncoding(StandardCharsets.UTF_8)
+			.contentType(MediaType.APPLICATION_JSON)
+		);
 		
 		action
-		.andDo(print())
-		.andExpect(status().isForbidden());
+			.andDo(print())
+			.andExpect(status().isForbidden());
 	}	
 }

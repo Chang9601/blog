@@ -63,7 +63,7 @@ public class AdminUserController {
 	}
 	
 	@Operation(
-		summary = "사용자 목록 조회(관리자)"
+		summary = "사용자 목록(관리자)"
 	)
 	@SecurityRequirement(
 		name = "JWT Cookie Authentication"

@@ -75,33 +75,40 @@ public class PostIntegrationTest {
 	private PostCreateRequest postCreate;
 	private PostUpdateRequest postUpdate;
 
-	private PaginationUtil pagination;
 	private UserDetailsImpl userDetailsImpl;
 
 	@BeforeAll
 	void setUpAll() {
 		mockMvc = MockMvcBuilders
-				.webAppContextSetup(webApplicationContext)
-				.addFilter(new CharacterEncodingFilter("utf-8", true))
-				.apply(springSecurity()).build();
+					.webAppContextSetup(webApplicationContext)
+					.addFilter(new CharacterEncodingFilter("utf-8", true))
+					.apply(springSecurity()).build();
 		
-		categoryEntity = categoryRepository.save(new CategoryEntity().name("카테고리"));
+		categoryEntity = categoryRepository.save(
+			CategoryEntity.builder()
+				.name("카테고리")
+				.build()
+		);
 		
-		userEntity = userRepository.save(new UserEntity()
-				.email("user1@user1.com")
+		userEntity = userRepository.save(
+			UserEntity.builder()
+				.email("user1@naver.com")
 				.name("사용자1")
 				.password("12345678Aa!@#$%")
-				.userRole(UserRole.USER));
+				.userRole(UserRole.USER)
+				.build()
+		);
 		
-		userRepository.save(new UserEntity()
-				.email("user2@user2.com")
+		userRepository.save(
+			UserEntity.builder()
+				.email("user2@naver.com")
 				.name("사용자2")
 				.password("12345678Aa!@#$%")
-				.userRole(UserRole.USER));
+				.userRole(UserRole.USER)
+				.build()
+		);
 		
 		userDetailsImpl = new UserDetailsImpl(userEntity);
-		
-		pagination = new PaginationUtil();
 	}
 	
 	@BeforeEach
@@ -112,14 +119,14 @@ public class PostIntegrationTest {
 		title = "포스트";
 		
 		postCreate = new PostCreateRequest()
-					.categoryName(categoryEntity.getName())
-					.content(content)
-					.title(title);
-			
+							.categoryName(categoryEntity.getName())
+							.content(content)
+							.title(title);
+				
 		postUpdate = new PostUpdateRequest()
-					.categoryName(categoryEntity.getName())
-					.content("포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2")
-					.title("포스트2");
+							.categoryName(categoryEntity.getName())
+							.content("포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2")
+							.title("포스트2");
 	}
 	
 	@AfterAll
@@ -136,7 +143,7 @@ public class PostIntegrationTest {
 
 	@DisplayName("포스트(파일 X)를 생성하는데 성공한다.")
 	@Test
-	@WithUserDetails(value = "user1@user1.com", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")
+	@WithUserDetails(value = "user1@naver.com", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")
 	public void givenPostCreate_whenCallCreatePost_thenReturnPost() throws Exception {
 		ResultActions action;
 		MockMultipartFile postCreateFile;
@@ -144,22 +151,22 @@ public class PostIntegrationTest {
 		postCreateFile = new MockMultipartFile("post", null, MediaType.APPLICATION_JSON_VALUE, SerializeDeserializeUtil.serializeToString(postCreate).getBytes(StandardCharsets.UTF_8));
 					
 		action = mockMvc.perform(
-						multipart(HttpMethod.POST, "/api/v1/posts")
-						.file(postCreateFile)
-						.characterEncoding(StandardCharsets.UTF_8)
-						.contentType(MediaType.MULTIPART_FORM_DATA)
-				);
+			multipart(HttpMethod.POST, "/api/v1/posts")
+			.file(postCreateFile)
+			.characterEncoding(StandardCharsets.UTF_8)
+			.contentType(MediaType.MULTIPART_FORM_DATA)
+		);
 		
 		action
-		.andDo(print())
-		.andExpect(status().isCreated())
-		.andExpect(jsonPath("$.data.title", is(postCreate.getTitle())))
-		.andExpect(jsonPath("$.data.content", is(postCreate.getContent())));
+			.andDo(print())
+			.andExpect(status().isCreated())
+			.andExpect(jsonPath("$.data.title", is(postCreate.getTitle())))
+			.andExpect(jsonPath("$.data.content", is(postCreate.getContent())));
 	}
 	
 	@DisplayName("포스트(파일 O)를 생성하는데 성공한다.")
 	@Test
-	@WithUserDetails(value = "user1@user1.com", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")
+	@WithUserDetails(value = "user1@naver.com", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")
 	public void givenPostCreate_whenCallCreatePost_thenReturnPostWithFiles() throws Exception {
 		ResultActions action;
 		MockMultipartFile postCreateFile, postFile1, postFile2;
@@ -169,25 +176,25 @@ public class PostIntegrationTest {
 		postCreateFile = new MockMultipartFile("post", null, MediaType.APPLICATION_JSON_VALUE, SerializeDeserializeUtil.serializeToString(postCreate).getBytes(StandardCharsets.UTF_8));
 					
 		action = mockMvc.perform(
-						multipart(HttpMethod.POST, "/api/v1/posts")
-						.file(postCreateFile)
-						.file(postFile1)
-						.file(postFile2)
-						.characterEncoding(StandardCharsets.UTF_8)
-						.contentType(MediaType.MULTIPART_FORM_DATA)
-				);
+			multipart(HttpMethod.POST, "/api/v1/posts")
+			.file(postCreateFile)
+			.file(postFile1)
+			.file(postFile2)
+			.characterEncoding(StandardCharsets.UTF_8)
+			.contentType(MediaType.MULTIPART_FORM_DATA)
+		);
 		
 		action
-		.andDo(print())
-		.andExpect(status().isCreated())
-		.andExpect(jsonPath("$.data.title", is(postCreate.getTitle())))
-		.andExpect(jsonPath("$.data.content", is(postCreate.getContent())))
-		.andExpect(jsonPath("$.data.files.length()", is(2)));
+			.andDo(print())
+			.andExpect(status().isCreated())
+			.andExpect(jsonPath("$.data.title", is(postCreate.getTitle())))
+			.andExpect(jsonPath("$.data.content", is(postCreate.getContent())))
+			.andExpect(jsonPath("$.data.files.length()", is(2)));
 	}
 	
 	@DisplayName("카테고리 이름이 짧아 포스트를 생성하는데 실패한다.")
 	@Test
-	@WithUserDetails(value = "user1@user1.com", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")
+	@WithUserDetails(value = "user1@naver.com", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")
 	public void givenPostCreate_whenCallCreatePost_thenThrowBadRequestExceptionForCategoryName() throws Exception {
 		ResultActions action;
 		MockMultipartFile postCreateFile;
@@ -197,20 +204,20 @@ public class PostIntegrationTest {
 		postCreateFile = new MockMultipartFile("post", null, MediaType.APPLICATION_JSON_VALUE, SerializeDeserializeUtil.serializeToString(postCreate).getBytes(StandardCharsets.UTF_8));
 					
 		action = mockMvc.perform(
-						multipart(HttpMethod.POST, "/api/v1/posts")
-						.file(postCreateFile)
-						.characterEncoding(StandardCharsets.UTF_8)
-						.contentType(MediaType.MULTIPART_FORM_DATA)
-				);
+			multipart(HttpMethod.POST, "/api/v1/posts")
+			.file(postCreateFile)
+			.characterEncoding(StandardCharsets.UTF_8)
+			.contentType(MediaType.MULTIPART_FORM_DATA)
+		);
 		
 		action
-		.andDo(print())
-		.andExpect(status().isBadRequest());
+			.andDo(print())
+			.andExpect(status().isBadRequest());
 	}
 	
 	@DisplayName("제목이 짧아 포스트를 생성하는데 실패한다.")
 	@Test
-	@WithUserDetails(value = "user1@user1.com", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")
+	@WithUserDetails(value = "user1@naver.com", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")
 	public void givenPostCreate_whenCallCreatePost_thenThrowBadRequestExceptionForTitle() throws Exception {
 		ResultActions action;
 		MockMultipartFile postCreateFile;
@@ -220,20 +227,20 @@ public class PostIntegrationTest {
 		postCreateFile = new MockMultipartFile("post", null, MediaType.APPLICATION_JSON_VALUE, SerializeDeserializeUtil.serializeToString(postCreate).getBytes(StandardCharsets.UTF_8));
 					
 		action = mockMvc.perform(
-						multipart(HttpMethod.POST, "/api/v1/posts")
-						.file(postCreateFile)
-						.characterEncoding(StandardCharsets.UTF_8)
-						.contentType(MediaType.MULTIPART_FORM_DATA)
-				);
+			multipart(HttpMethod.POST, "/api/v1/posts")
+			.file(postCreateFile)
+			.characterEncoding(StandardCharsets.UTF_8)
+			.contentType(MediaType.MULTIPART_FORM_DATA)
+		);
 		
 		action
-		.andDo(print())
-		.andExpect(status().isBadRequest());
+			.andDo(print())
+			.andExpect(status().isBadRequest());
 	}
 	
 	@DisplayName("내용이 짧아 포스트를 생성하는데 실패한다.")
 	@Test
-	@WithUserDetails(value = "user1@user1.com", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")
+	@WithUserDetails(value = "user1@naver.com", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")
 	public void givenPostCreate_whenCallCreatePost_thenThrowBadRequestExceptionForContent() throws Exception {
 		ResultActions action;
 		MockMultipartFile postCreateFile;
@@ -243,15 +250,15 @@ public class PostIntegrationTest {
 		postCreateFile = new MockMultipartFile("post", null, MediaType.APPLICATION_JSON_VALUE, SerializeDeserializeUtil.serializeToString(postCreate).getBytes(StandardCharsets.UTF_8));
 					
 		action = mockMvc.perform(
-						multipart(HttpMethod.POST, "/api/v1/posts")
-						.file(postCreateFile)
-						.characterEncoding(StandardCharsets.UTF_8)
-						.contentType(MediaType.MULTIPART_FORM_DATA)
-				);
+			multipart(HttpMethod.POST, "/api/v1/posts")
+			.file(postCreateFile)
+			.characterEncoding(StandardCharsets.UTF_8)
+			.contentType(MediaType.MULTIPART_FORM_DATA)
+		);
 		
 		action
-		.andDo(print())
-		.andExpect(status().isBadRequest());
+			.andDo(print())
+			.andExpect(status().isBadRequest());
 	}
 	
 	@DisplayName("인증되어 있지 않아 포스트를 생성하는데 실패한다.")
@@ -263,20 +270,20 @@ public class PostIntegrationTest {
 		postCreateFile = new MockMultipartFile("post", null, MediaType.APPLICATION_JSON_VALUE, SerializeDeserializeUtil.serializeToString(postCreate).getBytes(StandardCharsets.UTF_8));
 
 		action = mockMvc.perform(
-						multipart(HttpMethod.POST, "/api/v1/posts")
-						.file(postCreateFile)
-						.characterEncoding(StandardCharsets.UTF_8)
-						.contentType(MediaType.MULTIPART_FORM_DATA)
-				);
+			multipart(HttpMethod.POST, "/api/v1/posts")
+			.file(postCreateFile)
+			.characterEncoding(StandardCharsets.UTF_8)
+			.contentType(MediaType.MULTIPART_FORM_DATA)
+		);
 
 		action
-		.andDo(print())
-		.andExpect(status().isUnauthorized());
+			.andDo(print())
+			.andExpect(status().isUnauthorized());
 	}
 	
 	@DisplayName("포스트를 삭제하는데 성공한다.")
 	@Test
-	@WithUserDetails(value = "user1@user1.com", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")
+	@WithUserDetails(value = "user1@naver.com", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")
 	public void givenId_whenCallDeletePost_thenReturnNothing() throws Exception {
 		ResultActions action;
 		Integer id;
@@ -286,40 +293,40 @@ public class PostIntegrationTest {
 		postCreateFile = new MockMultipartFile("post", null, MediaType.APPLICATION_JSON_VALUE, SerializeDeserializeUtil.serializeToString(postCreate).getBytes(StandardCharsets.UTF_8));
 
 		result = mockMvc.perform(
-						multipart(HttpMethod.POST, "/api/v1/posts")
-						.file(postCreateFile)
-						.characterEncoding(StandardCharsets.UTF_8)
-						.contentType(MediaType.MULTIPART_FORM_DATA))
-						.andExpect(status().isCreated())
-						.andReturn();
+			multipart(HttpMethod.POST, "/api/v1/posts")
+			.file(postCreateFile)
+			.characterEncoding(StandardCharsets.UTF_8)
+			.contentType(MediaType.MULTIPART_FORM_DATA))
+			.andExpect(status().isCreated())
+			.andReturn();
 				
 		id = JsonPath.read(result.getResponse().getContentAsString(), "$.data.id");
 
 		action = mockMvc.perform(delete("/api/v1/posts/{id}", id));
 
 		action
-		.andDo(print())
-		.andExpect(status().isOk())
-		.andExpect(jsonPath("$.metadata.code", is(Code.NO_CONTENT.getCode())));
+			.andDo(print())
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.metadata.code", is(Code.NO_CONTENT.getCode())));
 	}
 	
 	@DisplayName("포스트가 존재하지 않아 삭제하는데 실패한다.")
 	@Test
-	@WithUserDetails(value = "user1@user1.com", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")
+	@WithUserDetails(value = "user1@naver.com", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")
 	public void givenId_whenCallDeletePost_thenThrowPostNotFoundException() throws Exception {
 		ResultActions action;
 		
 		action = mockMvc.perform(delete("/api/v1/posts/{id}", 100L));
 		
 		action
-		.andDo(print())
-		.andExpect(status().isNotFound())
-		.andExpect(output -> assertTrue(output.getResolvedException() instanceof PostNotFoundException));
+			.andDo(print())
+			.andExpect(status().isNotFound())
+			.andExpect(output -> assertTrue(output.getResolvedException() instanceof PostNotFoundException));
 	}
 	
 	@DisplayName("포스트를 생성한 사용자가 아니라서 삭제하는데 실패한다.")
 	@Test
-	@WithUserDetails(value = "user1@user1.com", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")
+	@WithUserDetails(value = "user1@naver.com", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")
 	public void givenId_whenCallDeletePost_thenThrowUserNotMatchedException() throws Exception {
 		ResultActions action;
 		Integer id;
@@ -331,22 +338,22 @@ public class PostIntegrationTest {
 		postCreateFile = new MockMultipartFile("post", null, MediaType.APPLICATION_JSON_VALUE, SerializeDeserializeUtil.serializeToString(postCreate).getBytes(StandardCharsets.UTF_8));
 
 		result = mockMvc.perform(
-						multipart(HttpMethod.POST, "/api/v1/posts")
-						.file(postCreateFile)
-						.with(user(userDetailsImpl))
-						.characterEncoding(StandardCharsets.UTF_8)
-						.contentType(MediaType.MULTIPART_FORM_DATA))
-						.andExpect(status().isCreated())
-						.andReturn();
+			multipart(HttpMethod.POST, "/api/v1/posts")
+			.file(postCreateFile)
+			.with(user(userDetailsImpl))
+			.characterEncoding(StandardCharsets.UTF_8)
+			.contentType(MediaType.MULTIPART_FORM_DATA))
+			.andExpect(status().isCreated())
+			.andReturn();
 				
 		id = JsonPath.read(result.getResponse().getContentAsString(), "$.data.id");
 		
 		action = mockMvc.perform(delete("/api/v1/posts/{id}", id));
 		
 		action
-		.andDo(print())
-		.andExpect(status().isForbidden())
-		.andExpect(output -> assertTrue(output.getResolvedException() instanceof UserNotMatchedException));
+			.andDo(print())
+			.andExpect(status().isForbidden())
+			.andExpect(output -> assertTrue(output.getResolvedException() instanceof UserNotMatchedException));
 	}	
 	
 	@DisplayName("인증되어 있지 않아 포스트를 삭제하는데 실패한다.")
@@ -372,26 +379,26 @@ public class PostIntegrationTest {
 		postCreateFile = new MockMultipartFile("post", null, MediaType.APPLICATION_JSON_VALUE, SerializeDeserializeUtil.serializeToString(postCreate).getBytes(StandardCharsets.UTF_8));
 		
 		result = mockMvc.perform(
-						multipart(HttpMethod.POST, "/api/v1/posts")
-						.file(postCreateFile)
-						.with(user(userDetailsImpl))
-						.characterEncoding(StandardCharsets.UTF_8)
-						.contentType(MediaType.MULTIPART_FORM_DATA))
-						.andExpect(status().isCreated())
-						.andReturn();
+			multipart(HttpMethod.POST, "/api/v1/posts")
+			.file(postCreateFile)
+			.with(user(userDetailsImpl))
+			.characterEncoding(StandardCharsets.UTF_8)
+			.contentType(MediaType.MULTIPART_FORM_DATA))
+			.andExpect(status().isCreated())
+			.andReturn();
 				
 		id = JsonPath.read(result.getResponse().getContentAsString(), "$.data.id");
 		
 		action = mockMvc.perform(
-						get("/api/v1/posts/{id}", id)
-						.characterEncoding(StandardCharsets.UTF_8)
-				);
+			get("/api/v1/posts/{id}", id)
+			.characterEncoding(StandardCharsets.UTF_8)
+		);
 
 		action
-		.andDo(print())
-		.andExpect(status().isOk())
-		.andExpect(jsonPath("$.data.title", is(postCreate.getTitle())))
-		.andExpect(jsonPath("$.data.content", is(postCreate.getContent())));
+			.andDo(print())
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.data.title", is(postCreate.getTitle())))
+			.andExpect(jsonPath("$.data.content", is(postCreate.getContent())));
 	}
 	
 	@DisplayName("포스트가 존재하지 않아 조회하는데 실패한다.")
@@ -400,14 +407,14 @@ public class PostIntegrationTest {
 		ResultActions action;
 		
 		action = mockMvc.perform(
-						get("/api/v1/posts/{id}", 100L)
-						.characterEncoding(StandardCharsets.UTF_8)
-				);
+			get("/api/v1/posts/{id}", 100L)
+			.characterEncoding(StandardCharsets.UTF_8)
+		);
 		
 		action
-		.andDo(print())
-		.andExpect(status().isNotFound())
-		.andExpect(output -> assertTrue(output.getResolvedException() instanceof PostNotFoundException));
+			.andDo(print())
+			.andExpect(status().isNotFound())
+			.andExpect(output -> assertTrue(output.getResolvedException() instanceof PostNotFoundException));
 	}
 	
 	@DisplayName("포스트 목록을 조회하는데 성공한다.")
@@ -416,27 +423,30 @@ public class PostIntegrationTest {
 		ResultActions action;
 		MockMultipartFile postCreateFile1, postCreateFile2;
 		MultiValueMap<String, String> params;
-		
+		PaginationUtil pagination;
+
 		postCreateFile1 = new MockMultipartFile("post", null, MediaType.APPLICATION_JSON_VALUE, SerializeDeserializeUtil.serializeToString(postCreate).getBytes(StandardCharsets.UTF_8));
 		postCreateFile2 = new MockMultipartFile("post", null, MediaType.APPLICATION_JSON_VALUE, SerializeDeserializeUtil.serializeToString(postCreate).getBytes(StandardCharsets.UTF_8));
 
 		mockMvc.perform(
-				multipart(HttpMethod.POST, "/api/v1/posts")
-				.file(postCreateFile1)
-				.with(user(userDetailsImpl))
-				.characterEncoding(StandardCharsets.UTF_8)
-				.contentType(MediaType.MULTIPART_FORM_DATA))
-				.andExpect(status().isCreated()
+			multipart(HttpMethod.POST, "/api/v1/posts")
+			.file(postCreateFile1)
+			.with(user(userDetailsImpl))
+			.characterEncoding(StandardCharsets.UTF_8)
+			.contentType(MediaType.MULTIPART_FORM_DATA))
+			.andExpect(status().isCreated()
 		);
 		
 		mockMvc.perform(
-				multipart(HttpMethod.POST, "/api/v1/posts")
-				.file(postCreateFile2)
-				.with(user(userDetailsImpl))
-				.characterEncoding(StandardCharsets.UTF_8)
-				.contentType(MediaType.MULTIPART_FORM_DATA))
-				.andExpect(status().isCreated()
+			multipart(HttpMethod.POST, "/api/v1/posts")
+			.file(postCreateFile2)
+			.with(user(userDetailsImpl))
+			.characterEncoding(StandardCharsets.UTF_8)
+			.contentType(MediaType.MULTIPART_FORM_DATA))
+			.andExpect(status().isCreated()
 		);
+		
+		pagination = new PaginationUtil();
 		
 		params = new LinkedMultiValueMap<String, String>();
 		params.add("pageNo", String.valueOf(pagination.getPageNo()));
@@ -445,20 +455,20 @@ public class PostIntegrationTest {
 		params.add("sortDir", pagination.getSortDir());
 		
 		action = mockMvc.perform(
-						get("/api/v1/posts")
-						.params(params)
-						.characterEncoding(StandardCharsets.UTF_8)
-				);
+			get("/api/v1/posts")
+			.params(params)
+			.characterEncoding(StandardCharsets.UTF_8)
+		);
 		
 		action
-		.andDo(print())
-		.andExpect(status().isOk())
-		.andExpect(jsonPath("$.data.content.size()", is(2)));
+			.andDo(print())
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.data.content.size()", is(2)));
 	}
 	
 	@DisplayName("포스트(파일 X)를 수정하는데 성공한다.")
 	@Test
-	@WithUserDetails(value = "user1@user1.com", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")
+	@WithUserDetails(value = "user1@naver.com", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")
 	public void givenPostUpdate_whenCallUpdatePost_thenThrowUserNotMatchedException() throws Exception {
 		ResultActions action;
 		Integer id;
@@ -469,32 +479,32 @@ public class PostIntegrationTest {
 		postUpdateFile = new MockMultipartFile("post", null, MediaType.APPLICATION_JSON_VALUE, SerializeDeserializeUtil.serializeToString(postUpdate).getBytes(StandardCharsets.UTF_8));
 
 		result = mockMvc.perform(
-						multipart(HttpMethod.POST, "/api/v1/posts")
-						.file(postCreateFile)
-						.characterEncoding(StandardCharsets.UTF_8)
-						.contentType(MediaType.MULTIPART_FORM_DATA))
-						.andExpect(status().isCreated())
-						.andReturn();
+			multipart(HttpMethod.POST, "/api/v1/posts")
+			.file(postCreateFile)
+			.characterEncoding(StandardCharsets.UTF_8)
+			.contentType(MediaType.MULTIPART_FORM_DATA))
+			.andExpect(status().isCreated())
+			.andReturn();
 				
 		id = JsonPath.read(result.getResponse().getContentAsString(), "$.data.id");
 		
 		action = mockMvc.perform(
-						multipart(HttpMethod.PATCH, "/api/v1/posts/{id}", id)
-						.file(postUpdateFile)
-						.characterEncoding(StandardCharsets.UTF_8)
-						.contentType(MediaType.MULTIPART_FORM_DATA)
-				);
+			multipart(HttpMethod.PATCH, "/api/v1/posts/{id}", id)
+			.file(postUpdateFile)
+			.characterEncoding(StandardCharsets.UTF_8)
+			.contentType(MediaType.MULTIPART_FORM_DATA)
+		);
 
 		action
-		.andDo(print())
-		.andExpect(status().isOk())
-		.andExpect(jsonPath("$.data.title", is(postUpdate.getTitle())))
-		.andExpect(jsonPath("$.data.content", is(postUpdate.getContent())));		
+			.andDo(print())
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.data.title", is(postUpdate.getTitle())))
+			.andExpect(jsonPath("$.data.content", is(postUpdate.getContent())));		
 	}
 	
 	@DisplayName("포스트(파일 O)를 수정하는데 성공한다.")
 	@Test
-	@WithUserDetails(value = "user1@user1.com", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")
+	@WithUserDetails(value = "user1@naver.com", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")
 	public void givenPostUpdate_whenCallUpdatePost_thenReturnPostWithFiles() throws Exception {
 		ResultActions action;
 		Integer id;
@@ -506,33 +516,33 @@ public class PostIntegrationTest {
 		postUpdateFile = new MockMultipartFile("post", null, MediaType.APPLICATION_JSON_VALUE, SerializeDeserializeUtil.serializeToString(postUpdate).getBytes(StandardCharsets.UTF_8));
 
 		result = mockMvc.perform(
-						multipart(HttpMethod.POST, "/api/v1/posts")
-						.file(postCreateFile)
-						.characterEncoding(StandardCharsets.UTF_8)
-						.contentType(MediaType.MULTIPART_FORM_DATA))
-						.andExpect(status().isCreated())
-						.andReturn();
+			multipart(HttpMethod.POST, "/api/v1/posts")
+			.file(postCreateFile)
+			.characterEncoding(StandardCharsets.UTF_8)
+			.contentType(MediaType.MULTIPART_FORM_DATA))
+			.andExpect(status().isCreated())
+			.andReturn();
 				
 		id = JsonPath.read(result.getResponse().getContentAsString(), "$.data.id");
 		
 		action = mockMvc.perform(
-						multipart(HttpMethod.PATCH, "/api/v1/posts/{id}", id)
-						.file(postUpdateFile)
-						.file(postFile)
-						.characterEncoding(StandardCharsets.UTF_8)
-						.contentType(MediaType.MULTIPART_FORM_DATA));
+			multipart(HttpMethod.PATCH, "/api/v1/posts/{id}", id)
+			.file(postUpdateFile)
+			.file(postFile)
+			.characterEncoding(StandardCharsets.UTF_8)
+			.contentType(MediaType.MULTIPART_FORM_DATA));
 
 		action
-		.andDo(print())
-		.andExpect(status().isOk())
-		.andExpect(jsonPath("$.data.title", is(postUpdate.getTitle())))
-		.andExpect(jsonPath("$.data.content", is(postUpdate.getContent())))
-		.andExpect(jsonPath("$.data.files.length()", is(1)));
+			.andDo(print())
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.data.title", is(postUpdate.getTitle())))
+			.andExpect(jsonPath("$.data.content", is(postUpdate.getContent())))
+			.andExpect(jsonPath("$.data.files.length()", is(1)));
 	}
 	
 	@DisplayName("카테고리 이름이 짧아 포스트를 수정하는데 실패한다.")
 	@Test
-	@WithUserDetails(value = "user1@user1.com", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")
+	@WithUserDetails(value = "user1@naver.com", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")
 	public void givenPostUpdate_whenCallUpdatePost_thenThrowBadRequestExceptionForCategoryName() throws Exception {
 		ResultActions action;
 		Integer id;
@@ -545,30 +555,30 @@ public class PostIntegrationTest {
 		postUpdateFile = new MockMultipartFile("post", null, MediaType.APPLICATION_JSON_VALUE, SerializeDeserializeUtil.serializeToString(postUpdate).getBytes(StandardCharsets.UTF_8));
 
 		result = mockMvc.perform(
-						multipart(HttpMethod.POST, "/api/v1/posts")
-						.file(postCreateFile)
-						.characterEncoding(StandardCharsets.UTF_8)
-						.contentType(MediaType.MULTIPART_FORM_DATA))
-						.andExpect(status().isCreated())
-						.andReturn();
+			multipart(HttpMethod.POST, "/api/v1/posts")
+			.file(postCreateFile)
+			.characterEncoding(StandardCharsets.UTF_8)
+			.contentType(MediaType.MULTIPART_FORM_DATA))
+			.andExpect(status().isCreated())
+			.andReturn();
 	
 		id = JsonPath.read(result.getResponse().getContentAsString(), "$.data.id");
 		
 		action = mockMvc.perform(
-						multipart(HttpMethod.PATCH, "/api/v1/posts/{id}", id)
-						.file(postUpdateFile)
-						.characterEncoding(StandardCharsets.UTF_8)
-						.contentType(MediaType.MULTIPART_FORM_DATA)
-				);
+			multipart(HttpMethod.PATCH, "/api/v1/posts/{id}", id)
+			.file(postUpdateFile)
+			.characterEncoding(StandardCharsets.UTF_8)
+			.contentType(MediaType.MULTIPART_FORM_DATA)
+		);
 
 		action
-		.andDo(print())
-		.andExpect(status().isBadRequest());		
+			.andDo(print())
+			.andExpect(status().isBadRequest());		
 	}
 	
 	@DisplayName("제목이 짧아 포스트를 수정하는데 실패한다.")
 	@Test
-	@WithUserDetails(value = "user1@user1.com", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")
+	@WithUserDetails(value = "user1@naver.com", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")
 	public void givenPostUpdate_whenCallUpdatePost_thenThrowBadRequestExceptionForTitle() throws Exception {
 		ResultActions action;
 		Integer id;
@@ -581,30 +591,30 @@ public class PostIntegrationTest {
 		postUpdateFile = new MockMultipartFile("post", null, MediaType.APPLICATION_JSON_VALUE, SerializeDeserializeUtil.serializeToString(postUpdate).getBytes(StandardCharsets.UTF_8));
 
 		result = mockMvc.perform(
-						multipart(HttpMethod.POST, "/api/v1/posts")
-						.file(postCreateFile)
-						.characterEncoding(StandardCharsets.UTF_8)
-						.contentType(MediaType.MULTIPART_FORM_DATA))
-						.andExpect(status().isCreated())
-						.andReturn();
+			multipart(HttpMethod.POST, "/api/v1/posts")
+			.file(postCreateFile)
+			.characterEncoding(StandardCharsets.UTF_8)
+			.contentType(MediaType.MULTIPART_FORM_DATA))
+			.andExpect(status().isCreated())
+			.andReturn();
 					
 		id = JsonPath.read(result.getResponse().getContentAsString(), "$.data.id");
 		
 		action = mockMvc.perform(
-						multipart(HttpMethod.PATCH, "/api/v1/posts/{id}", id)
-						.file(postUpdateFile)
-						.characterEncoding(StandardCharsets.UTF_8)
-						.contentType(MediaType.MULTIPART_FORM_DATA)
-				);
+			multipart(HttpMethod.PATCH, "/api/v1/posts/{id}", id)
+			.file(postUpdateFile)
+			.characterEncoding(StandardCharsets.UTF_8)
+			.contentType(MediaType.MULTIPART_FORM_DATA)
+		);
 
 		action
-		.andDo(print())
-		.andExpect(status().isBadRequest());
+			.andDo(print())
+			.andExpect(status().isBadRequest());
 	}
 	
 	@DisplayName("내용이 짧아 포스트를 수정하는데 실패한다.")
 	@Test
-	@WithUserDetails(value = "user1@user1.com", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")
+	@WithUserDetails(value = "user1@naver.com", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")
 	public void givenPostUpdate_whenCallUpdatePost_thenThrowBadRequestExceptionForContent() throws Exception {
 		ResultActions action;
 		Integer id;
@@ -617,28 +627,30 @@ public class PostIntegrationTest {
 		postUpdateFile = new MockMultipartFile("post", null, MediaType.APPLICATION_JSON_VALUE, SerializeDeserializeUtil.serializeToString(postUpdate).getBytes(StandardCharsets.UTF_8));
 
 		result = mockMvc.perform(
-						multipart(HttpMethod.POST, "/api/v1/posts")
-						.file(postCreateFile)
-						.characterEncoding(StandardCharsets.UTF_8)
-						.contentType(MediaType.MULTIPART_FORM_DATA))
-						.andExpect(status().isCreated())
-						.andReturn();
+			multipart(HttpMethod.POST, "/api/v1/posts")
+			.file(postCreateFile)
+			.characterEncoding(StandardCharsets.UTF_8)
+			.contentType(MediaType.MULTIPART_FORM_DATA))
+			.andExpect(status().isCreated())
+			.andReturn();
 		
 		id = JsonPath.read(result.getResponse().getContentAsString(), "$.data.id");
 		
-		action = mockMvc.perform(multipart(HttpMethod.PATCH, "/api/v1/posts/{id}", id)
-										.file(postUpdateFile)
-										.characterEncoding(StandardCharsets.UTF_8)
-										.contentType(MediaType.MULTIPART_FORM_DATA));
+		action = mockMvc.perform(
+			multipart(HttpMethod.PATCH, "/api/v1/posts/{id}", id)
+			.file(postUpdateFile)
+			.characterEncoding(StandardCharsets.UTF_8)
+			.contentType(MediaType.MULTIPART_FORM_DATA)
+		);
 
 		action
-		.andDo(print())
-		.andExpect(status().isBadRequest());
+			.andDo(print())
+			.andExpect(status().isBadRequest());
 	}
 	
 	@DisplayName("포스트가 존재하지 않아 수정하는데 실패한다.")
 	@Test
-	@WithUserDetails(value = "user1@user1.com", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")
+	@WithUserDetails(value = "user1@naver.com", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")
 	public void givenPostUpdate_whenCallUpdatePost_thenThrowPostNotFoundException() throws Exception {
 		ResultActions action;
 		MockMultipartFile postUpdateFile;
@@ -646,21 +658,21 @@ public class PostIntegrationTest {
 		postUpdateFile = new MockMultipartFile("post", null, MediaType.APPLICATION_JSON_VALUE, SerializeDeserializeUtil.serializeToString(postUpdate).getBytes(StandardCharsets.UTF_8));
 
 		action = mockMvc.perform(
-						multipart(HttpMethod.PATCH, "/api/v1/posts/{id}", 100L)
-						.file(postUpdateFile)
-						.characterEncoding(StandardCharsets.UTF_8)
-						.contentType(MediaType.MULTIPART_FORM_DATA)
-				);
+			multipart(HttpMethod.PATCH, "/api/v1/posts/{id}", 100L)
+			.file(postUpdateFile)
+			.characterEncoding(StandardCharsets.UTF_8)
+			.contentType(MediaType.MULTIPART_FORM_DATA)
+		);
 
 		action
-		.andDo(print())
-		.andExpect(status().isNotFound())
-		.andExpect(output -> assertTrue(output.getResolvedException() instanceof PostNotFoundException));
+			.andDo(print())
+			.andExpect(status().isNotFound())
+			.andExpect(output -> assertTrue(output.getResolvedException() instanceof PostNotFoundException));
 	}
 
 	@DisplayName("포스트를 생성한 사용자가 아니라서 수정하는데 실패한다.")
 	@Test
-	@WithUserDetails(value = "user1@user1.com", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")
+	@WithUserDetails(value = "user1@naver.com", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")
 	public void givenPostUpdate_whenCallUpdatePost_thenReturnPost() throws Exception {
 		ResultActions action;
 		Integer id;
@@ -673,27 +685,27 @@ public class PostIntegrationTest {
 		userDetailsImpl =  new UserDetailsImpl(userRepository.findByEmailAndActiveTrue("user2@user2.com").get());
 
 		result = mockMvc.perform(
-						multipart(HttpMethod.POST, "/api/v1/posts")
-						.file(postCreateFile)
-						.characterEncoding(StandardCharsets.UTF_8)
-						.contentType(MediaType.MULTIPART_FORM_DATA))
-						.andExpect(status().isCreated())
-						.andReturn();
+			multipart(HttpMethod.POST, "/api/v1/posts")
+			.file(postCreateFile)
+			.characterEncoding(StandardCharsets.UTF_8)
+			.contentType(MediaType.MULTIPART_FORM_DATA))
+			.andExpect(status().isCreated())
+			.andReturn();
 				
 		id = JsonPath.read(result.getResponse().getContentAsString(), "$.data.id");
 		
 		action = mockMvc.perform(
-						multipart(HttpMethod.PATCH, "/api/v1/posts/{id}", id)
-						.file(postUpdateFile)
-						.with(user(userDetailsImpl))
-						.characterEncoding(StandardCharsets.UTF_8)
-						.contentType(MediaType.MULTIPART_FORM_DATA)
-				);
+			multipart(HttpMethod.PATCH, "/api/v1/posts/{id}", id)
+			.file(postUpdateFile)
+			.with(user(userDetailsImpl))
+			.characterEncoding(StandardCharsets.UTF_8)
+			.contentType(MediaType.MULTIPART_FORM_DATA)
+		);
 
 		action
-		.andDo(print())
-		.andExpect(status().isForbidden())
-		.andExpect(output -> assertTrue(output.getResolvedException() instanceof UserNotMatchedException));	
+			.andDo(print())
+			.andExpect(status().isForbidden())
+			.andExpect(output -> assertTrue(output.getResolvedException() instanceof UserNotMatchedException));	
 	}
 	
 	@DisplayName("인증되어 있지 않아 포스트를 수정하는데 실패한다.")
@@ -708,24 +720,24 @@ public class PostIntegrationTest {
 		postUpdateFile = new MockMultipartFile("post", null, MediaType.APPLICATION_JSON_VALUE, SerializeDeserializeUtil.serializeToString(postUpdate).getBytes(StandardCharsets.UTF_8));
 
 		result = mockMvc.perform(
-						multipart("/api/v1/posts")
-						.file(postCreateFile)
-						.with(user(userDetailsImpl))
-						.characterEncoding(StandardCharsets.UTF_8)
-						.contentType(MediaType.MULTIPART_FORM_DATA))
-						.andExpect(status().isCreated())
-						.andReturn();
+			multipart("/api/v1/posts")
+			.file(postCreateFile)
+			.with(user(userDetailsImpl))
+			.characterEncoding(StandardCharsets.UTF_8)
+			.contentType(MediaType.MULTIPART_FORM_DATA))
+			.andExpect(status().isCreated())
+			.andReturn();
 				
 		id = JsonPath.read(result.getResponse().getContentAsString(), "$.data.id");
 		
 		action = mockMvc.perform(
-						multipart(HttpMethod.PATCH, "/api/v1/posts/{id}", id)
-						.file(postUpdateFile)
-						.characterEncoding(StandardCharsets.UTF_8)
-						.contentType(MediaType.MULTIPART_FORM_DATA));
+			multipart(HttpMethod.PATCH, "/api/v1/posts/{id}", id)
+			.file(postUpdateFile)
+			.characterEncoding(StandardCharsets.UTF_8)
+			.contentType(MediaType.MULTIPART_FORM_DATA));
 
 		action
-		.andDo(print())
-		.andExpect(status().isUnauthorized());
+			.andDo(print())
+			.andExpect(status().isUnauthorized());
 	}		
 }

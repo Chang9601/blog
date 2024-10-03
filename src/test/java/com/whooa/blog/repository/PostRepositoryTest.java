@@ -20,7 +20,6 @@ import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabas
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 
 import com.whooa.blog.category.entity.CategoryEntity;
@@ -33,7 +32,7 @@ import com.whooa.blog.user.type.UserRole;
 import com.whooa.blog.util.PaginationUtil;
 
 /* 
- * AuditingEntityListener 메서드는 @PrePersis와 @PreUpdate 상태에서 호출된다.
+ * AuditingEntityListener 메서드는 @PrePersist와 @PreUpdate 상태에서 호출된다.
  * 즉, 삽입 혹은 수정 SQL 문장이 실행되기 전에 호출된다.
  * 어노테이션이 없으면 createdAt 필드와 updatedAt 필드에 null 값이 들어가서 오류가 발생한다.
  */
@@ -59,21 +58,22 @@ public class PostRepositoryTest {
 	private static CategoryEntity categoryEntity1;
 	private static UserEntity userEntity;
 	
-	private PaginationUtil pagination;
-	private Pageable pageable;
-	
 	@BeforeAll
 	public void setUp() {
-		categoryEntity1 = categoryRepository.save(new CategoryEntity().name("카테고리1"));
+		categoryEntity1 = categoryRepository.save(
+			CategoryEntity.builder()
+				.name("카테고리1")
+				.build()
+		);
 		
-		userEntity = userRepository.save(new UserEntity()
+		userEntity = userRepository.save(
+			UserEntity.builder()
 				.email("user@user.com")
 				.name("사용자")
 				.password("12345678Aa!@#$%")
-				.userRole(UserRole.USER));
-		
-		pagination = new PaginationUtil();
-		pageable = pagination.makePageable();
+				.userRole(UserRole.USER)
+				.build()
+		);
 	}
 
 	@AfterAll
@@ -162,16 +162,17 @@ public class PostRepositoryTest {
 		PostEntity postEntity2;
 		Page<PostEntity> page;
 		
-		postEntity2 = new PostEntity()
-					.content("포스트2")
-					.title("포스트2")
-					.category(categoryEntity1)
-					.user(userEntity);
+		postEntity2 = PostEntity.builder()
+						.content("포스트2")
+						.title("포스트2")
+						.category(categoryEntity1)
+						.user(userEntity)
+						.build();
 		
 		postRepository.save(postEntity1);
 		postRepository.save(postEntity2);
 		
-		page = postRepository.findAll(pageable);
+		page = postRepository.findAll(new PaginationUtil().makePageable());
 		
 		assertEquals(2, page.getTotalElements());	
 	}
@@ -184,18 +185,23 @@ public class PostRepositoryTest {
 		Page<PostEntity> page;
 		PostEntity postEntity2;
 		
-		categoryEntity2 = categoryRepository.save(new CategoryEntity().name("실전 카테고리"));
+		categoryEntity2 = categoryRepository.save(
+							CategoryEntity.builder()
+								.name("실전 카테고리")
+								.build()
+						);
 		
-		postEntity2 = new PostEntity()
-					.content("포스트2")
-					.title("포스트2")
-					.category(categoryEntity2)
-					.user(userEntity);
+		postEntity2 = PostEntity.builder()
+						.content("포스트2")
+						.title("포스트2")
+						.category(categoryEntity2)
+						.user(userEntity)
+						.build();
 			
 		postRepository.save(postEntity1);
 		postRepository.save(postEntity2);
 		
-		page = postRepository.findByCategoryId(categoryEntity2.getId(), pageable);
+		page = postRepository.findByCategoryId(categoryEntity2.getId(), new PaginationUtil().makePageable());
 		
 		assertEquals(1, page.getTotalElements());
 	}
@@ -209,7 +215,8 @@ public class PostRepositoryTest {
 		savedPostEntity = postRepository.save(postEntity);
 		foundPostEntity = postRepository.findById(savedPostEntity.getId()).get();
 		
-		foundPostEntity.content("포스트2").title("포스트2");
+		foundPostEntity.setContent("포스트2");
+		foundPostEntity.setTitle("포스트2");
 
 		updatedPostEntity = postRepository.save(foundPostEntity);
 
@@ -226,11 +233,15 @@ public class PostRepositoryTest {
 	}
 	
 	private static Stream<Arguments> postParametersProvider() {
-		return Stream.of(Arguments.of(new PostEntity()
-					.content("포스트")
-					.title("포스트")
-					.category(categoryEntity1)
-					.user(userEntity))
+		return Stream.of(
+					Arguments.of(
+						PostEntity.builder()
+							.content("포스트")
+							.title("포스트")
+							.category(categoryEntity1)
+							.user(userEntity)
+							.build()
+					)
 				);
 	}	
 }

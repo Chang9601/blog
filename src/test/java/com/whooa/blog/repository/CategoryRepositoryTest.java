@@ -6,9 +6,6 @@ import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -22,7 +19,6 @@ import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabas
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 
 import com.whooa.blog.category.entity.CategoryEntity;
@@ -37,20 +33,6 @@ import com.whooa.blog.util.PaginationUtil;
 public class CategoryRepositoryTest {
 	@Autowired
 	private CategoryRepository categoryRepository;
-		
-	private PaginationUtil pagination;
-	private Pageable pageable;
-	
-	@BeforeAll
-	public void setUp() {		
-		pagination = new PaginationUtil();
-		pageable = pagination.makePageable();
-	}
-	
-	@AfterAll
-	public void tearDown() {
-		categoryRepository.deleteAll();
-	}
 
 	@DisplayName("카테고리를 생성하는데 성공한다.")
 	@ParameterizedTest
@@ -119,12 +101,14 @@ public class CategoryRepositoryTest {
 		CategoryEntity categoryEntity2;
 		Page<CategoryEntity> page;
 		
-		categoryEntity2 = new CategoryEntity().name("카테고리2");
+		categoryEntity2 = CategoryEntity.builder()
+											.name("카테고리2")
+											.build();
 		
 		categoryRepository.save(categoryEntity1);
 		categoryRepository.save(categoryEntity2);
 		
-		page = categoryRepository.findAll(pageable);
+		page = categoryRepository.findAll(new PaginationUtil().makePageable());
 
 		assertEquals(2, page.getTotalElements());			
 	}
@@ -138,7 +122,7 @@ public class CategoryRepositoryTest {
 		savedCategoryEntity = categoryRepository.save(categoryEntity);
 		foundCategoryEntity = categoryRepository.findById(savedCategoryEntity.getId()).get();
 		
-		foundCategoryEntity.name("카테고리2");
+		foundCategoryEntity.setName("카테고리2");
 
 		updatedCategoryEntity = categoryRepository.save(foundCategoryEntity);
 
@@ -154,6 +138,6 @@ public class CategoryRepositoryTest {
 	}
 	
 	private static Stream<Arguments> categoryParametersProvider() {
-		return Stream.of(Arguments.of(new CategoryEntity().name("카테고리1")));
+		return Stream.of(Arguments.of(CategoryEntity.builder().name("카테고리1").build()));
 	}
 }

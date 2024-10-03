@@ -7,7 +7,6 @@ import java.util.Optional;
 import java.util.stream.Stream;
 
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -19,7 +18,6 @@ import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabas
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 
 import com.whooa.blog.user.entity.UserEntity;
@@ -33,15 +31,6 @@ import com.whooa.blog.util.PaginationUtil;
 public class UserRepositoryTest {
 	@Autowired
 	private UserRepository userRepository;
-	
-	private PaginationUtil pagination;
-	private Pageable pageable;
-
-	@BeforeEach
-	public void setUp() {
-		pagination = new PaginationUtil();
-		pageable = pagination.makePageable();
-	}
 	
 	@AfterEach
 	public void tearDown() {
@@ -59,11 +48,6 @@ public class UserRepositoryTest {
 		assertTrue(savedUserEntity.getId() > 0);
 	}
 	
-//	@AfterAll
-//	public void tearDown() {
-//		userRepository.deleteAll();
-//	}
-//	
 	@DisplayName("사용자를 생성하는데 실패한다.")
 	@Test
 	public void givenNull_whenCallSaveForCreate_thenThrowInvalidDataAccessApiUsageException() {	
@@ -76,7 +60,7 @@ public class UserRepositoryTest {
 	@ParameterizedTest
 	@MethodSource("userParametersProvider")
 	public void given_whenCallSaveForDelete_thenReturnNothing(UserEntity userEntity) {
-		userEntity.active(false);
+		userEntity.setActive(false);
 		
 		userRepository.save(userEntity);
 		
@@ -87,7 +71,7 @@ public class UserRepositoryTest {
 	@ParameterizedTest
 	@MethodSource("userParametersProvider")
 	public void given_whenCallSaveForDelete_thenThrowInvalidDataAccessApiUsageException(UserEntity userEntity) {
-		userEntity.active(false);
+		userEntity.setActive(false);
 		
 		assertThrows(InvalidDataAccessApiUsageException.class, () -> {
 			userRepository.save(null);
@@ -141,17 +125,20 @@ public class UserRepositoryTest {
 		UserEntity userEntity2;
 		Page<UserEntity> page;
 		
-		userEntity2 = userRepository.save(new UserEntity()
-					.active(false)
-					.email("user2@user2.com")
-					.name("사용자2")
-					.password("1234")
-					.userRole(UserRole.USER));
+		userEntity2 = userRepository.save(
+			UserEntity.builder()
+						.email("user2@naver.com")
+						.name("사용자2")
+						.password("12345678Aa!@#$%")
+						.userRole(UserRole.USER)
+						.build()
+		);
+		userEntity2.setActive(false);
 		
 		userRepository.save(userEntity1);
 		userRepository.save(userEntity2);
 		
-		page = userRepository.findByActiveTrue(pageable);
+		page = userRepository.findByActiveTrue(new PaginationUtil().makePageable());
 		
 		assertEquals(1, page.getTotalElements());			
 	}
@@ -172,7 +159,7 @@ public class UserRepositoryTest {
 	@ParameterizedTest
 	@MethodSource("userParametersProvider")
 	public void givenIdAndActive_whenCallFindByIdAndActiveTrue_thenReturnNull(UserEntity userEntity) {
-		userEntity.active(false);
+		userEntity.setActive(false);
 		UserEntity savedUserEntity;
 		
 		savedUserEntity = userRepository.save(userEntity);
@@ -203,11 +190,12 @@ public class UserRepositoryTest {
 	
 	private static Stream<Arguments> userParametersProvider() {
 		return Stream.of(Arguments.of(
-						new UserEntity()
-						.email("user@user.com")
-						.name("사용자")
+			UserEntity.builder()
+						.email("user1@naver.com")
+						.name("사용자1")
 						.password("12345678Aa!@#$%")
-						.userRole(UserRole.USER))
-				);
+						.userRole(UserRole.USER)
+						.build()
+		));
 	}	
 }

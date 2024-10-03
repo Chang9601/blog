@@ -47,18 +47,14 @@ public class AdminUserServiceTest {
 	
 	private UserAdminUpdateRequest userAdminUpdate;
 	private UserResponse user;
-
-	private PaginationUtil pagination;
 	
 	@BeforeAll
 	public void setUp() {
 		userAdminUpdate = new UserAdminUpdateRequest()
-						.email("user2@user2.com")
-						.name("사용자2")
-						.password("12345678Aa!@#$%")
-						.userRole("MANAGER");
-		
-		pagination = new PaginationUtil();
+								.email("user2@naver.com")
+								.name("사용자2")
+								.password("12345678Aa!@#$%")
+								.userRole("MANAGER");
 	}
 	
 	@DisplayName("사용자를 삭제하는데 성공한다.")
@@ -108,15 +104,16 @@ public class AdminUserServiceTest {
 	public void givenPagination_whenCallFindAll_thenReturnUsers(UserEntity userEntity1) {
 		UserEntity userEntity2;
 		
-		userEntity2 = new UserEntity()
-					.email("user2@user2.com")
-					.name("사용자2")
-					.password("12345678Aa!@#$%")
-					.userRole(UserRole.USER);
+		userEntity2 = UserEntity.builder()
+									.email("user2@naver.com")
+									.name("사용자2")
+									.password("12345678Aa!@#$%")
+									.userRole(UserRole.USER)
+									.build();
 		
 		given(userRepository.findByActiveTrue(any(Pageable.class))).willReturn(new PageImpl<UserEntity>(List.of(userEntity1, userEntity2)));
 
-		PageResponse<UserResponse> page = adminUserServiceImpl.findAll(pagination);
+		PageResponse<UserResponse> page = adminUserServiceImpl.findAll(new PaginationUtil());
 					
 		assertEquals(2, page.getTotalElements());
 		
@@ -129,11 +126,12 @@ public class AdminUserServiceTest {
 	public void givenUserAdminUpdate_whenCallFindAll_thenReturnUsers(UserEntity userEntity1) {
 		UserEntity userEntity2;
 	
-		userEntity2 = new UserEntity()
-					.email("user2@user2.com")
-					.name("사용자2")
-					.password("12345678Aa!@#$%")
-					.userRole(UserRole.MANAGER);
+		userEntity2 = UserEntity.builder()
+									.email("user2@naver.com")
+									.name("사용자2")
+									.password("12345678Aa!@#$%")
+									.userRole(UserRole.MANAGER)
+									.build();
 		
 		given(userRepository.save(any(UserEntity.class))).willReturn(userEntity2);
 		given(userRepository.existsByEmail(any(String.class))).willReturn(false);
@@ -181,12 +179,15 @@ public class AdminUserServiceTest {
 	}
 	
 	private static Stream<Arguments> userParametersProvider() {		
-		UserEntity userEntity = new UserEntity()
-								.email("user1@naver.com")
-								.name("사용자1")
+		UserEntity userEntity;
+		
+		userEntity = UserEntity.builder()
+								.id(1L)
+								.email("user@naver.com")
+								.name("사용자")
 								.password("12345678Aa!@#$%")
-								.userRole(UserRole.USER);
-		userEntity.setId(1L);
+								.userRole(UserRole.USER)
+								.build();
 			
 		return Stream.of(Arguments.of(userEntity));
 	}	

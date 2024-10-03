@@ -60,6 +60,8 @@ public class AdminCommentControllerTest {
     
 	@MockBean
 	private AdminCommentService adminCommentService;
+	@MockBean
+	private CommentMapper commentMapper;
 
 	private CommentEntity commentEntity;
 	private CategoryEntity categoryEntity;
@@ -72,39 +74,45 @@ public class AdminCommentControllerTest {
 	@BeforeAll
 	public void setUpAll() {
 		mockMvc = MockMvcBuilders
-				.webAppContextSetup(webApplicationContext)
-				.addFilter(new CharacterEncodingFilter("utf-8", true))
-				.apply(springSecurity()).build();
+					.webAppContextSetup(webApplicationContext)
+					.addFilter(new CharacterEncodingFilter("utf-8", true))
+					.apply(springSecurity()).build();
 		
-		userEntity = new UserEntity()
-					.email("user1@user1.com")
-					.name("사용자1")
-					.password("12345678Aa!@#$%")
-					.userRole(UserRole.USER);
+		userEntity = UserEntity.builder()
+						.email("user1@naver.com")
+						.name("사용자1")
+						.password("12345678Aa!@#$%")
+						.userRole(UserRole.USER)
+						.build();
+		
+		categoryEntity = CategoryEntity.builder()
+							.name("카테고리")
+							.build();
 
-		categoryEntity = new CategoryEntity().name("카테고리");
-
-		postEntity = new PostEntity()
-				.content("포스트")
-				.title("포스트")
-				.category(categoryEntity)
-				.user(userEntity);		
+		postEntity = PostEntity.builder()
+						.content("포스트")
+						.title("포스트")
+						.category(categoryEntity)
+						.user(userEntity)
+						.build();
 	}
 	
 	@BeforeEach
 	public void setUpEach() {
 		String content = "댓글";
 		
-		commentEntity = new CommentEntity()
-						.content(content)
-						.parentId(null)
-						.post(postEntity);
+		commentEntity = CommentEntity.builder()
+							.content(content)
+							.parentId(null)
+							.post(postEntity)
+							.user(userEntity)
+							.build();
 				
 		commentUpdate = new CommentUpdateRequest().content("댓글2");
 		
 		comment = new CommentResponse()
-				.content(content)
-				.parentId(null);
+						.content(content)
+						.parentId(null);
 	}
 	
 	@DisplayName("댓글을 삭제하는데 성공한다.")
@@ -118,9 +126,9 @@ public class AdminCommentControllerTest {
 		action = mockMvc.perform(delete("/api/v1/admin/posts/{post-id}/comments/{id}", postEntity.getId(), commentEntity.getId()));
 		
 		action
-		.andDo(print())
-		.andExpect(status().isOk())
-		.andExpect(jsonPath("$.metadata.code", is(Code.NO_CONTENT.getCode())));
+			.andDo(print())
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.metadata.code", is(Code.NO_CONTENT.getCode())));
 	}
 	
 	@DisplayName("포스트가 존재하지 않아 댓글을 삭제하는데 실패한다.")
@@ -134,9 +142,9 @@ public class AdminCommentControllerTest {
 		action = mockMvc.perform(delete("/api/v1/admin/posts/{post-id}/comments/{id}", postEntity.getId(), commentEntity.getId()));
 		
 		action
-		.andDo(print())
-		.andExpect(status().isNotFound())
-		.andExpect(result -> assertTrue(result.getResolvedException() instanceof PostNotFoundException));
+			.andDo(print())
+			.andExpect(status().isNotFound())
+			.andExpect(result -> assertTrue(result.getResolvedException() instanceof PostNotFoundException));
 	}
 	
 	@DisplayName("댓글이 존재하지 않아 삭제하는데 실패한다.")
@@ -150,9 +158,9 @@ public class AdminCommentControllerTest {
 		action = mockMvc.perform(delete("/api/v1/admin/posts/{post-id}/comments/{id}", postEntity.getId(), commentEntity.getId()));
 		
 		action
-		.andDo(print())
-		.andExpect(status().isNotFound())
-		.andExpect(result -> assertTrue(result.getResolvedException() instanceof CommentNotFoundException));
+			.andDo(print())
+			.andExpect(status().isNotFound())
+			.andExpect(result -> assertTrue(result.getResolvedException() instanceof CommentNotFoundException));
 	}	
 	
 	@DisplayName("필요한 권한이 없어 댓글을 삭제하는데 실패한다.")
@@ -166,8 +174,8 @@ public class AdminCommentControllerTest {
 		action = mockMvc.perform(delete("/api/v1/admin/posts/{post-id}/comments/{id}", postEntity.getId(), commentEntity.getId()));
 		
 		action
-		.andDo(print())
-		.andExpect(status().isForbidden());
+			.andDo(print())
+			.andExpect(status().isForbidden());
 	}
 	
 	@DisplayName("댓글을 수정하는데 성공한다.")
@@ -177,23 +185,23 @@ public class AdminCommentControllerTest {
 		ResultActions action;
 		
 		given(adminCommentService.update(any(Long.class), any(Long.class), any(CommentUpdateRequest.class))).willAnswer((answer) -> {
-			commentEntity.content(commentUpdate.getContent());
+			commentEntity.setContent(commentUpdate.getContent());
 			comment = CommentMapper.INSTANCE.toDto(commentEntity);
 			
 			return comment;
 		});
 	
 		action = mockMvc.perform(
-						patch("/api/v1/admin/posts/{post-id}/comments/{id}", postEntity.getId(), commentEntity.getId())
-						.content(SerializeDeserializeUtil.serializeToString(commentUpdate))
-						.characterEncoding(StandardCharsets.UTF_8)
-						.contentType(MediaType.APPLICATION_JSON)
-				);
+			patch("/api/v1/admin/posts/{post-id}/comments/{id}", postEntity.getId(), commentEntity.getId())
+			.content(SerializeDeserializeUtil.serializeToString(commentUpdate))
+			.characterEncoding(StandardCharsets.UTF_8)
+			.contentType(MediaType.APPLICATION_JSON)
+		);
 
 		action
-		.andDo(print())
-		.andExpect(status().isOk())
-		.andExpect(jsonPath("$.data.content", is(comment.getContent())));
+			.andDo(print())
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.data.content", is(comment.getContent())));
 	}
 	
 	@DisplayName("내용이 없어 댓글을 수정하는데 실패한다.")
@@ -203,7 +211,7 @@ public class AdminCommentControllerTest {
 		ResultActions action;
 		
 		given(adminCommentService.update(any(Long.class), any(Long.class), any(CommentUpdateRequest.class))).willAnswer((answer) -> {
-			commentEntity.content(commentUpdate.getContent());
+			commentEntity.setContent(commentUpdate.getContent());
 			comment = CommentMapper.INSTANCE.toDto(commentEntity);
 			
 			return comment;
@@ -211,15 +219,15 @@ public class AdminCommentControllerTest {
 	
 		commentUpdate.content(null);
 		action = mockMvc.perform(
-						patch("/api/v1/admin/posts/{post-id}/comments/{id}", postEntity.getId(), commentEntity.getId())
-						.content(SerializeDeserializeUtil.serializeToString(commentUpdate))
-						.characterEncoding(StandardCharsets.UTF_8)
-						.contentType(MediaType.APPLICATION_JSON)
-				);
+			patch("/api/v1/admin/posts/{post-id}/comments/{id}", postEntity.getId(), commentEntity.getId())
+			.content(SerializeDeserializeUtil.serializeToString(commentUpdate))
+			.characterEncoding(StandardCharsets.UTF_8)
+			.contentType(MediaType.APPLICATION_JSON)
+		);
 
 		action
-		.andDo(print())
-		.andExpect(status().isBadRequest());
+			.andDo(print())
+			.andExpect(status().isBadRequest());
 	}
 	
 	@DisplayName("포스트가 존재하지 않아 댓글을 수정하는데 실패한다.")
@@ -231,16 +239,16 @@ public class AdminCommentControllerTest {
 		given(adminCommentService.update(any(Long.class), any(Long.class), any(CommentUpdateRequest.class))).willThrow(new PostNotFoundException(Code.NOT_FOUND, new String[] {"포스트가 존재하지 않습니다."}));
 
 		action = mockMvc.perform(
-						patch("/api/v1/admin/posts/{post-id}/comments/{id}", postEntity.getId(), commentEntity.getId())
-						.content(SerializeDeserializeUtil.serializeToString(commentUpdate))
-						.characterEncoding(StandardCharsets.UTF_8)
-						.contentType(MediaType.APPLICATION_JSON)
-				);
+			patch("/api/v1/admin/posts/{post-id}/comments/{id}", postEntity.getId(), commentEntity.getId())
+			.content(SerializeDeserializeUtil.serializeToString(commentUpdate))
+			.characterEncoding(StandardCharsets.UTF_8)
+			.contentType(MediaType.APPLICATION_JSON)
+		);
 		
 		action
-		.andDo(print())
-		.andExpect(status().isNotFound())
-		.andExpect(result -> assertTrue(result.getResolvedException() instanceof PostNotFoundException));
+			.andDo(print())
+			.andExpect(status().isNotFound())
+			.andExpect(result -> assertTrue(result.getResolvedException() instanceof PostNotFoundException));
 	}
 	
 	@DisplayName("댓글이 존재하지 않아 수정하는데 실패한다.")
@@ -252,17 +260,17 @@ public class AdminCommentControllerTest {
 		given(adminCommentService.update(any(Long.class), any(Long.class), any(CommentUpdateRequest.class))).willThrow(new CommentNotFoundException(Code.NOT_FOUND, new String[] {"댓글이 존재하지 않습니다."}));
 
 		action = mockMvc.perform(
-						patch("/api/v1/admin/posts/{post-id}/comments/{id}", postEntity.getId(), commentEntity.getId())
-						.contentType(MediaType.APPLICATION_JSON)
-						.content(SerializeDeserializeUtil.serializeToString(commentUpdate))
-						.characterEncoding(StandardCharsets.UTF_8)
-						.contentType(MediaType.APPLICATION_JSON)
-				);
+			patch("/api/v1/admin/posts/{post-id}/comments/{id}", postEntity.getId(), commentEntity.getId())
+			.contentType(MediaType.APPLICATION_JSON)
+			.content(SerializeDeserializeUtil.serializeToString(commentUpdate))
+			.characterEncoding(StandardCharsets.UTF_8)
+			.contentType(MediaType.APPLICATION_JSON)
+		);
 		
 		action
-		.andDo(print())
-		.andExpect(status().isNotFound())
-		.andExpect(result -> assertTrue(result.getResolvedException() instanceof CommentNotFoundException));
+			.andDo(print())
+			.andExpect(status().isNotFound())
+			.andExpect(result -> assertTrue(result.getResolvedException() instanceof CommentNotFoundException));
 	}
 	
 	@DisplayName("필요한 권한이 없어 댓글을 수정하는데 실패한다.")
@@ -272,21 +280,21 @@ public class AdminCommentControllerTest {
 		ResultActions action;
 		
 		given(adminCommentService.update(any(Long.class), any(Long.class), any(CommentUpdateRequest.class))).willAnswer((answer) -> {
-			commentEntity.content(commentUpdate.getContent());
+			commentEntity.setContent(commentUpdate.getContent());
 			comment = CommentMapper.INSTANCE.toDto(commentEntity);
 			
 			return comment;
 		});
 	
 		action = mockMvc.perform(
-						patch("/api/v1/admin/posts/{post-id}/comments/{id}", postEntity.getId(), commentEntity.getId())
-						.content(SerializeDeserializeUtil.serializeToString(commentUpdate))
-						.characterEncoding(StandardCharsets.UTF_8)
-						.contentType(MediaType.APPLICATION_JSON)
-				);
+			patch("/api/v1/admin/posts/{post-id}/comments/{id}", postEntity.getId(), commentEntity.getId())
+			.content(SerializeDeserializeUtil.serializeToString(commentUpdate))
+			.characterEncoding(StandardCharsets.UTF_8)
+			.contentType(MediaType.APPLICATION_JSON)
+		);
 
 		action
-		.andDo(print())
-		.andExpect(status().isForbidden());
+			.andDo(print())
+			.andExpect(status().isForbidden());
 	}	
 }

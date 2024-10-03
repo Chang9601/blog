@@ -23,24 +23,20 @@ public final class QueryUtil {
 	public static SearchRequest buildSearchRequest(String index, QueryDto queryDto) {		
 		try {
 			SearchRequest.Builder searchRequestBuilder = new SearchRequest.Builder()
-																			.postFilter(buildQuery(queryDto))
-																			.index(List.of(index));
+				.index(List.of(index))
+				.query(buildQuery(queryDto));
 			
 			if (queryDto.getSortBy() != null) {
 				SortOptions sortOptions = new SortOptions.Builder()
-															.field(fn -> fn.field(queryDto.getSortBy())
-															.order(queryDto.getSortOrder() != null ? queryDto.getSortOrder() : SortOrder.Asc))
-															.build();
+					.field(fn -> fn.field(queryDto.getSortBy())
+					.order(queryDto.getSortOrder() != null ? queryDto.getSortOrder() : SortOrder.Asc))
+					.build();
 				
 				searchRequestBuilder.sort(sortOptions);
 			}
 			
 			SearchRequest searchRequest = searchRequestBuilder.build();
-			
-			System.out.println(buildQuery(queryDto));
-	
-			System.out.println(searchRequest);
-			
+
 			return searchRequest;
 		} catch (Exception exception) {
 			exception.printStackTrace();
@@ -52,9 +48,9 @@ public final class QueryUtil {
 	public static SearchRequest buildSearchRequest(String index, String field, Date date) {
 		try {
 			SearchRequest searchRequest = new SearchRequest.Builder()
-															.postFilter(buildRangeQuery(field, date))
-															.index(List.of(index))
-															.build();
+				.postFilter(buildRangeQuery(field, date))
+				.index(List.of(index))
+				.build();
 			
 			return searchRequest;
 		} catch (Exception exception) {
@@ -67,11 +63,11 @@ public final class QueryUtil {
 	
 	public static Query buildRangeQuery(String field, Date date) {
 		return new RangeQuery
-				.Builder()
-				.field(field)
-				.gte(JsonData.of(date))
-				.build()
-				._toQuery();
+			.Builder()
+			.field(field)
+			.gte(JsonData.of(date))
+			.build()
+			._toQuery();
 	}
 	
 	public static Query buildQuery(QueryDto queryDto) {
@@ -91,15 +87,23 @@ public final class QueryUtil {
 		
 		if (fields.size() > 1) {
 			 return new MultiMatchQuery
-					 	.Builder()
-						.query(query)
-						.type(TextQueryType.CrossFields)
-						.operator(Operator.And)
-						.fields(fields)
-						.build()
-						._toQuery();						
+			 	.Builder()
+				.query(query)
+				.type(TextQueryType.CrossFields)
+				.operator(Operator.And)
+				.fields(fields)
+				.build()
+				._toQuery();						
 		}
 
-		return fields.stream().findFirst().map((field) -> new MatchQuery.Builder().query(query).operator(Operator.And).field(field)).orElse(null).build()._toQuery();	
+		return fields.stream()
+			.findFirst()
+			.map((field) -> new MatchQuery.Builder()
+			.query(query)
+			.operator(Operator.And)
+			.field(field))
+			.orElse(null)
+			.build()
+			._toQuery();	
 	}
 }

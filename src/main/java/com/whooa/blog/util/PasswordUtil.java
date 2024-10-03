@@ -2,6 +2,7 @@ package com.whooa.blog.util;
 
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
+// OK
 public class PasswordUtil {
 	private static BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();
 	
