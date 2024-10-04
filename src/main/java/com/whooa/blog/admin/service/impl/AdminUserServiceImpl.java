@@ -26,9 +26,11 @@ import com.whooa.blog.util.StringUtil;
 @Service
 public class AdminUserServiceImpl implements AdminUserService {
 	private UserRepository userRepository;
+	private UserMapper userMapper;
 
-	public AdminUserServiceImpl(UserRepository userRepository) {
+	public AdminUserServiceImpl(UserRepository userRepository, UserMapper userMapper) {
 		this.userRepository = userRepository;
+		this.userMapper = userMapper;
 	}
 	
 	@Override
@@ -46,7 +48,7 @@ public class AdminUserServiceImpl implements AdminUserService {
 	public UserResponse find(Long id) {
 		UserEntity userEntity = userRepository.findByIdAndActiveTrue(id).orElseThrow(() -> new UserNotFoundException(Code.NOT_FOUND, new String[] {"아이디에 해당하는 사용자가 존재하지 않습니다."}));
 		
-		return UserMapper.INSTANCE.toDto(userEntity);
+		return userMapper.fromEntity(userEntity);
 	}
 
 	@Override
@@ -70,7 +72,7 @@ public class AdminUserServiceImpl implements AdminUserService {
 		isLast = page.isLast();
 		isFirst = page.isFirst();
 				
-		userResponse = userEntities.stream().map((userEntity) -> UserMapper.INSTANCE.toDto(userEntity)).collect(Collectors.toList());
+		userResponse = userEntities.stream().map((userEntity) -> userMapper.fromEntity(userEntity)).collect(Collectors.toList());
 		
 		return PageResponse.handleResponse(userResponse, pageSize, pageNo, totalElements, totalPages, isLast, isFirst);
 	}
@@ -107,6 +109,6 @@ public class AdminUserServiceImpl implements AdminUserService {
 			userEntity.setUserRole(UserRoleMapper.map(userRole));
 		}
 		
-		return UserMapper.INSTANCE.toDto(userRepository.save(userEntity));
+		return userMapper.fromEntity(userRepository.save(userEntity));
 	}
 }

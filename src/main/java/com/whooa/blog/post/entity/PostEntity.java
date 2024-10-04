@@ -137,9 +137,9 @@ public class PostEntity extends CoreEntity {
 		private Long id;
 		private String content;
 		private String title;
-		private List<File> files;
 		private CategoryEntity category;
 		private List<CommentEntity> comments;
+		private List<File> files;
 		private UserEntity user;
 		
 		private PostEntityBuilder() {}
@@ -159,11 +159,6 @@ public class PostEntity extends CoreEntity {
 			return this;
 		}
 		
-		public PostEntityBuilder files(List<File> files) {
-			this.files = files;
-			return this;
-		}
-		
 		public PostEntityBuilder category(CategoryEntity category) {
 			this.category = category;
 			return this;
@@ -171,6 +166,11 @@ public class PostEntity extends CoreEntity {
 		
 		public PostEntityBuilder comments(List<CommentEntity> comments) {
 			this.comments = comments;
+			return this;
+		}
+		
+		public PostEntityBuilder files(List<File> files) {
+			this.files = files;
 			return this;
 		}
 		
@@ -189,16 +189,17 @@ public class PostEntity extends CoreEntity {
 			postEntity.setContent(content);
 			postEntity.setTitle(title);
 			
-			if (files != null) {
-				postEntity.setFiles(files);
-			}
-			
 			postEntity.setCategory(category);
-			postEntity.setUser(user);
 			
 			if (comments != null) {
 				postEntity.setComments(comments);
 			}
+			
+			if (files != null) {
+				postEntity.setFiles(files);
+			}
+			
+			postEntity.setUser(user);
 			
 			return postEntity;
 		}

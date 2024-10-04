@@ -4,16 +4,14 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.NoSuchElementException;
 import java.util.Optional;
-import java.util.stream.Stream;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase.Replace;
@@ -55,11 +53,12 @@ public class PostRepositoryTest {
 	@Autowired
 	private UserRepository userRepository;
 	
-	private static CategoryEntity categoryEntity1;
-	private static UserEntity userEntity;
+	private PostEntity postEntity1;
+	private CategoryEntity categoryEntity1;
+	private UserEntity userEntity;
 	
 	@BeforeAll
-	public void setUp() {
+	public void setUpAll() {
 		categoryEntity1 = categoryRepository.save(
 			CategoryEntity.builder()
 				.name("카테고리1")
@@ -75,18 +74,27 @@ public class PostRepositoryTest {
 				.build()
 		);
 	}
+	
+	@BeforeEach
+	public void setUpEach() {
+		postEntity1 = PostEntity.builder()
+						.content("포스트")
+						.title("포스트")
+						.category(categoryEntity1)
+						.user(userEntity)
+						.build();
+	}
 
 	@AfterAll
 	public void tearDown() {
-		userRepository.deleteAll();
-		categoryRepository.deleteAll();
 		postRepository.deleteAll();
+		categoryRepository.deleteAll();
+		userRepository.deleteAll();
 	}
 	
 	@DisplayName("포스트를 생성하는데 성공한다.")
-	@ParameterizedTest
-	@MethodSource("postParametersProvider")
-	public void givenPostEntity_whenCallSaveForCreate_thenReturnPostEntity(PostEntity postEntity) {
+	@Test
+	public void givenPostEntity_whenCallSaveForCreate_thenReturnPostEntity() {
 		/*
 		 * given: 설정.
 		 * when: 행위.
@@ -94,7 +102,7 @@ public class PostRepositoryTest {
 		 */
 		PostEntity savedPostEntity;
 		
-		savedPostEntity = postRepository.save(postEntity);
+		savedPostEntity = postRepository.save(postEntity1);
 		
 		assertTrue(savedPostEntity.getId() > 0);
 	}
@@ -108,12 +116,11 @@ public class PostRepositoryTest {
 	}
 	
 	@DisplayName("포스트를 삭제하는데 성공한다.")
-	@ParameterizedTest
-	@MethodSource("postParametersProvider")
-	public void givenPostEntity_whenCallDelete_thenReturnNothing(PostEntity postEntity) {		
+	@Test
+	public void givenPostEntity_whenCallDelete_thenReturnNothing() {		
 		PostEntity savedPostEntity;
 		
-		savedPostEntity = postRepository.save(postEntity);
+		savedPostEntity = postRepository.save(postEntity1);
 		
 		postRepository.delete(savedPostEntity);
 		/*
@@ -132,12 +139,11 @@ public class PostRepositoryTest {
 	}
 	
 	@DisplayName("포스트를 조회하는데 성공한다.")
-	@ParameterizedTest
-	@MethodSource("postParametersProvider")
-	public void givenId_whenCallFindById_thenReturnPostEntity(PostEntity postEntity) {		
+	@Test
+	public void givenId_whenCallFindById_thenReturnPostEntity() {		
 		PostEntity foundPostEntity, savedPostEntity;
 		
-		savedPostEntity = postRepository.save(postEntity);
+		savedPostEntity = postRepository.save(postEntity1);
 		foundPostEntity = postRepository.findById(savedPostEntity.getId()).get();
 
 		assertEquals(savedPostEntity.getTitle(), foundPostEntity.getTitle());
@@ -156,9 +162,8 @@ public class PostRepositoryTest {
 	}
 		
 	@DisplayName("포스트 목록을 조회하는데 성공한다.")
-	@ParameterizedTest
-	@MethodSource("postParametersProvider")
-	public void givenPagination_whenCallFindAll_thenReturnPostEntities(PostEntity postEntity1) {
+	@Test
+	public void givenPagination_whenCallFindAll_thenReturnPostEntities() {
 		PostEntity postEntity2;
 		Page<PostEntity> page;
 		
@@ -178,9 +183,8 @@ public class PostRepositoryTest {
 	}
 
 	@DisplayName("포스트 목록을 조회(카테고리 아이디)하는데 성공한다.")
-	@ParameterizedTest
-	@MethodSource("postParametersProvider")
-	public void givenPagination_whenCallfindByCategoryId_thenReturnPostEntitiesByCategoryId(PostEntity postEntity1) {
+	@Test
+	public void givenPagination_whenCallfindByCategoryId_thenReturnPostEntitiesByCategoryId() {
 		CategoryEntity categoryEntity2;
 		Page<PostEntity> page;
 		PostEntity postEntity2;
@@ -207,12 +211,11 @@ public class PostRepositoryTest {
 	}
 
 	@DisplayName("포스트를 수정하는데 성공한다.")
-	@ParameterizedTest
-	@MethodSource("postParametersProvider")
-	public void givenPostEntity_whenCallSaveForUpdate_thenReturnUpdatedPost(PostEntity postEntity) {		
+	@Test
+	public void givenPostEntity_whenCallSaveForUpdate_thenReturnUpdatedPost() {		
 		PostEntity foundPostEntity, savedPostEntity, updatedPostEntity;
 		
-		savedPostEntity = postRepository.save(postEntity);
+		savedPostEntity = postRepository.save(postEntity1);
 		foundPostEntity = postRepository.findById(savedPostEntity.getId()).get();
 		
 		foundPostEntity.setContent("포스트2");
@@ -230,18 +233,5 @@ public class PostRepositoryTest {
 		assertThrows(InvalidDataAccessApiUsageException.class, () -> {
 			postRepository.save(null);
 		});
-	}
-	
-	private static Stream<Arguments> postParametersProvider() {
-		return Stream.of(
-					Arguments.of(
-						PostEntity.builder()
-							.content("포스트")
-							.title("포스트")
-							.category(categoryEntity1)
-							.user(userEntity)
-							.build()
-					)
-				);
 	}	
 }

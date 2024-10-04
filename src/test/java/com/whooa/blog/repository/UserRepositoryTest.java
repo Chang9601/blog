@@ -4,14 +4,12 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.NoSuchElementException;
 import java.util.Optional;
-import java.util.stream.Stream;
 
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase.Replace;
@@ -32,18 +30,29 @@ public class UserRepositoryTest {
 	@Autowired
 	private UserRepository userRepository;
 	
+	private UserEntity userEntity1;
+	
+	@BeforeEach
+	public void setUp() {
+		userEntity1 = UserEntity.builder()
+						.email("user1@naver.com")
+						.name("사용자1")
+						.password("12345678Aa!@#$%")
+						.userRole(UserRole.USER)
+						.build();
+	}
+	
 	@AfterEach
 	public void tearDown() {
 		userRepository.deleteAll();
 	}
 	
 	@DisplayName("사용자를 생성하는데 성공한다.")
-	@ParameterizedTest
-	@MethodSource("userParametersProvider")
-	public void givenUserEntity_whenCallSaveForCreate_thenReturnUserEntity(UserEntity userEntity) {
+	@Test
+	public void givenUserEntity_whenCallSaveForCreate_thenReturnUserEntity() {
 		UserEntity savedUserEntity;
 		
-		savedUserEntity = userRepository.save(userEntity);
+		savedUserEntity = userRepository.save(userEntity1);
 		
 		assertTrue(savedUserEntity.getId() > 0);
 	}
@@ -57,21 +66,19 @@ public class UserRepositoryTest {
 	}
 	
 	@DisplayName("사용자를 삭제하는데 성공한다.")
-	@ParameterizedTest
-	@MethodSource("userParametersProvider")
-	public void given_whenCallSaveForDelete_thenReturnNothing(UserEntity userEntity) {
-		userEntity.setActive(false);
+	@Test
+	public void given_whenCallSaveForDelete_thenReturnNothing() {
+		userEntity1.setActive(false);
 		
-		userRepository.save(userEntity);
+		userRepository.save(userEntity1);
 		
-		assertFalse(userEntity.getActive());
+		assertFalse(userEntity1.getActive());
 	}
 	
 	@DisplayName("사용자를 존재하지 않아 삭제하는데 실패한다.")
-	@ParameterizedTest
-	@MethodSource("userParametersProvider")
-	public void given_whenCallSaveForDelete_thenThrowInvalidDataAccessApiUsageException(UserEntity userEntity) {
-		userEntity.setActive(false);
+	@Test
+	public void given_whenCallSaveForDelete_thenThrowInvalidDataAccessApiUsageException() {
+		userEntity1.setActive(false);
 		
 		assertThrows(InvalidDataAccessApiUsageException.class, () -> {
 			userRepository.save(null);
@@ -79,9 +86,8 @@ public class UserRepositoryTest {
 	}
 		
 	@DisplayName("사용자를 조회하는데 성공한다.")
-	@ParameterizedTest
-	@MethodSource("userParametersProvider")
-	public void givenId_whenCallFindByIdAndActiveTrue_thenReturnUserEntity(UserEntity userEntity1) {		
+	@Test
+	public void givenId_whenCallFindByIdAndActiveTrue_thenReturnUserEntity() {		
 		UserEntity foundUserEntity, savedUserEntity;
 		
 		savedUserEntity = userRepository.save(userEntity1);
@@ -99,12 +105,11 @@ public class UserRepositoryTest {
 	}
 	
 	@DisplayName("사용자를 조회(이메일)하는데 성공한다.")
-	@ParameterizedTest
-	@MethodSource("userParametersProvider")
-	public void givenEmail_whenCallFindByEmailAndActiveTrue_thenReturnUserEntity(UserEntity userEntity) {		
+	@Test
+	public void givenEmail_whenCallFindByEmailAndActiveTrue_thenReturnUserEntity() {		
 		UserEntity foundUserEntity, savedUserEntity;
 		
-		savedUserEntity = userRepository.save(userEntity);
+		savedUserEntity = userRepository.save(userEntity1);
 		foundUserEntity = userRepository.findByEmailAndActiveTrue(savedUserEntity.getEmail()).get();
 
 		assertEquals(savedUserEntity.getEmail(), foundUserEntity.getEmail());			
@@ -119,9 +124,8 @@ public class UserRepositoryTest {
 	}
 	
 	@DisplayName("활성화된 사용자 목록을 조회하는데 성공한다.")
-	@ParameterizedTest
-	@MethodSource("userParametersProvider")
-	public void givenPagination_whenCallFindByActiveTrue_thenReturnUserEntities(UserEntity userEntity1) {
+	@Test
+	public void givenPagination_whenCallFindByActiveTrue_thenReturnUserEntities() {
 		UserEntity userEntity2;
 		Page<UserEntity> page;
 		
@@ -144,37 +148,36 @@ public class UserRepositoryTest {
 	}
 
 	@DisplayName("사용자가 할성 상태라서 조회하는데 성공한다.")
-	@ParameterizedTest
-	@MethodSource("userParametersProvider")
-	public void givenIdAndActive_whenCallFindByIdAndActiveTrue_thenReturnUserEntity(UserEntity userEntity) {		
+	@Test
+	public void givenIdAndActive_whenCallFindByIdAndActiveTrue_thenReturnUserEntity() {		
 		UserEntity foundUserEntity, savedUserEntity;
 		
-		savedUserEntity = userRepository.save(userEntity);
+		savedUserEntity = userRepository.save(userEntity1);
 		foundUserEntity = userRepository.findByIdAndActiveTrue(savedUserEntity.getId()).get();
 
 		assertEquals(savedUserEntity.getEmail(), foundUserEntity.getEmail());
 	}
 	
 	@DisplayName("사용자가 비할성 상태라서 조회하는데 실패한다.")
-	@ParameterizedTest
-	@MethodSource("userParametersProvider")
-	public void givenIdAndActive_whenCallFindByIdAndActiveTrue_thenReturnNull(UserEntity userEntity) {
-		userEntity.setActive(false);
+	@Test
+	public void givenIdAndActive_whenCallFindByIdAndActiveTrue_thenReturnNull() {
 		UserEntity savedUserEntity;
 		
-		savedUserEntity = userRepository.save(userEntity);
+		userEntity1.setActive(false);
+
+		savedUserEntity = userRepository.save(userEntity1);
 
 		assertEquals(Optional.empty(), userRepository.findByIdAndActiveTrue(savedUserEntity.getId()));
 	}	
 	
 	@DisplayName("사용자가 존재하다.")
-	@ParameterizedTest
-	@MethodSource("userParametersProvider")
-	public void givenEmail_whenCallExistsByEmail_thenReturnTrue(UserEntity userEntity) {		
+	@Test
+	public void givenEmail_whenCallExistsByEmail_thenReturnTrue() {		
 		boolean result;
 		UserEntity savedUserEntity;
 		
-		savedUserEntity = userRepository.save(userEntity);
+		savedUserEntity = userRepository.save(userEntity1);
+		
 		result = userRepository.existsByEmail(savedUserEntity.getEmail());
 		
 		assertTrue(result);			
@@ -183,19 +186,10 @@ public class UserRepositoryTest {
 	@DisplayName("사용자가 존재하지 않는다.")
 	@Test
 	public void givenEmail_whenCallExistsByEmail_thenReturnFalse() {
-		boolean result = userRepository.existsByEmail("test@test.com");
+		boolean result;
+		
+		result = userRepository.existsByEmail("test@naver.com");
 		
 		assertFalse(result);
 	}
-	
-	private static Stream<Arguments> userParametersProvider() {
-		return Stream.of(Arguments.of(
-			UserEntity.builder()
-						.email("user1@naver.com")
-						.name("사용자1")
-						.password("12345678Aa!@#$%")
-						.userRole(UserRole.USER)
-						.build()
-		));
-	}	
 }

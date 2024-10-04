@@ -89,16 +89,6 @@ public class CommentDto {
 
 		public CommentResponse() {}
 		
-		public CommentResponse content(String content) {
-			this.content = content;
-			return this;
-		}
-		
-		public CommentResponse parentId(Long parentId) {
-			this.parentId = parentId;
-			return this;
-		}
-		
 		public Long getId() {
 			return id;
 		}

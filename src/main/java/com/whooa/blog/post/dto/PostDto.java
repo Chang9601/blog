@@ -1,5 +1,6 @@
 package com.whooa.blog.post.dto;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import com.whooa.blog.category.dto.CategoryDto.CategoryResponse;
@@ -144,38 +145,18 @@ public class PostDto {
 	
 	public static class PostResponse {
 		private Long id;
-		private CategoryResponse category;
 		/*
 		 * DTO의 필드로 엔티티를 사용하게 되면 엔티티는 DTO에서 해야 할 일을 같이 해야 하기 때문에 변경에 대한 이유가 늘어난다.
 		 * 다시말해, 이는 유지보수적인 측면에서 좋지 않기 때문에 DTO를 사용한다.
 		 */
-		private List<CommentResponse> comments;
 		private String content;
-		private List<File> files;
 		private String title;
+		private CategoryResponse category;
+		private List<CommentResponse> comments;
+		private List<File> files;
 
 		public PostResponse() {}
 		
-		public PostResponse comments(List<CommentResponse> comments) {
-			this.comments = comments;
-			return this;
-		}
-
-		public PostResponse content(String content) {
-			this.content = content;
-			return this;
-		}
-
-		public PostResponse files(List<File> files) {
-			this.files = files;
-			return this;
-		}
-
-		public PostResponse title(String title) {
-			this.title = title;
-			return this;
-		}
-
 		public Long getId() {
 			return id;
 		}
@@ -183,7 +164,23 @@ public class PostDto {
 		public void setId(Long id) {
 			this.id = id;
 		}
+		
+		public String getContent() {
+			return content;
+		}
 
+		public void setContent(String content) {
+			this.content = content;
+		}
+		
+		public String getTitle() {
+			return title;
+		}
+
+		public void setTitle(String title) {
+			this.title = title;
+		}
+		
 		public CategoryResponse getCategory() {
 			return category;
 		}
@@ -200,14 +197,6 @@ public class PostDto {
 			this.comments = comments;
 		}
 
-		public String getContent() {
-			return content;
-		}
-
-		public void setContent(String content) {
-			this.content = content;
-		}
-
 		public List<File> getFiles() {
 			return files;
 		}
@@ -216,18 +205,74 @@ public class PostDto {
 			this.files = files;
 		}
 
-		public String getTitle() {
-			return title;
-		}
-
-		public void setTitle(String title) {
-			this.title = title;
-		}
-
 		@Override
 		public String toString() {
-			return "PostResponse [id=" + id + ", category=" + category + ", comments=" + comments + ", content="
-					+ content + ", files=" + files + ", title=" + title + "]";
+			return "PostResponse [id=" + id + ", content=" + content + ", title=" + title + ", category=" + category
+					+ ", comments=" + comments + ", files=" + files + "]";
 		}
-	}
+
+		public static PostResponseBuilder builder() {
+			return new PostResponseBuilder();
+		}
+		
+		public static final class PostResponseBuilder {
+			private Long id;
+			private String content;
+			private String title;
+			private CategoryResponse category;
+			private List<CommentResponse> comments = new ArrayList<CommentResponse>();
+			private List<File> files = new ArrayList<File>();
+			
+			private PostResponseBuilder() {}
+			
+			public PostResponseBuilder id(Long id) {
+				this.id = id;
+				return this;
+			}
+			
+			public PostResponseBuilder content(String content) {
+				this.content = content;
+				return this;
+			}
+			
+			public PostResponseBuilder title(String title) {
+				this.title = title;
+				return this;
+			}
+			
+			public PostResponseBuilder category(CategoryResponse category) {
+				this.category = category;
+				return this;
+			}
+			
+			public PostResponseBuilder comments(List<CommentResponse> comments) {
+				this.comments = comments;
+				return this;
+			}
+			
+			public PostResponseBuilder files(List<File> files) {
+				this.files = files;
+				return this;
+			}
+			
+			public PostResponse build() {
+				PostResponse post = new PostResponse();
+				
+				post.setId(id);
+				post.setContent(content);
+				post.setTitle(title);
+				post.setCategory(category);
+				
+				if (comments != null) {
+					post.setComments(comments);
+				}
+				
+				if (files != null) {
+					post.setFiles(files);
+				}
+				
+				return post;
+			}
+		}
+ 	}
 }

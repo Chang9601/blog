@@ -184,6 +184,7 @@ public class AdminCommentControllerTest {
 	public void givenCommentUpdate_whenCallUpdateComment_thenReturnComment() throws Exception {
 		ResultActions action;
 		
+		given(categoryMapper.fromEntity(any(CategoryEntity.class))).willReturn(category1);
 		given(adminCommentService.update(any(Long.class), any(Long.class), any(CommentUpdateRequest.class))).willAnswer((answer) -> {
 			commentEntity.setContent(commentUpdate.getContent());
 			comment = CommentMapper.INSTANCE.toDto(commentEntity);

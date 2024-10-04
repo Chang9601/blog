@@ -38,6 +38,8 @@ public class PostServiceImpl implements PostService {
 	private CategoryRepository categoryRepository;
 	private UserRepository userRepository;
 	private FileService fileService;
+	private PostMapper postMapper;
+
 	
 	/*
 	 * 생성자 주입은 생성자를 사용해서 의존성을 주입한다.
@@ -48,47 +50,39 @@ public class PostServiceImpl implements PostService {
 	 * 2. 불변성을 보장하고 NullPointerException 예외를 방지한다.
 	 * 3. 테스트에서 오류를 방지한다.
 	 */
-	public PostServiceImpl(CategoryRepository categoryRepository, PostRepository postRepository, UserRepository userRepository, FileService fileService) {
+	public PostServiceImpl(
+			CategoryRepository categoryRepository, 
+			PostRepository postRepository, 
+			UserRepository userRepository, 
+			FileService fileService, 
+			PostMapper postMapper) {
 		this.categoryRepository = categoryRepository;
 		this.postRepository = postRepository;
 		this.userRepository = userRepository;
 		this.fileService = fileService;
+		this.postMapper = postMapper;
 	}
 
 	@Override
 	public PostResponse create(PostCreateRequest postCreate, MultipartFile[] uploadFiles, UserDetailsImpl userDetailsImpl) {
-		String title, content, categoryName;
 		List<File> files = null;
 		CategoryEntity categoryEntity;
-		UserEntity userEntity;
 		PostEntity postEntity;
+		UserEntity userEntity;
 		PostResponse post;
-		
-		title = postCreate.getTitle();
-		content = postCreate.getContent();
-		categoryName = postCreate.getCategoryName();
-		
-		categoryEntity = categoryRepository.findByName(categoryName).orElseThrow(() -> new CategoryNotFoundException(Code.NOT_FOUND, new String[] {"카테고리가 존재하지 않습니다."}));
+				
+		categoryEntity = categoryRepository.findByName(postCreate.getCategoryName()).orElseThrow(() -> new CategoryNotFoundException(Code.NOT_FOUND, new String[] {"카테고리가 존재하지 않습니다."}));
 		userEntity = userRepository.findById(userDetailsImpl.getId()).orElseThrow(() -> new UserNotFoundException(Code.NOT_FOUND, new String[] {"아이디에 해당하는 사용자가 존재하지 않습니다."}));
-		postEntity = PostEntity.builder()
-								.content(content)
-								.title(title)
-								.category(categoryEntity)
-								.user(userEntity)
-								.build();
-	
-		// TODO: Mapper에서 연관관계 정리.
-		// PostEntity postEntity = postRepository.save(PostMapper.INSTANCE.toEntity(postCreate));
-						
+		postEntity = postMapper.toEntity(postCreate, categoryEntity, userEntity);
+								
 		if (uploadFiles != null && uploadFiles.length > 0) {
 			files = Arrays.stream(uploadFiles)
 					.map(uploadFile -> fileService.upload(postEntity, uploadFile))
 					.collect(Collectors.toList());
 		}
 	
-		post = PostMapper.INSTANCE.toDto(postRepository.save(postEntity));
-		post.setFiles(files);
-
+		post = postMapper.fromEntity(postRepository.save(postEntity));
+		
 		return post;
 	}
 
@@ -112,18 +106,18 @@ public class PostServiceImpl implements PostService {
 	public PostResponse find(Long id) {
 		PostEntity postEntity = postRepository.findById(id).orElseThrow(() -> new PostNotFoundException(Code.NOT_FOUND, new String[] {"포스트가 존재하지 않습니다."}));
 		
-		return PostMapper.INSTANCE.toDto(postEntity);
+		return postMapper.fromEntity(postEntity);
 	}
 
 	@Override
 	public PageResponse<PostResponse> findAll(PaginationUtil pagination) {
-		Pageable pageable;
 		Page<PostEntity> page;
+		Pageable pageable;
 		List<PostEntity> postEntities;
 		List<PostResponse> postResponse;
+		boolean isLast, isFirst;
 		int pageSize, pageNo, totalPages;
 		long totalElements;
-		boolean isLast, isFirst;
 		
 		pageable = pagination.makePageable();
 		page = postRepository.findAll(pageable);
@@ -136,7 +130,7 @@ public class PostServiceImpl implements PostService {
 		isLast = page.isLast();
 		isFirst = page.isFirst();
 				
-		postResponse = postEntities.stream().map((postEntity) -> PostMapper.INSTANCE.toDto(postEntity)).collect(Collectors.toList());
+		postResponse = postEntities.stream().map((postEntity) -> postMapper.fromEntity(postEntity)).collect(Collectors.toList());
 		
 		return PageResponse.handleResponse(postResponse, pageSize, pageNo, totalElements, totalPages, isLast, isFirst);
 	}
@@ -144,13 +138,13 @@ public class PostServiceImpl implements PostService {
 	@Override
 	public PageResponse<PostResponse> findAllByCategoryId(Long categoryId, PaginationUtil pagination) {
 		//categoryRepository.findById(categoryId).orElseThrow(() -> new CategoryNotFoundException(Code.NOT_FOUND, new String[] {"카테고리가 존재하지 않습니다."}));
-		Pageable pageable;
 		Page<PostEntity> page;
+		Pageable pageable;
 		List<PostEntity> postEntities;
 		List<PostResponse> postResponse;
+		boolean isLast, isFirst;
 		int pageSize, pageNo, totalPages;
 		long totalElements;
-		boolean isLast, isFirst;
 		
 		pageable = pagination.makePageable();
 		page = postRepository.findByCategoryId(categoryId, pageable);
@@ -163,7 +157,7 @@ public class PostServiceImpl implements PostService {
 		isLast = page.isLast();
 		isFirst = page.isFirst();
 		
-		postResponse = postEntities.stream().map((postEntity) -> PostMapper.INSTANCE.toDto(postEntity)).collect(Collectors.toList());
+		postResponse = postEntities.stream().map((postEntity) -> postMapper.fromEntity(postEntity)).collect(Collectors.toList());
 		
 		return PageResponse.handleResponse(postResponse, pageSize, pageNo, totalElements, totalPages, isLast, isFirst);
 	}
@@ -208,8 +202,7 @@ public class PostServiceImpl implements PostService {
 					.collect(Collectors.toList());
 		}
 		
-		post = PostMapper.INSTANCE.toDto(postRepository.save(postEntity));
-		post.setFiles(files);
+		post = postMapper.fromEntity(postRepository.save(postEntity));
 		
 		return post;
 	}

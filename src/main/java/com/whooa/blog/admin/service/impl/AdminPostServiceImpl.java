@@ -28,12 +28,17 @@ public class AdminPostServiceImpl implements AdminPostService {
 	private PostRepository postRepository;
 	private CategoryRepository categoryRepository;
 	private FileService fileService;
+	private PostMapper postMapper;
 
-	public AdminPostServiceImpl(PostRepository postRepository, CategoryRepository categoryRepository,
-			FileService fileService) {
+	public AdminPostServiceImpl(
+			PostRepository postRepository, 
+			CategoryRepository categoryRepository,
+			FileService fileService, 
+			PostMapper postMapper) {
 		this.postRepository = postRepository;
 		this.categoryRepository = categoryRepository;
 		this.fileService = fileService;
+		this.postMapper = postMapper;
 	}
 
 	@Override
@@ -78,7 +83,7 @@ public class AdminPostServiceImpl implements AdminPostService {
 					.collect(Collectors.toList());
 		}
 		
-		post = PostMapper.INSTANCE.toDto(postRepository.save(postEntity));
+		post = postMapper.fromEntity(postRepository.save(postEntity));
 		post.setFiles(files);
 		
 		return post;

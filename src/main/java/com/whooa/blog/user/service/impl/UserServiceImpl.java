@@ -14,7 +14,6 @@ import com.whooa.blog.user.exception.InvalidCredentialsException;
 import com.whooa.blog.user.exception.SamePasswordException;
 import com.whooa.blog.user.exception.UserNotFoundException;
 import com.whooa.blog.user.mapper.UserMapper;
-import com.whooa.blog.user.mapper.UserRoleMapper;
 import com.whooa.blog.user.repository.UserRepository;
 import com.whooa.blog.user.service.UserService;
 import com.whooa.blog.util.PasswordUtil;
@@ -23,14 +22,15 @@ import com.whooa.blog.util.StringUtil;
 @Service
 public class UserServiceImpl implements UserService {
 	private UserRepository userRepository;
+	private UserMapper userMapper;
 	
-	public UserServiceImpl(UserRepository userRepository) {
+	public UserServiceImpl(UserRepository userRepository, UserMapper userMapper) {
 		this.userRepository = userRepository;
+		this.userMapper = userMapper;
 	}
 	
 	@Override
 	public UserResponse create(UserCreateRequest userCreate) {
-		String email, name, password, userRole;
 		UserEntity userEntity;
 		
 		// TODO: 실제로 삭제하지 않고 active 필드만 false로 둘 경우 처리방법.
@@ -38,19 +38,9 @@ public class UserServiceImpl implements UserService {
 			throw new DuplicateUserException(Code.CONFLICT, new String[] {"이메일을 사용하는 사용자가 존재합니다."});
 		}
 		
-		email = userCreate.getEmail();
-		name = userCreate.getName();
-		userRole = userCreate.getUserRole();
-		password = PasswordUtil.hash(userCreate.getPassword());
-		
-		userEntity = UserEntity.builder()
-								.email(email)
-								.name(name)
-								.password(password)
-								.userRole(UserRoleMapper.map(userRole))
-								.build();
+		userEntity = userMapper.toEntity(userCreate);
 
-		return UserMapper.INSTANCE.toDto(userRepository.save(userEntity));
+		return userMapper.fromEntity(userRepository.save(userEntity));
 	}
 		
 	@Override
@@ -74,7 +64,7 @@ public class UserServiceImpl implements UserService {
 		id = userDetailsImpl.getId();		
 		userEntity = userRepository.findByIdAndActiveTrue(id).orElseThrow(() -> new UserNotFoundException(Code.NOT_FOUND, new String[] {"아이디에 해당하는 사용자가 존재하지 않습니다."}));
 		
-		return UserMapper.INSTANCE.toDto(userEntity);
+		return userMapper.fromEntity(userEntity);
 	}
 
 	@Override
@@ -101,7 +91,7 @@ public class UserServiceImpl implements UserService {
 			userEntity.setName(name);
 		}
 		
-		return UserMapper.INSTANCE.toDto(userRepository.save(userEntity));
+		return userMapper.fromEntity(userRepository.save(userEntity));
 	}
 
 	@Override
@@ -127,6 +117,6 @@ public class UserServiceImpl implements UserService {
 		
 		userEntity.setPassword(PasswordUtil.hash(newPassword));
 
-		return UserMapper.INSTANCE.toDto(userRepository.save(userEntity));
+		return userMapper.fromEntity(userRepository.save(userEntity));
 	}
 }
