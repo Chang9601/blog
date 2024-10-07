@@ -50,7 +50,6 @@ import com.whooa.blog.post.dto.PostDto.PostUpdateRequest;
 import com.whooa.blog.post.dto.PostDto.PostResponse;
 import com.whooa.blog.post.entity.PostEntity;
 import com.whooa.blog.post.exception.PostNotFoundException;
-import com.whooa.blog.post.mapper.PostMapper;
 import com.whooa.blog.post.service.PostService;
 import com.whooa.blog.user.entity.UserEntity;
 import com.whooa.blog.user.type.UserRole;
@@ -133,9 +132,10 @@ public class PostControllerTest {
 							.content("포스트2포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트")
 							.title("포스트2");
 					
-		post1 = new PostResponse()
-						.content(content)
-						.title(title);
+		post1 = PostResponse.builder()
+					.content(postEntity.getContent())
+					.title(postEntity.getTitle())
+					.build();
 	}
 	
 	@DisplayName("포스트(파일 X)를 생성하는데 성공한다.")
@@ -147,9 +147,7 @@ public class PostControllerTest {
 		
 		postCreateFile = new MockMultipartFile("post", null, MediaType.APPLICATION_JSON_VALUE, SerializeDeserializeUtil.serializeToString(postCreate).getBytes(StandardCharsets.UTF_8));
 
-		given(postService.create(any(PostCreateRequest.class), any(MultipartFile[].class), any(UserDetailsImpl.class))).willAnswer((answer) -> { 
-			post1 = PostMapper.INSTANCE.toDto(postEntity);
-			
+		given(postService.create(any(PostCreateRequest.class), any(MultipartFile[].class), any(UserDetailsImpl.class))).willAnswer((answer) -> { 			
 			return post1;
 		});
 					
@@ -190,8 +188,7 @@ public class PostControllerTest {
 			File file1 = new File(".txt", MediaType.TEXT_PLAIN_VALUE, postFile1.getName(), "D:\\spring-workspace\\whooa-blog\\upload\\test1.txt", postFile1.getSize());
 			File file2 = new File(".txt", MediaType.TEXT_PLAIN_VALUE, postFile2.getName(), "D:\\spring-workspace\\whooa-blog\\upload\\test2.txt", postFile2.getSize());
 					
-			post1 = PostMapper.INSTANCE.toDto(postEntity);
-			post1.files(List.of(file1, file2));
+			post1.setFiles(List.of(file1, file2));
 			
 			return post1;
 		});
@@ -224,8 +221,6 @@ public class PostControllerTest {
 		postCreateFile = new MockMultipartFile("post", null, MediaType.APPLICATION_JSON_VALUE, SerializeDeserializeUtil.serializeToString(postCreate).getBytes(StandardCharsets.UTF_8));
 
 		given(postService.create(any(PostCreateRequest.class), any(MultipartFile[].class), any(UserDetailsImpl.class))).willAnswer((answer) -> { 
-			post1 = PostMapper.INSTANCE.toDto(postEntity);
-			
 			return post1;
 		});
 					
@@ -252,8 +247,6 @@ public class PostControllerTest {
 		postCreateFile = new MockMultipartFile("post", null, MediaType.APPLICATION_JSON_VALUE, SerializeDeserializeUtil.serializeToString(postCreate).getBytes(StandardCharsets.UTF_8));
 
 		given(postService.create(any(PostCreateRequest.class), any(MultipartFile[].class), any(UserDetailsImpl.class))).willAnswer((answer) -> { 
-			post1 = PostMapper.INSTANCE.toDto(postEntity);
-			
 			return post1;
 		});
 					
@@ -279,9 +272,7 @@ public class PostControllerTest {
 		postCreate.content("테스트 내용");
 		postCreateFile = new MockMultipartFile("post", null, MediaType.APPLICATION_JSON_VALUE, SerializeDeserializeUtil.serializeToString(postCreate).getBytes(StandardCharsets.UTF_8));
 
-		given(postService.create(any(PostCreateRequest.class), any(MultipartFile[].class), any(UserDetailsImpl.class))).willAnswer((answer) -> { 
-			post1 = PostMapper.INSTANCE.toDto(postEntity);
-			
+		given(postService.create(any(PostCreateRequest.class), any(MultipartFile[].class), any(UserDetailsImpl.class))).willAnswer((answer) -> { 			
 			return post1;
 		});
 					
@@ -305,9 +296,7 @@ public class PostControllerTest {
 		
 		postCreateFile = new MockMultipartFile("post", null, MediaType.APPLICATION_JSON_VALUE, SerializeDeserializeUtil.serializeToString(postCreate).getBytes(StandardCharsets.UTF_8));
 
-		given(postService.create(any(PostCreateRequest.class), any(MultipartFile[].class), any(UserDetailsImpl.class))).willAnswer((answer) -> { 
-			post1 = PostMapper.INSTANCE.toDto(postEntity);
-			
+		given(postService.create(any(PostCreateRequest.class), any(MultipartFile[].class), any(UserDetailsImpl.class))).willAnswer((answer) -> { 			
 			return post1;
 		});
 
@@ -416,9 +405,10 @@ public class PostControllerTest {
 		PostResponse post2;
 		PaginationUtil pagination;
 		
-		post2 = new PostResponse()
-						.content("실전 내용")
-						.title("실전 제목");
+		post2 = PostResponse.builder()
+					.content("실전 내용")
+					.title("실전 제목")
+					.build();
 
 		pagination = new PaginationUtil();
 		page = PageResponse.handleResponse(List.of(post1, post2), pagination.getPageSize(), pagination.getPageNo(), 2, 1, false, true);
@@ -459,8 +449,9 @@ public class PostControllerTest {
 			postEntity.setContent(postUpdate.getContent());
 			postEntity.setTitle(postUpdate.getTitle());
 
-			post1 = PostMapper.INSTANCE.toDto(postEntity);
-			post1.files(List.of(file));
+			post1.setContent(postEntity.getContent());
+			post1.setTitle(postEntity.getTitle());
+			post1.setFiles(List.of(file));
 			
 			return post1;
 		});
@@ -494,7 +485,8 @@ public class PostControllerTest {
 			postEntity.setContent(postUpdate.getContent());
 			postEntity.setTitle(postUpdate.getTitle());
 			
-			post1 = PostMapper.INSTANCE.toDto(postEntity);
+			post1.setContent(postEntity.getContent());
+			post1.setTitle(postEntity.getTitle());
 			
 			return post1;
 		});
@@ -527,7 +519,8 @@ public class PostControllerTest {
 			postEntity.setContent(postUpdate.getContent());
 			postEntity.setTitle(postUpdate.getTitle());
 			
-			post1 = PostMapper.INSTANCE.toDto(postEntity);
+			post1.setContent(postEntity.getContent());
+			post1.setTitle(postEntity.getTitle());
 			
 			return post1;
 		});
@@ -558,7 +551,8 @@ public class PostControllerTest {
 			postEntity.setContent(postUpdate.getContent());
 			postEntity.setTitle(postUpdate.getTitle());
 			
-			post1 = PostMapper.INSTANCE.toDto(postEntity);
+			post1.setContent(postEntity.getContent());
+			post1.setTitle(postEntity.getTitle());
 			
 			return post1;
 		});
@@ -589,7 +583,8 @@ public class PostControllerTest {
 			postEntity.setContent(postUpdate.getContent());
 			postEntity.setTitle(postUpdate.getTitle());
 
-			post1 = PostMapper.INSTANCE.toDto(postEntity);
+			post1.setContent(postEntity.getContent());
+			post1.setTitle(postEntity.getTitle());
 			
 			return post1;
 		});
@@ -642,7 +637,8 @@ public class PostControllerTest {
 			postEntity.setContent(postUpdate.getContent());
 			postEntity.setTitle(postUpdate.getTitle());
 			
-			post1 = PostMapper.INSTANCE.toDto(postEntity);
+			post1.setContent(postEntity.getContent());
+			post1.setTitle(postEntity.getTitle());
 			
 			return post1;
 		});

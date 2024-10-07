@@ -24,11 +24,9 @@ import com.whooa.blog.util.PaginationUtil;
 @Service
 public class CategoryServiceImpl implements CategoryService {
 	private CategoryRepository categoryRepository;
-	private CategoryMapper categoryMapper;
 		
-	public CategoryServiceImpl(CategoryRepository categoryRepository, CategoryMapper categoryMapper) {
+	public CategoryServiceImpl(CategoryRepository categoryRepository) {
 		this.categoryRepository = categoryRepository;
-		this.categoryMapper = categoryMapper;
 	}
 
 	@Override
@@ -39,9 +37,9 @@ public class CategoryServiceImpl implements CategoryService {
 			throw new DuplicateCategoryException(Code.CONFLICT, new String[] {"카테고리가 존재합니다."});
 		}
 		
-		categoryEntity = categoryMapper.toEntity(categoryCreate);
+		categoryEntity = CategoryMapper.INSTANCE.toEntity(categoryCreate);
 		
-		return categoryMapper.fromEntity(categoryRepository.save(categoryEntity));
+		return CategoryMapper.INSTANCE.fromEntity(categoryRepository.save(categoryEntity));
 	}
 
 	@Override
@@ -59,7 +57,7 @@ public class CategoryServiceImpl implements CategoryService {
 		
 		categoryEntity = categoryRepository.findById(id).orElseThrow(() -> new CategoryNotFoundException(Code.NOT_FOUND, new String[] {"카테고리가 존재하지 않습니다."}));
 		
-		return categoryMapper.fromEntity(categoryEntity);
+		return CategoryMapper.INSTANCE.fromEntity(categoryEntity);
 	}
 
 	@Override
@@ -85,7 +83,7 @@ public class CategoryServiceImpl implements CategoryService {
 				
 		categoryResponse = categoryEntities
 								.stream()
-								.map((categoryEntity) -> categoryMapper.fromEntity(categoryEntity))
+								.map((categoryEntity) -> CategoryMapper.INSTANCE.fromEntity(categoryEntity))
 								.collect(Collectors.toList());
 		
 		return PageResponse.handleResponse(categoryResponse, pageSize, pageNo, totalElements, totalPages, isLast, isFirst);
@@ -104,6 +102,6 @@ public class CategoryServiceImpl implements CategoryService {
 			categoryEntity.setName(name);
 		}
 		
-		return categoryMapper.fromEntity(categoryRepository.save(categoryEntity));
+		return CategoryMapper.INSTANCE.fromEntity(categoryRepository.save(categoryEntity));
 	}
 }

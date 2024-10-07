@@ -42,7 +42,6 @@ import com.whooa.blog.comment.dto.CommentDto.CommentUpdateRequest;
 import com.whooa.blog.comment.dto.CommentDto.CommentResponse;
 import com.whooa.blog.comment.entity.CommentEntity;
 import com.whooa.blog.comment.exception.CommentNotFoundException;
-import com.whooa.blog.comment.mapper.CommentMapper;
 import com.whooa.blog.comment.service.CommentService;
 import com.whooa.blog.common.api.PageResponse;
 import com.whooa.blog.common.code.Code;
@@ -120,9 +119,10 @@ public class CommentControllerTest {
 		commentCreate = new CommentCreateRequest().content(content);
 		commentUpdate = new CommentUpdateRequest().content("댓글2");
 		
-		comment1 = new CommentResponse()
+		comment1 = CommentResponse.builder()
 					.content(content)
-					.parentId(null);
+					.parentId(null)
+					.build();
 	}
 	
 	@DisplayName("댓글을 생성하는데 성공한다.")
@@ -131,9 +131,7 @@ public class CommentControllerTest {
 	public void givenCommentCreate_whenCallCreateComment_thenReturnComment() throws Exception {
 		ResultActions action;
 		
-		given(commentService.create(any(Long.class), any(CommentCreateRequest.class), any(UserDetailsImpl.class))).willAnswer((answer) -> {		
-			comment1 = CommentMapper.INSTANCE.toDto(commentEntity);
-
+		given(commentService.create(any(Long.class), any(CommentCreateRequest.class), any(UserDetailsImpl.class))).willAnswer((answer) -> {
 			return comment1;
 		});
 
@@ -156,9 +154,7 @@ public class CommentControllerTest {
 	public void givenCommentCreate_whenCallCreateComment_thenThrowBadRqeustExceptionForContent() throws Exception {
 		ResultActions action;
 		
-		given(commentService.create(any(Long.class), any(CommentCreateRequest.class), any(UserDetailsImpl.class))).willAnswer((answer) -> {		
-			comment1 = CommentMapper.INSTANCE.toDto(commentEntity);
-
+		given(commentService.create(any(Long.class), any(CommentCreateRequest.class), any(UserDetailsImpl.class))).willAnswer((answer) -> {
 			return comment1;
 		});
 		
@@ -201,9 +197,7 @@ public class CommentControllerTest {
 	public void givenCommentCreate_whenCallCreateComment_thenThrowUnauthenticatedUserException() throws Exception {
 		ResultActions action;
 		
-		given(commentService.create(any(Long.class), any(CommentCreateRequest.class), any(UserDetailsImpl.class))).willAnswer((answer) -> {		
-			comment1 = CommentMapper.INSTANCE.toDto(commentEntity);
-
+		given(commentService.create(any(Long.class), any(CommentCreateRequest.class), any(UserDetailsImpl.class))).willAnswer((answer) -> {
 			return comment1;
 		});
 		
@@ -305,9 +299,10 @@ public class CommentControllerTest {
 		MultiValueMap<String, String> params;
 		PaginationUtil pagination;
 		
-		comment2 = new CommentResponse()
+		comment2 = CommentResponse.builder()
 					.content("실전 내용")
-					.parentId(null);
+					.parentId(null)
+					.build();
 
 		pagination = new PaginationUtil();
 		page = PageResponse.handleResponse(List.of(comment1, comment2), pagination.getPageSize(), pagination.getPageNo(), 2, 1, true, true);
@@ -340,8 +335,8 @@ public class CommentControllerTest {
 		
 		given(commentService.update(any(Long.class), any(Long.class), any(CommentUpdateRequest.class), any(UserDetailsImpl.class))).willAnswer((answer) -> {
 			commentEntity.setContent(commentUpdate.getContent());
-			comment1 = CommentMapper.INSTANCE.toDto(commentEntity);
-			
+			comment1.setContent(commentEntity.getContent());
+						
 			return comment1;
 		});
 	
@@ -366,7 +361,7 @@ public class CommentControllerTest {
 		
 		given(commentService.update(any(Long.class), any(Long.class), any(CommentUpdateRequest.class), any(UserDetailsImpl.class))).willAnswer((answer) -> {
 			commentEntity.setContent(commentUpdate.getContent());
-			comment1 = CommentMapper.INSTANCE.toDto(commentEntity);
+			comment1.setContent(commentEntity.getContent());
 			
 			return comment1;
 		});
@@ -455,7 +450,7 @@ public class CommentControllerTest {
 		
 		given(commentService.update(any(Long.class), any(Long.class), any(CommentUpdateRequest.class), any(UserDetailsImpl.class))).willAnswer((answer) -> {
 			commentEntity.setContent(commentUpdate.getContent());
-			comment1 = CommentMapper.INSTANCE.toDto(commentEntity);
+			comment1.setContent(commentEntity.getContent());
 			
 			return comment1;
 		});

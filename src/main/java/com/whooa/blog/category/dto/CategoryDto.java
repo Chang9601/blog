@@ -19,11 +19,6 @@ public class CategoryDto {
 		
 		public CategoryCreateRequest() {}
 		
-		public CategoryCreateRequest name(String name) {
-			this.name = name;
-			return this;
-		}
-		
 		public String getName() {
 			return name;
 		}
@@ -50,11 +45,6 @@ public class CategoryDto {
 		private String name;
 		
 		public CategoryUpdateRequest() {}
-
-		public CategoryUpdateRequest name(String name) {
-			this.name = name;
-			return this;
-		}
 		
 		public String getName() {
 			return name;
@@ -86,16 +76,6 @@ public class CategoryDto {
 		
 		public CategoryResponse() {}
 		
-		public CategoryResponse id(Long id) {
-			this.id = id;
-			return this;
-		}
-		
-		public CategoryResponse name(String name) {
-			this.name = name;
-			return this;
-		}
-
 		public Long getId() {
 			return id;
 		}
@@ -115,36 +95,6 @@ public class CategoryDto {
 		@Override
 		public String toString() {
 			return "CategoryResponse [id=" + id + ", name=" + name + "]";
-		}
-		
-		public static CategoryResponseBuilder builder() {
-			return new CategoryResponseBuilder();
-		}
-		
-		public static final class CategoryResponseBuilder {
-			private Long id;
-			private String name;
-			
-			private CategoryResponseBuilder() {}
-			
-			public CategoryResponseBuilder id(Long id) {
-				this.id = id;
-				return this;
-			}
-			
-			public CategoryResponseBuilder name(String name) {
-				this.name = name;
-				return this;
-			}
-		
-			public CategoryResponse build() {
-				CategoryResponse category = new CategoryResponse();
-				
-				category.setId(id);
-				category.setName(name);
-				
-				return category;
-			}
 		}
 	}
 }

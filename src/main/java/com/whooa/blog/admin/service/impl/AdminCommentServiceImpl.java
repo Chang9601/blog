@@ -20,12 +20,10 @@ import com.whooa.blog.util.StringUtil;
 public class AdminCommentServiceImpl implements AdminCommentService {
 	private CommentRepository commentRepository;
 	private PostRepository postRepository;
-	private CommentMapper commentMapper;
 
-	public AdminCommentServiceImpl(CommentRepository commentRepository, PostRepository postRepository, CommentMapper commentMapper) {
+	public AdminCommentServiceImpl(CommentRepository commentRepository, PostRepository postRepository) {
 		this.commentRepository = commentRepository;
 		this.postRepository = postRepository;
-		this.commentMapper = commentMapper;
 	}
 	
 	@Override
@@ -50,7 +48,7 @@ public class AdminCommentServiceImpl implements AdminCommentService {
 			commentEntity.setContent(content);
 		}
 		
-		return commentMapper.fromEntity(commentRepository.save(commentEntity));
+		return CommentMapper.INSTANCE.fromEntity(commentRepository.save(commentEntity));
 	}
 	
 	private CommentEntity find(Long id, Long postId) {

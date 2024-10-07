@@ -46,6 +46,7 @@ public class CategoryServiceTest {
 	private CategoryMapper categoryMapper;
 	
 	private CategoryEntity categoryEntity1;
+	
 	private CategoryResponse category;
 	
 	@BeforeEach
@@ -179,12 +180,14 @@ public class CategoryServiceTest {
 								.build();
 		
 		given(categoryRepository.findAll(any(Pageable.class))).willReturn(new PageImpl<CategoryEntity>(List.of(categoryEntity1, categoryEntity2)));
-		
+		given(categoryMapper.fromEntity(any(CategoryEntity.class))).willReturn(category);
+
 		page = categoryServiceImpl.findAll(new PaginationUtil());
 		
 		assertEquals(2, page.getTotalElements());
 		
 		then(categoryRepository).should(times(1)).findAll(any(Pageable.class));
+		then(categoryMapper).should(times(2)).fromEntity(any(CategoryEntity.class));
 	}
 	
 	@DisplayName("카테고리를 수정하는데 성공한다.")
@@ -199,10 +202,12 @@ public class CategoryServiceTest {
 		categoryEntity2 = CategoryEntity.builder()
 								.name(categoryUpdate.getName())
 								.build();
-
+		
+		category.setName(categoryEntity2.getName());
+		
 		given(categoryRepository.save(any(CategoryEntity.class))).willReturn(categoryEntity2);
 		given(categoryRepository.findById(any(Long.class))).willReturn(Optional.of(categoryEntity1));
-		given(categoryMapper.fromEntity(any(CategoryEntity.class))).willReturn(category.name(categoryUpdate.getName()));
+		given(categoryMapper.fromEntity(any(CategoryEntity.class))).willReturn(category);
 
 		updatedCategory = categoryServiceImpl.update(categoryEntity1.getId(), categoryUpdate);
 		

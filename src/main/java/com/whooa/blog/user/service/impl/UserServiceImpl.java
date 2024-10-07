@@ -14,6 +14,7 @@ import com.whooa.blog.user.exception.InvalidCredentialsException;
 import com.whooa.blog.user.exception.SamePasswordException;
 import com.whooa.blog.user.exception.UserNotFoundException;
 import com.whooa.blog.user.mapper.UserMapper;
+import com.whooa.blog.user.mapper.UserRoleMapper;
 import com.whooa.blog.user.repository.UserRepository;
 import com.whooa.blog.user.service.UserService;
 import com.whooa.blog.util.PasswordUtil;
@@ -22,11 +23,9 @@ import com.whooa.blog.util.StringUtil;
 @Service
 public class UserServiceImpl implements UserService {
 	private UserRepository userRepository;
-	private UserMapper userMapper;
 	
-	public UserServiceImpl(UserRepository userRepository, UserMapper userMapper) {
+	public UserServiceImpl(UserRepository userRepository) {
 		this.userRepository = userRepository;
-		this.userMapper = userMapper;
 	}
 	
 	@Override
@@ -38,9 +37,11 @@ public class UserServiceImpl implements UserService {
 			throw new DuplicateUserException(Code.CONFLICT, new String[] {"이메일을 사용하는 사용자가 존재합니다."});
 		}
 		
-		userEntity = userMapper.toEntity(userCreate);
+		userEntity = UserMapper.INSTANCE.toEntity(userCreate);
+		userEntity.setPassword(PasswordUtil.hash(userCreate.getPassword()));
+		userEntity.setUserRole(UserRoleMapper.map(userCreate.getUserRole()));
 
-		return userMapper.fromEntity(userRepository.save(userEntity));
+		return UserMapper.INSTANCE.fromEntity(userRepository.save(userEntity));
 	}
 		
 	@Override
@@ -64,7 +65,7 @@ public class UserServiceImpl implements UserService {
 		id = userDetailsImpl.getId();		
 		userEntity = userRepository.findByIdAndActiveTrue(id).orElseThrow(() -> new UserNotFoundException(Code.NOT_FOUND, new String[] {"아이디에 해당하는 사용자가 존재하지 않습니다."}));
 		
-		return userMapper.fromEntity(userEntity);
+		return UserMapper.INSTANCE.fromEntity(userEntity);
 	}
 
 	@Override
@@ -91,7 +92,7 @@ public class UserServiceImpl implements UserService {
 			userEntity.setName(name);
 		}
 		
-		return userMapper.fromEntity(userRepository.save(userEntity));
+		return UserMapper.INSTANCE.fromEntity(userRepository.save(userEntity));
 	}
 
 	@Override
@@ -117,6 +118,6 @@ public class UserServiceImpl implements UserService {
 		
 		userEntity.setPassword(PasswordUtil.hash(newPassword));
 
-		return userMapper.fromEntity(userRepository.save(userEntity));
+		return UserMapper.INSTANCE.fromEntity(userRepository.save(userEntity));
 	}
 }

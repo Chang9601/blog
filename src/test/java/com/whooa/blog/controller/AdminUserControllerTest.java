@@ -79,16 +79,15 @@ public class AdminUserControllerTest {
 		name = "사용자1";
 		password = "12345678Aa!@#$%";
 		
-		userEntity = UserEntity.builder()
-						.email(email)
-						.name(name)
-						.password(password)
-						.userRole(UserRole.USER)
-						.build();
+		userEntity = new UserEntity();
+		userEntity.setEmail(email);
+		userEntity.setName(name);
+		userEntity.setPassword(password);
+		userEntity.setUserRole(UserRole.USER);
 	
-		user1 = new UserResponse()
-						.email(email)
-						.userRole(UserRole.USER);
+		user1 = new UserResponse();
+		user1.setEmail(userEntity.getEmail());
+		user1.setUserRole(userEntity.getUserRole());
 	}
 	
 	@DisplayName("사용자를 삭제하는데 성공한다.")
@@ -204,9 +203,10 @@ public class AdminUserControllerTest {
 		UserResponse user2;
 		PaginationUtil pagination;
 		
-		user2 = new UserResponse()
-						.email("user2@naver.com")
-						.userRole(UserRole.USER);
+		user2 = UserResponse.builder()
+					.email("user2@naver.com")
+					.userRole(UserRole.USER)
+					.build();
 		
 		pagination = new PaginationUtil();
 		page = PageResponse.handleResponse(List.of(user1, user2), pagination.getPageSize(), pagination.getPageNo(), 2, 1, true, true);
@@ -241,10 +241,11 @@ public class AdminUserControllerTest {
 		UserResponse user2;
 		PaginationUtil pagination;
 
-		user2 = new UserResponse()
-						.email("user2@naver.com")
-						.userRole(UserRole.USER);
-		
+		user2 = UserResponse.builder()
+					.email("user2@naver.com")
+					.userRole(UserRole.USER)
+					.build();
+	
 		pagination = new PaginationUtil();
 		page = PageResponse.handleResponse(List.of(user1, user2), pagination.getPageSize(), pagination.getPageNo(), 2, 1, true, true);
 

@@ -1,6 +1,5 @@
 package com.whooa.blog.post.dto;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import com.whooa.blog.category.dto.CategoryDto.CategoryResponse;
@@ -36,21 +35,6 @@ public class PostDto {
 
 		public PostCreateRequest() {}
 
-		public PostCreateRequest categoryName(String categoryName) {
-			this.categoryName = categoryName;
-			return this;
-		}
-		
-		public PostCreateRequest content(String content) {
-			this.content = content;
-			return this;
-		}
-		
-		public PostCreateRequest title(String title) {
-			this.title = title;
-			return this;
-		}
-		
 		public String getCategoryName() {
 			return categoryName;
 		}
@@ -96,21 +80,6 @@ public class PostDto {
 		private String title;
 
 		public PostUpdateRequest() {}
-		
-		public PostUpdateRequest categoryName(String categoryName) {
-			this.categoryName = categoryName;
-			return this;
-		}
-		
-		public PostUpdateRequest content(String content) {
-			this.content = content;
-			return this;
-		}
-		
-		public PostUpdateRequest title(String title) {
-			this.title = title;
-			return this;
-		}
 		
 		public String getCategoryName() {
 			return categoryName;
@@ -209,70 +178,6 @@ public class PostDto {
 		public String toString() {
 			return "PostResponse [id=" + id + ", content=" + content + ", title=" + title + ", category=" + category
 					+ ", comments=" + comments + ", files=" + files + "]";
-		}
-
-		public static PostResponseBuilder builder() {
-			return new PostResponseBuilder();
-		}
-		
-		public static final class PostResponseBuilder {
-			private Long id;
-			private String content;
-			private String title;
-			private CategoryResponse category;
-			private List<CommentResponse> comments = new ArrayList<CommentResponse>();
-			private List<File> files = new ArrayList<File>();
-			
-			private PostResponseBuilder() {}
-			
-			public PostResponseBuilder id(Long id) {
-				this.id = id;
-				return this;
-			}
-			
-			public PostResponseBuilder content(String content) {
-				this.content = content;
-				return this;
-			}
-			
-			public PostResponseBuilder title(String title) {
-				this.title = title;
-				return this;
-			}
-			
-			public PostResponseBuilder category(CategoryResponse category) {
-				this.category = category;
-				return this;
-			}
-			
-			public PostResponseBuilder comments(List<CommentResponse> comments) {
-				this.comments = comments;
-				return this;
-			}
-			
-			public PostResponseBuilder files(List<File> files) {
-				this.files = files;
-				return this;
-			}
-			
-			public PostResponse build() {
-				PostResponse post = new PostResponse();
-				
-				post.setId(id);
-				post.setContent(content);
-				post.setTitle(title);
-				post.setCategory(category);
-				
-				if (comments != null) {
-					post.setComments(comments);
-				}
-				
-				if (files != null) {
-					post.setFiles(files);
-				}
-				
-				return post;
-			}
 		}
  	}
 }

@@ -43,7 +43,6 @@ import com.whooa.blog.category.dto.CategoryDto.CategoryUpdateRequest;
 import com.whooa.blog.category.entity.CategoryEntity;
 import com.whooa.blog.category.exception.CategoryNotFoundException;
 import com.whooa.blog.category.exception.DuplicateCategoryException;
-import com.whooa.blog.category.mapper.CategoryMapper;
 import com.whooa.blog.category.service.CategoryService;
 import com.whooa.blog.common.api.PageResponse;
 import com.whooa.blog.common.code.Code;
@@ -63,9 +62,7 @@ public class CategoryControllerTest {
  
 	@MockBean
 	private CategoryService categoryService;
-	@MockBean
-    private CategoryMapper categoryMapper;
-
+	
 	private CategoryEntity categoryEntity;
 	
 	private CategoryCreateRequest categoryCreate;
@@ -91,7 +88,9 @@ public class CategoryControllerTest {
 		categoryCreate = new CategoryCreateRequest().name(name);
 		categoryUpdate = new CategoryUpdateRequest().name("카테고리2");
 		
-		category1 = new CategoryResponse().name(name);
+		category1 = CategoryResponse.builder()
+						.name(name)
+						.build();
 	}
 	
 	@DisplayName("카테고리를 생성하는데 성공한다.")
@@ -100,9 +99,8 @@ public class CategoryControllerTest {
 	public void givenCategoryCreate_whenCallCreateCategory_thenReturnCategory() throws Exception {
 		ResultActions action;
 		
-		given(categoryMapper.fromEntity(any(CategoryEntity.class))).willReturn(category1);
 		given(categoryService.create(any(CategoryCreateRequest.class))).willAnswer((answer) -> {
-			return categoryMapper.fromEntity(categoryEntity);			
+			return category1;		
 		});
 
 		action = mockMvc.perform(
@@ -124,9 +122,7 @@ public class CategoryControllerTest {
 	public void givenCategoryCreate_whenCallCreateCategory_thenThrowBadRqeustExceptionForName() throws Exception {
 		ResultActions action;
 		
-		given(categoryService.create(any(CategoryCreateRequest.class))).willAnswer((answer) -> {
-			category1 = categoryMapper.fromEntity(categoryEntity);
-			
+		given(categoryService.create(any(CategoryCreateRequest.class))).willAnswer((answer) -> {			
 			return category1;
 		});
 
@@ -171,7 +167,7 @@ public class CategoryControllerTest {
 		ResultActions action;
 		
 		given(categoryService.create(any(CategoryCreateRequest.class))).willAnswer((answer) -> {
-			return categoryMapper.fromEntity(categoryEntity);
+			return category1;
 		});
 
 		action = mockMvc.perform(
@@ -242,7 +238,9 @@ public class CategoryControllerTest {
 		MultiValueMap<String, String> params;
 		PaginationUtil pagination;
 		
-		category2 = new CategoryResponse().name("카테고리2");
+		category2 = CategoryResponse.builder()
+						.name("카테고리2")
+						.build();
 		pagination = new PaginationUtil();
 		
 		page = PageResponse.handleResponse(List.of(category1, category2), pagination.getPageSize(), pagination.getPageNo(), 2, 1, true, true);
@@ -273,11 +271,11 @@ public class CategoryControllerTest {
 	public void givenCategoryUpdate_whenCallUpdateCategory_thenReturnCategory() throws Exception {
 		ResultActions action;
 		
-		given(categoryMapper.fromEntity(any(CategoryEntity.class))).willReturn(category1.name(categoryUpdate.getName()));
 		given(categoryService.update(any(Long.class), any(CategoryUpdateRequest.class))).willAnswer((answer) -> {
 			categoryEntity.setName(categoryUpdate.getName());
+			category1.setName(categoryEntity.getName());
 			
-			return categoryMapper.fromEntity(categoryEntity);
+			return category1;
 		});
 		
 		action = mockMvc.perform(
@@ -301,8 +299,9 @@ public class CategoryControllerTest {
 		
 		given(categoryService.update(any(Long.class), any(CategoryUpdateRequest.class))).willAnswer((answer) -> {
 			categoryEntity.setName(categoryUpdate.getName());
+			category1.setName(categoryEntity.getName());
 			
-			return categoryMapper.fromEntity(categoryEntity);
+			return category1;
 		});
 		
 		categoryUpdate.name("가");
@@ -346,9 +345,9 @@ public class CategoryControllerTest {
 		ResultActions action;
 		
 		given(categoryService.update(any(Long.class), any(CategoryUpdateRequest.class))).willAnswer((answer) -> {
-			categoryEntity.setName(categoryUpdate.getName());
+			category1.setName(categoryEntity.getName());
 			
-			return categoryMapper.fromEntity(categoryEntity);
+			return category1;
 		});
 		
 		action = mockMvc.perform(

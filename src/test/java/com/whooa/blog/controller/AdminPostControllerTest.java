@@ -39,6 +39,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.whooa.blog.admin.controller.AdminPostController;
 import com.whooa.blog.admin.service.AdminPostService;
+import com.whooa.blog.category.dto.CategoryDto.CategoryResponse;
 import com.whooa.blog.category.entity.CategoryEntity;
 import com.whooa.blog.common.code.Code;
 import com.whooa.blog.common.exception.AllExceptionHandler;
@@ -47,7 +48,6 @@ import com.whooa.blog.post.dto.PostDto.PostResponse;
 import com.whooa.blog.post.dto.PostDto.PostUpdateRequest;
 import com.whooa.blog.post.entity.PostEntity;
 import com.whooa.blog.post.exception.PostNotFoundException;
-import com.whooa.blog.post.mapper.PostMapper;
 import com.whooa.blog.user.entity.UserEntity;
 import com.whooa.blog.user.type.UserRole;
 import com.whooa.blog.util.SerializeDeserializeUtil;
@@ -71,6 +71,7 @@ public class AdminPostControllerTest {
 	
 	private PostUpdateRequest postUpdate;
 	private PostResponse post;
+	private CategoryResponse category;
 	
 	@BeforeAll
 	public void setUpAll() {
@@ -79,17 +80,15 @@ public class AdminPostControllerTest {
 					.addFilter(new CharacterEncodingFilter("utf-8", true))
 					.apply(springSecurity()).build();
 				
-		categoryEntity = CategoryEntity.builder()
-							.name("카테고리")
-							.build();
+		categoryEntity = new CategoryEntity();
+		categoryEntity.setName("카테고리");
 
 
-		userEntity = UserEntity.builder()
-						.email("user1@naver.com")
-						.name("사용자1")
-						.password("12345678Aa!@#$%")
-						.userRole(UserRole.USER)
-						.build();
+		userEntity = new UserEntity();
+		userEntity.setEmail("user1@naver.com");
+		userEntity.setName("사용자1");
+		userEntity.setPassword("12345678Aa!@#$%");
+		userEntity.setUserRole(UserRole.USER);
 	}
 	
 	@BeforeEach
@@ -99,21 +98,26 @@ public class AdminPostControllerTest {
 		content = "포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포";
 		title = "포스트";
 		
-		postEntity = PostEntity.builder()
-						.content(content)	
-						.title(title)
-						.category(categoryEntity)
-						.user(userEntity)
-						.build();
+		postEntity = new PostEntity();
+		postEntity.setContent(content);
+		postEntity.setTitle(title);
+		postEntity.setCategory(categoryEntity);
+		postEntity.setUser(userEntity);
 		
-		postUpdate = new PostUpdateRequest()
-							.categoryName(categoryEntity.getName())
-							.content("포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포")
-							.title("포스트2");
+		postUpdate = new PostUpdateRequest();
+		postUpdate.setCategoryName(categoryEntity.getName());
+		postUpdate.setContent("포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포");
+		postUpdate.setTitle("포스트2");
 		
-		post = new PostResponse()
-					.content(content)
-					.title(title);
+		category = new CategoryResponse();
+		category.setId(categoryEntity.getId());
+		category.setName(categoryEntity.getName());
+		
+		post = new PostResponse();
+		post.setId(postEntity.getId());
+		post.setContent(content);
+		post.setTitle(title);
+		post.setCategory(category);
 	}
 	
 	@DisplayName("포스트를 삭제하는데 성공한다.")
@@ -181,8 +185,9 @@ public class AdminPostControllerTest {
 			postEntity.setContent(postUpdate.getContent());
 			postEntity.setTitle(postUpdate.getTitle());
 
-			post = PostMapper.INSTANCE.toDto(postEntity);
-			post.files(List.of(file));
+			post.setContent(postEntity.getContent());
+			post.setTitle(postEntity.getTitle());
+			post.setFiles(List.of(file));
 			
 			return post;
 		});
@@ -216,7 +221,8 @@ public class AdminPostControllerTest {
 			postEntity.setContent(postUpdate.getContent());
 			postEntity.setTitle(postUpdate.getTitle());
 			
-			post = PostMapper.INSTANCE.toDto(postEntity);
+			post.setContent(postEntity.getContent());
+			post.setTitle(postEntity.getTitle());
 			
 			return post;
 		});
@@ -243,7 +249,7 @@ public class AdminPostControllerTest {
 		ResultActions action;
 		MockMultipartFile postUpdateFile;
 
-		postUpdate.categoryName("테");
+		postUpdate.setCategoryName("테");
 		
 		postUpdateFile = new MockMultipartFile("post", null, MediaType.APPLICATION_JSON_VALUE, SerializeDeserializeUtil.serializeToString(postUpdate).getBytes(StandardCharsets.UTF_8));
 		
@@ -251,7 +257,8 @@ public class AdminPostControllerTest {
 			postEntity.setContent(postUpdate.getContent());
 			postEntity.setTitle(postUpdate.getTitle());
 			
-			post = PostMapper.INSTANCE.toDto(postEntity);
+			post.setContent(postEntity.getContent());
+			post.setTitle(postEntity.getTitle());
 			
 			return post;
 		});
@@ -275,7 +282,7 @@ public class AdminPostControllerTest {
 		ResultActions action;
 		MockMultipartFile postUpdateFile;
 		
-		postUpdate.title("테");
+		postUpdate.setTitle("테");
 
 		postUpdateFile = new MockMultipartFile("post", null, MediaType.APPLICATION_JSON_VALUE, SerializeDeserializeUtil.serializeToString(postUpdate).getBytes(StandardCharsets.UTF_8));
 		
@@ -283,7 +290,8 @@ public class AdminPostControllerTest {
 			postEntity.setContent(postUpdate.getContent());
 			postEntity.setTitle(postUpdate.getTitle());
 			
-			post = PostMapper.INSTANCE.toDto(postEntity);
+			post.setContent(postEntity.getContent());
+			post.setTitle(postEntity.getTitle());	
 			
 			return post;
 		});
@@ -307,14 +315,15 @@ public class AdminPostControllerTest {
 		ResultActions action;
 		MockMultipartFile postUpdateFile;
 		
-		postUpdate.content("실전 내용");
+		postUpdate.setContent("실전 내용");
 		postUpdateFile = new MockMultipartFile("post", null, MediaType.APPLICATION_JSON_VALUE, SerializeDeserializeUtil.serializeToString(postUpdate).getBytes(StandardCharsets.UTF_8));
 		
 		given(adminPostService.update(any(Long.class), any(PostUpdateRequest.class), any(MultipartFile[].class))).willAnswer((answer) -> {
 			postEntity.setContent(postUpdate.getContent());
 			postEntity.setTitle(postUpdate.getTitle());
 			
-			post = PostMapper.INSTANCE.toDto(postEntity);
+			post.setContent(postEntity.getContent());
+			post.setTitle(postEntity.getTitle());	
 			
 			return post;
 		});
@@ -368,7 +377,8 @@ public class AdminPostControllerTest {
 			postEntity.setContent(postUpdate.getContent());
 			postEntity.setTitle(postUpdate.getTitle());
 			
-			post = PostMapper.INSTANCE.toDto(postEntity);
+			post.setContent(postEntity.getContent());
+			post.setTitle(postEntity.getTitle());
 			
 			return post;
 		});

@@ -17,11 +17,6 @@ public class CommentDto {
 		
 		public CommentCreateRequest() {}
 		
-		public CommentCreateRequest content(String content) {
-			this.content = content;
-			return this;
-		}
-		
 		public String getContent() {
 			return content;
 		}
@@ -47,11 +42,6 @@ public class CommentDto {
 		private String content;
 
 		public CommentUpdateRequest() {}
-		
-		public CommentUpdateRequest content(String content) {
-			this.content = content;
-			return this;
-		}
 		
 		public String getContent() {
 			return content;
@@ -129,44 +119,5 @@ public class CommentDto {
 		 * }
 		 */
 		
-		public static CommentResponseBuilder builder() {
-			return new CommentResponseBuilder();
-		}
-		
-		public static final class CommentResponseBuilder {
-			private Long id;
-			private String content;
-			private Long parentId;
-			
-			private CommentResponseBuilder() {}
-			
-			public CommentResponseBuilder id(Long id) {
-				this.id = id;
-				return this;
-			}
-			
-			public CommentResponseBuilder content(String content) {
-				this.content = content;
-				return this;
-			}
-			
-			public CommentResponseBuilder parentId(Long parentId) {
-				this.parentId = parentId;
-				return this;
-			}
-			
-			public CommentResponse build() {
-				CommentResponse comment = new CommentResponse();
-				
-				comment.setId(id);
-				comment.setContent(content);
-				
-				if (parentId != null) {
-					comment.setParentId(parentId);
-				}
-				
-				return comment;
-			}
-		}
 	}
 }

@@ -39,7 +39,6 @@ import com.whooa.blog.comment.dto.CommentDto.CommentResponse;
 import com.whooa.blog.comment.dto.CommentDto.CommentUpdateRequest;
 import com.whooa.blog.comment.entity.CommentEntity;
 import com.whooa.blog.comment.exception.CommentNotFoundException;
-import com.whooa.blog.comment.mapper.CommentMapper;
 import com.whooa.blog.common.code.Code;
 import com.whooa.blog.common.exception.AllExceptionHandler;
 import com.whooa.blog.post.entity.PostEntity;
@@ -60,8 +59,6 @@ public class AdminCommentControllerTest {
     
 	@MockBean
 	private AdminCommentService adminCommentService;
-	@MockBean
-	private CommentMapper commentMapper;
 
 	private CommentEntity commentEntity;
 	private CategoryEntity categoryEntity;
@@ -78,41 +75,39 @@ public class AdminCommentControllerTest {
 					.addFilter(new CharacterEncodingFilter("utf-8", true))
 					.apply(springSecurity()).build();
 		
-		userEntity = UserEntity.builder()
-						.email("user1@naver.com")
-						.name("사용자1")
-						.password("12345678Aa!@#$%")
-						.userRole(UserRole.USER)
-						.build();
-		
-		categoryEntity = CategoryEntity.builder()
-							.name("카테고리")
-							.build();
-
-		postEntity = PostEntity.builder()
-						.content("포스트")
-						.title("포스트")
-						.category(categoryEntity)
-						.user(userEntity)
-						.build();
+		userEntity = new UserEntity();
+		userEntity.setEmail("user1@naver.com");
+		userEntity.setName("사용자1");
+		userEntity.setPassword("12345678Aa!@#$%");
+		userEntity.setUserRole(UserRole.USER);
+						
+		categoryEntity = new CategoryEntity();
+		categoryEntity.setName("카테고리");
+	
+		postEntity = new PostEntity();
+		postEntity.setContent("포스트");
+		postEntity.setTitle("포스트");
+		postEntity.setCategory(categoryEntity);
+		postEntity.setUser(userEntity);
 	}
 	
 	@BeforeEach
 	public void setUpEach() {
 		String content = "댓글";
 		
-		commentEntity = CommentEntity.builder()
-							.content(content)
-							.parentId(null)
-							.post(postEntity)
-							.user(userEntity)
-							.build();
-				
-		commentUpdate = new CommentUpdateRequest().content("댓글2");
+		commentEntity = new CommentEntity();
 		
-		comment = new CommentResponse()
-						.content(content)
-						.parentId(null);
+		commentEntity.setContent(content);
+		commentEntity.setParentId(null);
+		commentEntity.setPost(postEntity);
+		commentEntity.setUser(userEntity);
+				
+		commentUpdate = new CommentUpdateRequest();
+		commentUpdate.setContent("댓글2");
+		
+		comment = new CommentResponse();
+		comment.setId(commentEntity.getId());
+		comment.setContent(commentEntity.getContent());
 	}
 	
 	@DisplayName("댓글을 삭제하는데 성공한다.")
@@ -184,10 +179,8 @@ public class AdminCommentControllerTest {
 	public void givenCommentUpdate_whenCallUpdateComment_thenReturnComment() throws Exception {
 		ResultActions action;
 		
-		given(categoryMapper.fromEntity(any(CategoryEntity.class))).willReturn(category1);
 		given(adminCommentService.update(any(Long.class), any(Long.class), any(CommentUpdateRequest.class))).willAnswer((answer) -> {
 			commentEntity.setContent(commentUpdate.getContent());
-			comment = CommentMapper.INSTANCE.toDto(commentEntity);
 			
 			return comment;
 		});
@@ -213,12 +206,12 @@ public class AdminCommentControllerTest {
 		
 		given(adminCommentService.update(any(Long.class), any(Long.class), any(CommentUpdateRequest.class))).willAnswer((answer) -> {
 			commentEntity.setContent(commentUpdate.getContent());
-			comment = CommentMapper.INSTANCE.toDto(commentEntity);
 			
 			return comment;
 		});
 	
-		commentUpdate.content(null);
+		commentUpdate.setContent(null);
+		
 		action = mockMvc.perform(
 			patch("/api/v1/admin/posts/{post-id}/comments/{id}", postEntity.getId(), commentEntity.getId())
 			.content(SerializeDeserializeUtil.serializeToString(commentUpdate))
@@ -282,7 +275,6 @@ public class AdminCommentControllerTest {
 		
 		given(adminCommentService.update(any(Long.class), any(Long.class), any(CommentUpdateRequest.class))).willAnswer((answer) -> {
 			commentEntity.setContent(commentUpdate.getContent());
-			comment = CommentMapper.INSTANCE.toDto(commentEntity);
 			
 			return comment;
 		});

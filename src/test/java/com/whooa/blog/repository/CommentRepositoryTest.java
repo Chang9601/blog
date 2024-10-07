@@ -122,7 +122,7 @@ public class CommentRepositoryTest {
 
 	@DisplayName("댓글을 삭제하는데 성공한다.")
 	@Test
-	public void givenCommentEntity_whenCallDelete_thenReturnNothing(CommentEntity commentEntity1) {
+	public void givenCommentEntity_whenCallDelete_thenReturnNothing() {
 		CommentEntity savedCommentEntity;
 		
 		savedCommentEntity = commentRepository.save(commentEntity1);

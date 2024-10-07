@@ -316,16 +316,6 @@ public class UserDto {
 		}
 
 		public UserResponse() {}
-		
-		public UserResponse email(String email) {
-			this.email = email;
-			return this;
-		}
-		
-		public UserResponse userRole(UserRole userRole) {
-			this.userRole = userRole;
-			return this;
-		}
 
 		public Long getId() {
 			return id;
@@ -354,44 +344,6 @@ public class UserDto {
 		@Override
 		public String toString() {
 			return "UserResponse [id=" + id + ", email=" + email + ", userRole=" + userRole + "]";
-		}
-		
-		public static UserResponseBuilder builder() {
-			return new UserResponseBuilder();
-		}
-		
-		public static final class UserResponseBuilder {
-			private Long id;
-			private String email;
-			private UserRole userRole;
-			
-			private UserResponseBuilder() {}
-			
-			public UserResponseBuilder id(Long id) {
-				this.id = id;
-				return this;
-			}
-			
-			public UserResponseBuilder email(String email) {
-				this.email = email;
-				return this;
-			}
-			
-			public UserResponseBuilder userRole(UserRole userRole) {
-				this.userRole = userRole;
-				return this;
-			}
-			
-			public UserResponse build() {
-				UserResponse user = new UserResponse();
-				
-				user.setId(id);
-				user.setEmail(email);
-				user.userRole(userRole);
-				
-				return user;
-			}
-				
 		}
 	}
 }

@@ -38,9 +38,7 @@ public class PostServiceImpl implements PostService {
 	private CategoryRepository categoryRepository;
 	private UserRepository userRepository;
 	private FileService fileService;
-	private PostMapper postMapper;
 
-	
 	/*
 	 * 생성자 주입은 생성자를 사용해서 의존성을 주입한다.
 	 * Spring 4.3 이전의 경우 @Autowired 어노테이션을 생성자에 추가해야 했지만 이후 버전의 경우 하나의 생성자만 존재하면 이는 선택 사항이다.
@@ -54,13 +52,11 @@ public class PostServiceImpl implements PostService {
 			CategoryRepository categoryRepository, 
 			PostRepository postRepository, 
 			UserRepository userRepository, 
-			FileService fileService, 
-			PostMapper postMapper) {
+			FileService fileService) {
 		this.categoryRepository = categoryRepository;
 		this.postRepository = postRepository;
 		this.userRepository = userRepository;
 		this.fileService = fileService;
-		this.postMapper = postMapper;
 	}
 
 	@Override
@@ -73,15 +69,19 @@ public class PostServiceImpl implements PostService {
 				
 		categoryEntity = categoryRepository.findByName(postCreate.getCategoryName()).orElseThrow(() -> new CategoryNotFoundException(Code.NOT_FOUND, new String[] {"카테고리가 존재하지 않습니다."}));
 		userEntity = userRepository.findById(userDetailsImpl.getId()).orElseThrow(() -> new UserNotFoundException(Code.NOT_FOUND, new String[] {"아이디에 해당하는 사용자가 존재하지 않습니다."}));
-		postEntity = postMapper.toEntity(postCreate, categoryEntity, userEntity);
-								
+		postEntity = PostMapper.INSTANCE.toEntity(postCreate);
+
+		postEntity.setCategory(categoryEntity);
+		postEntity.setUser(userEntity);
+										
 		if (uploadFiles != null && uploadFiles.length > 0) {
 			files = Arrays.stream(uploadFiles)
 					.map(uploadFile -> fileService.upload(postEntity, uploadFile))
 					.collect(Collectors.toList());
 		}
 	
-		post = postMapper.fromEntity(postRepository.save(postEntity));
+		post = PostMapper.INSTANCE.fromEntity(postRepository.save(postEntity));		
+		post.setFiles(files);
 		
 		return post;
 	}
@@ -106,7 +106,7 @@ public class PostServiceImpl implements PostService {
 	public PostResponse find(Long id) {
 		PostEntity postEntity = postRepository.findById(id).orElseThrow(() -> new PostNotFoundException(Code.NOT_FOUND, new String[] {"포스트가 존재하지 않습니다."}));
 		
-		return postMapper.fromEntity(postEntity);
+		return PostMapper.INSTANCE.fromEntity(postEntity);
 	}
 
 	@Override
@@ -130,7 +130,7 @@ public class PostServiceImpl implements PostService {
 		isLast = page.isLast();
 		isFirst = page.isFirst();
 				
-		postResponse = postEntities.stream().map((postEntity) -> postMapper.fromEntity(postEntity)).collect(Collectors.toList());
+		postResponse = postEntities.stream().map((postEntity) -> PostMapper.INSTANCE.fromEntity(postEntity)).collect(Collectors.toList());
 		
 		return PageResponse.handleResponse(postResponse, pageSize, pageNo, totalElements, totalPages, isLast, isFirst);
 	}
@@ -157,7 +157,7 @@ public class PostServiceImpl implements PostService {
 		isLast = page.isLast();
 		isFirst = page.isFirst();
 		
-		postResponse = postEntities.stream().map((postEntity) -> postMapper.fromEntity(postEntity)).collect(Collectors.toList());
+		postResponse = postEntities.stream().map((postEntity) -> PostMapper.INSTANCE.fromEntity(postEntity)).collect(Collectors.toList());
 		
 		return PageResponse.handleResponse(postResponse, pageSize, pageNo, totalElements, totalPages, isLast, isFirst);
 	}
@@ -202,7 +202,8 @@ public class PostServiceImpl implements PostService {
 					.collect(Collectors.toList());
 		}
 		
-		post = postMapper.fromEntity(postRepository.save(postEntity));
+		post = PostMapper.INSTANCE.fromEntity(postRepository.save(postEntity));
+		post.setFiles(files);
 		
 		return post;
 	}
