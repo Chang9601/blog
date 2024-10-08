@@ -11,6 +11,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Random;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
@@ -62,6 +63,7 @@ public class PostIntegrationTest {
 	
     @Autowired
     private WebApplicationContext webApplicationContext;
+    
 	@Autowired
 	private PostRepository postRepository;
 	@Autowired
@@ -77,6 +79,22 @@ public class PostIntegrationTest {
 
 	private UserDetailsImpl userDetailsImpl;
 
+	private static final String CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+	
+	private static String generateRandomString(int length) {
+		Random random;
+		StringBuilder stringBuilder;
+		int i;
+		
+		random = new Random();
+		stringBuilder = new StringBuilder(length);
+
+		for (i = 0; i < length; i++) {
+			stringBuilder.append(CHARACTERS.charAt(random.nextInt(CHARACTERS.length())));
+		}
+		
+		return stringBuilder.toString();
+	}
 	@BeforeAll
 	void setUpAll() {
 		mockMvc = MockMvcBuilders
@@ -84,49 +102,42 @@ public class PostIntegrationTest {
 					.addFilter(new CharacterEncodingFilter("utf-8", true))
 					.apply(springSecurity()).build();
 		
-		categoryEntity = categoryRepository.save(
-			CategoryEntity.builder()
-				.name("카테고리")
-				.build()
-		);
+		categoryEntity = new CategoryEntity();
+		categoryEntity.setName("카테고리");
+
+		categoryEntity = categoryRepository.save(categoryEntity);
 		
-		userEntity = userRepository.save(
-			UserEntity.builder()
-				.email("user1@naver.com")
-				.name("사용자1")
-				.password("12345678Aa!@#$%")
-				.userRole(UserRole.USER)
-				.build()
-		);
+		userEntity = new UserEntity();
+		userEntity.setEmail("user1@naver.com");
+		userEntity.setName("사용자1");
+		userEntity.setPassword("12345678Aa!@#$%");
+		userEntity.setUserRole(UserRole.USER);
 		
-		userRepository.save(
-			UserEntity.builder()
-				.email("user2@naver.com")
-				.name("사용자2")
-				.password("12345678Aa!@#$%")
-				.userRole(UserRole.USER)
-				.build()
-		);
+		userEntity = userRepository.save(userEntity);
+		
+		userEntity = new UserEntity();
+		userEntity.setEmail("user2@naver.com");
+		userEntity.setName("사용자2");
+		userEntity.setPassword("12345678Aa!@#$%");
+		userEntity.setUserRole(UserRole.USER);
+		
+		userRepository.save(userEntity);
 		
 		userDetailsImpl = new UserDetailsImpl(userEntity);
 	}
 	
 	@BeforeEach
-	void setUpEach() {
-		String content, title;
-		
-		content = "포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포";
-		title = "포스트";
-		
-		postCreate = new PostCreateRequest()
-							.categoryName(categoryEntity.getName())
-							.content(content)
-							.title(title);
+	void setUpEach() {		
+		postCreate = new PostCreateRequest();
+		postCreate.setCategoryName(categoryEntity.getName());
+		postCreate.setContent(generateRandomString(200));
+		postCreate.setTitle("포스트1");
 				
-		postUpdate = new PostUpdateRequest()
-							.categoryName(categoryEntity.getName())
-							.content("포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2")
-							.title("포스트2");
+		postUpdate = new PostUpdateRequest();
+		
+		postUpdate.setCategoryName(categoryEntity.getName());
+		postUpdate.setContent(generateRandomString(200));
+		postUpdate.setTitle("포스트2");
 	}
 	
 	@AfterAll
@@ -199,7 +210,7 @@ public class PostIntegrationTest {
 		ResultActions action;
 		MockMultipartFile postCreateFile;
 		
-		postCreate.categoryName("테");
+		postCreate.setCategoryName("카");
 		
 		postCreateFile = new MockMultipartFile("post", null, MediaType.APPLICATION_JSON_VALUE, SerializeDeserializeUtil.serializeToString(postCreate).getBytes(StandardCharsets.UTF_8));
 					
@@ -222,7 +233,7 @@ public class PostIntegrationTest {
 		ResultActions action;
 		MockMultipartFile postCreateFile;
 		
-		postCreate.title("테");
+		postCreate.setTitle("포");
 		
 		postCreateFile = new MockMultipartFile("post", null, MediaType.APPLICATION_JSON_VALUE, SerializeDeserializeUtil.serializeToString(postCreate).getBytes(StandardCharsets.UTF_8));
 					
@@ -245,7 +256,7 @@ public class PostIntegrationTest {
 		ResultActions action;
 		MockMultipartFile postCreateFile;
 		
-		postCreate.content("테스트 내용");
+		postCreate.setContent("포");
 		
 		postCreateFile = new MockMultipartFile("post", null, MediaType.APPLICATION_JSON_VALUE, SerializeDeserializeUtil.serializeToString(postCreate).getBytes(StandardCharsets.UTF_8));
 					
@@ -333,7 +344,7 @@ public class PostIntegrationTest {
 		MockMultipartFile postCreateFile;
 		MvcResult result;
 		
-		userDetailsImpl =  new UserDetailsImpl(userRepository.findByEmailAndActiveTrue("user2@user2.com").get());
+		userDetailsImpl =  new UserDetailsImpl(userRepository.findByEmailAndActiveTrue("user2@naver.com").get());
 		
 		postCreateFile = new MockMultipartFile("post", null, MediaType.APPLICATION_JSON_VALUE, SerializeDeserializeUtil.serializeToString(postCreate).getBytes(StandardCharsets.UTF_8));
 
@@ -549,7 +560,7 @@ public class PostIntegrationTest {
 		MockMultipartFile postCreateFile, postUpdateFile;
 		MvcResult result;
 		
-		postUpdate.categoryName("테");
+		postUpdate.setCategoryName("카");
 		
 		postCreateFile = new MockMultipartFile("post", null, MediaType.APPLICATION_JSON_VALUE, SerializeDeserializeUtil.serializeToString(postCreate).getBytes(StandardCharsets.UTF_8));
 		postUpdateFile = new MockMultipartFile("post", null, MediaType.APPLICATION_JSON_VALUE, SerializeDeserializeUtil.serializeToString(postUpdate).getBytes(StandardCharsets.UTF_8));
@@ -585,7 +596,7 @@ public class PostIntegrationTest {
 		MockMultipartFile postCreateFile, postUpdateFile;
 		MvcResult result;
 		
-		postUpdate.title("테");
+		postUpdate.setTitle("포");
 		
 		postCreateFile = new MockMultipartFile("post", null, MediaType.APPLICATION_JSON_VALUE, SerializeDeserializeUtil.serializeToString(postCreate).getBytes(StandardCharsets.UTF_8));
 		postUpdateFile = new MockMultipartFile("post", null, MediaType.APPLICATION_JSON_VALUE, SerializeDeserializeUtil.serializeToString(postUpdate).getBytes(StandardCharsets.UTF_8));
@@ -621,7 +632,7 @@ public class PostIntegrationTest {
 		MockMultipartFile postCreateFile, postUpdateFile;
 		MvcResult result;
 		
-		postUpdate.content("실전 내용");
+		postUpdate.setContent("포");
 		
 		postCreateFile = new MockMultipartFile("post", null, MediaType.APPLICATION_JSON_VALUE, SerializeDeserializeUtil.serializeToString(postCreate).getBytes(StandardCharsets.UTF_8));
 		postUpdateFile = new MockMultipartFile("post", null, MediaType.APPLICATION_JSON_VALUE, SerializeDeserializeUtil.serializeToString(postUpdate).getBytes(StandardCharsets.UTF_8));
@@ -682,7 +693,7 @@ public class PostIntegrationTest {
 		postCreateFile = new MockMultipartFile("post", null, MediaType.APPLICATION_JSON_VALUE, SerializeDeserializeUtil.serializeToString(postCreate).getBytes(StandardCharsets.UTF_8));
 		postUpdateFile = new MockMultipartFile("post", null, MediaType.APPLICATION_JSON_VALUE, SerializeDeserializeUtil.serializeToString(postUpdate).getBytes(StandardCharsets.UTF_8));
 
-		userDetailsImpl =  new UserDetailsImpl(userRepository.findByEmailAndActiveTrue("user2@user2.com").get());
+		userDetailsImpl =  new UserDetailsImpl(userRepository.findByEmailAndActiveTrue("user2@naver.com").get());
 
 		result = mockMvc.perform(
 			multipart(HttpMethod.POST, "/api/v1/posts")

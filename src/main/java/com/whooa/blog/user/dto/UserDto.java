@@ -130,26 +130,6 @@ public class UserDto {
 		
 		public UserAdminUpdateRequest() {}
 		
-		public UserAdminUpdateRequest email(String email) {
-			this.email = email;
-			return this;
-		}
-		
-		public UserAdminUpdateRequest name(String name) {
-			this.name = name;
-			return this;
-		}
-		
-		public UserAdminUpdateRequest password(String password) {
-			this.password = password;
-			return this;
-		}
-
-		public UserAdminUpdateRequest userRole(String userRole) {
-			this.userRole = userRole;
-			return this;
-		}
-		
 		public String getEmail() {
 			return email;
 		}
@@ -208,16 +188,6 @@ public class UserDto {
 		
 		public UserUpdateRequest() {}
 		
-		public UserUpdateRequest email(String email) {
-			this.email = email;
-			return this;
-		}
-		
-		public UserUpdateRequest name(String name) {
-			this.name = name;
-			return this;
-		}
-		
 		public String getEmail() {
 			return email;
 		}
@@ -258,16 +228,6 @@ public class UserDto {
 		
 		public UserPasswordUpdateRequest() {}
 		
-		public UserPasswordUpdateRequest newPassword(String newPassword) {
-			this.newPassword = newPassword;
-			return this;
-		}
-		
-		public UserPasswordUpdateRequest oldPassword(String oldPassword) {
-			this.oldPassword = oldPassword;
-			return this;
-		}
-
 		public String getNewPassword() {
 			return newPassword;
 		}

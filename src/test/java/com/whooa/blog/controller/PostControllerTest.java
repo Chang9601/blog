@@ -14,6 +14,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Random;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -50,6 +51,7 @@ import com.whooa.blog.post.dto.PostDto.PostUpdateRequest;
 import com.whooa.blog.post.dto.PostDto.PostResponse;
 import com.whooa.blog.post.entity.PostEntity;
 import com.whooa.blog.post.exception.PostNotFoundException;
+import com.whooa.blog.post.mapper.PostMapper;
 import com.whooa.blog.post.service.PostService;
 import com.whooa.blog.user.entity.UserEntity;
 import com.whooa.blog.user.type.UserRole;
@@ -88,7 +90,24 @@ public class PostControllerTest {
 	private PostCreateRequest postCreate;
 	private PostUpdateRequest postUpdate;
 	private PostResponse post1;
+	
+	private static final String CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+	
+	private static String generateRandomString(int length) {
+		Random random;
+		StringBuilder stringBuilder;
+		int i;
+		
+		random = new Random();
+		stringBuilder = new StringBuilder(length);
 
+		for (i = 0; i < length; i++) {
+			stringBuilder.append(CHARACTERS.charAt(random.nextInt(CHARACTERS.length())));
+		}
+		
+		return stringBuilder.toString();
+	}
+	
 	@BeforeAll
 	public void setUpAll() {
 		mockMvc = MockMvcBuilders
@@ -96,46 +115,38 @@ public class PostControllerTest {
 					.addFilter(new CharacterEncodingFilter("utf-8", true))
 					.apply(springSecurity()).build();
 				
-		categoryEntity = CategoryEntity.builder()
-							.name("카테고리")
-							.build();
+		categoryEntity = new CategoryEntity();
+		categoryEntity.setName("카테고리");
 
-		userEntity = UserEntity.builder()
-						.email("user1@naver.com")
-						.name("사용자1")
-						.password("12345678Aa!@#$%")
-						.userRole(UserRole.USER)
-						.build();
+		userEntity = new UserEntity();
+		userEntity.setEmail("user1@naver.com");
+		userEntity.setName("사용자1");
+		userEntity.setPassword("12345678Aa!@#$%");
+		userEntity.setUserRole(UserRole.USER);
 	}
 	
 	@BeforeEach
 	public void setUpEach() {
-		String content, title;
+		postCreate = new PostCreateRequest();
+		postCreate.setCategoryName(categoryEntity.getName());
+		postCreate.setContent(generateRandomString(200));
+		postCreate.setTitle("포스트");
+
+		postUpdate = new PostUpdateRequest();
+		postUpdate.setCategoryName(categoryEntity.getName());
+		postUpdate.setContent(generateRandomString(200));
+		postUpdate.setTitle("포스트2");
 		
-		content = "포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트ㅍ";
-		title = "포스트";
+		postEntity = new PostEntity();
+		postEntity.setContent(postCreate.getContent());
+		postEntity.setTitle(postCreate.getTitle());
+		postEntity.setCategory(categoryEntity);
+		postEntity.setUser(userEntity);
 		
-		postEntity = PostEntity.builder()
-						.content(content)		
-						.title(title)
-						.category(categoryEntity)
-						.user(userEntity)
-						.build();
-				
-		postCreate = new PostCreateRequest()
-							.categoryName(categoryEntity.getName())
-							.content(content)
-							.title(title);
-		
-		postUpdate = new PostUpdateRequest()
-							.categoryName(categoryEntity.getName())
-							.content("포스트2포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트")
-							.title("포스트2");
-					
-		post1 = PostResponse.builder()
-					.content(postEntity.getContent())
-					.title(postEntity.getTitle())
-					.build();
+		post1 = new PostResponse();
+		post1.setId(postEntity.getId());
+		post1.setContent(postEntity.getContent());
+		post1.setTitle(postEntity.getTitle());
 	}
 	
 	@DisplayName("포스트(파일 X)를 생성하는데 성공한다.")
@@ -148,7 +159,7 @@ public class PostControllerTest {
 		postCreateFile = new MockMultipartFile("post", null, MediaType.APPLICATION_JSON_VALUE, SerializeDeserializeUtil.serializeToString(postCreate).getBytes(StandardCharsets.UTF_8));
 
 		given(postService.create(any(PostCreateRequest.class), any(MultipartFile[].class), any(UserDetailsImpl.class))).willAnswer((answer) -> { 			
-			return post1;
+			return PostMapper.INSTANCE.fromEntity(postEntity);
 		});
 					
 		action = mockMvc.perform(
@@ -187,10 +198,12 @@ public class PostControllerTest {
 		given(postService.create(any(PostCreateRequest.class), any(MultipartFile[].class), any(UserDetailsImpl.class))).willAnswer((answer) -> {
 			File file1 = new File(".txt", MediaType.TEXT_PLAIN_VALUE, postFile1.getName(), "D:\\spring-workspace\\whooa-blog\\upload\\test1.txt", postFile1.getSize());
 			File file2 = new File(".txt", MediaType.TEXT_PLAIN_VALUE, postFile2.getName(), "D:\\spring-workspace\\whooa-blog\\upload\\test2.txt", postFile2.getSize());
-					
-			post1.setFiles(List.of(file1, file2));
 			
-			return post1;
+			postEntity.setFiles(List.of(file1, file2));
+
+			post1.setFiles(postEntity.getFiles());
+			
+			return PostMapper.INSTANCE.fromEntity(postEntity);
 		});
 					
 		action = mockMvc.perform(
@@ -210,18 +223,19 @@ public class PostControllerTest {
 			.andExpect(jsonPath("$.data.files.length()", is(2)));
 	}
 
-	@DisplayName("카테고리 이름이  짧아 포스트를 생성하는데 실패한다.")
+	@DisplayName("카테고리 이름이 짧아 포스트를 생성하는데 실패한다.")
 	@Test
 	@WithMockCustomUser
 	public void givenPostCreate_whenCallCreatePost_thenThrowBadRequestExceptionForCategoryName() throws Exception {
 		ResultActions action;
 		MockMultipartFile postCreateFile;
 		
-		postCreate.categoryName("테");
+		postCreate.setCategoryName("카");
+		
 		postCreateFile = new MockMultipartFile("post", null, MediaType.APPLICATION_JSON_VALUE, SerializeDeserializeUtil.serializeToString(postCreate).getBytes(StandardCharsets.UTF_8));
 
 		given(postService.create(any(PostCreateRequest.class), any(MultipartFile[].class), any(UserDetailsImpl.class))).willAnswer((answer) -> { 
-			return post1;
+			return PostMapper.INSTANCE.fromEntity(postEntity);
 		});
 					
 		action = mockMvc.perform(
@@ -236,18 +250,19 @@ public class PostControllerTest {
 			.andExpect(status().isBadRequest());
 	}
 	
-	@DisplayName("제목이  짧아 포스트를 생성하는데 실패한다.")
+	@DisplayName("제목이 짧아 포스트를 생성하는데 실패한다.")
 	@Test
 	@WithMockCustomUser
 	public void givenPostCreate_whenCallCreatePost_thenThrowBadRequestExceptionForTitle() throws Exception {
 		ResultActions action;
 		MockMultipartFile postCreateFile;
 		
-		postCreate.title("테");
+		postCreate.setTitle("포");
+		
 		postCreateFile = new MockMultipartFile("post", null, MediaType.APPLICATION_JSON_VALUE, SerializeDeserializeUtil.serializeToString(postCreate).getBytes(StandardCharsets.UTF_8));
 
 		given(postService.create(any(PostCreateRequest.class), any(MultipartFile[].class), any(UserDetailsImpl.class))).willAnswer((answer) -> { 
-			return post1;
+			return PostMapper.INSTANCE.fromEntity(postEntity);
 		});
 					
 		action = mockMvc.perform(
@@ -262,18 +277,19 @@ public class PostControllerTest {
 			.andExpect(status().isBadRequest());
 	}
 
-	@DisplayName("내용이  짧아 포스트를 생성하는데 실패한다.")
+	@DisplayName("내용이 짧아 포스트를 생성하는데 실패한다.")
 	@Test
 	@WithMockCustomUser
 	public void givenPostCreate_whenCallCreatePost_thenThrowBadRequestExceptionForContent() throws Exception {
 		ResultActions action;
 		MockMultipartFile postCreateFile;
 		
-		postCreate.content("테스트 내용");
+		postCreate.setContent("포스트");
+		
 		postCreateFile = new MockMultipartFile("post", null, MediaType.APPLICATION_JSON_VALUE, SerializeDeserializeUtil.serializeToString(postCreate).getBytes(StandardCharsets.UTF_8));
 
 		given(postService.create(any(PostCreateRequest.class), any(MultipartFile[].class), any(UserDetailsImpl.class))).willAnswer((answer) -> { 			
-			return post1;
+			return PostMapper.INSTANCE.fromEntity(postEntity);
 		});
 					
 		action = mockMvc.perform(
@@ -297,7 +313,7 @@ public class PostControllerTest {
 		postCreateFile = new MockMultipartFile("post", null, MediaType.APPLICATION_JSON_VALUE, SerializeDeserializeUtil.serializeToString(postCreate).getBytes(StandardCharsets.UTF_8));
 
 		given(postService.create(any(PostCreateRequest.class), any(MultipartFile[].class), any(UserDetailsImpl.class))).willAnswer((answer) -> { 			
-			return post1;
+			return PostMapper.INSTANCE.fromEntity(postEntity);
 		});
 
 		action = mockMvc.perform(
@@ -401,15 +417,15 @@ public class PostControllerTest {
 	public void givenPagination_whenCallGetPosts_thenReturnPosts() throws Exception {
 		ResultActions action;
 		PageResponse<PostResponse> page;
+		PaginationUtil pagination;
 		MultiValueMap<String, String> params;
 		PostResponse post2;
-		PaginationUtil pagination;
 		
-		post2 = PostResponse.builder()
-					.content("실전 내용")
-					.title("실전 제목")
-					.build();
-
+		post2 = new PostResponse();
+		post2.setId(2L);
+		post2.setContent(generateRandomString(200));
+		post2.setTitle("포스트2");
+		
 		pagination = new PaginationUtil();
 		page = PageResponse.handleResponse(List.of(post1, post2), pagination.getPageSize(), pagination.getPageNo(), 2, 1, false, true);
 
@@ -448,12 +464,13 @@ public class PostControllerTest {
 			
 			postEntity.setContent(postUpdate.getContent());
 			postEntity.setTitle(postUpdate.getTitle());
+			postEntity.setFiles(List.of(file));
 
 			post1.setContent(postEntity.getContent());
 			post1.setTitle(postEntity.getTitle());
-			post1.setFiles(List.of(file));
+			post1.setFiles(postEntity.getFiles());
 			
-			return post1;
+			return PostMapper.INSTANCE.fromEntity(postEntity);
 		});
 		
 		action = mockMvc.perform(
@@ -488,7 +505,7 @@ public class PostControllerTest {
 			post1.setContent(postEntity.getContent());
 			post1.setTitle(postEntity.getTitle());
 			
-			return post1;
+			return PostMapper.INSTANCE.fromEntity(postEntity);
 		});
 			
 		action = mockMvc.perform(
@@ -505,14 +522,15 @@ public class PostControllerTest {
 			.andExpect(jsonPath("$.data.content", is(post1.getContent())));
 	}
 	
-	@DisplayName("카테고리 이름이  짧아 포스트를 수정하는데 실패한다.")
+	@DisplayName("카테고리 이름이 짧아 포스트를 수정하는데 실패한다.")
 	@Test
 	@WithMockCustomUser
 	public void givenPostUpdate_whenCallUpdatePost_thenThrowBadRequestExceptionForCategoryName() throws Exception {
 		ResultActions action;
 		MockMultipartFile postUpdateFile;
 		
-		postUpdate.categoryName("테");
+		postUpdate.setCategoryName("카");
+		
 		postUpdateFile = new MockMultipartFile("post", null, MediaType.APPLICATION_JSON_VALUE, SerializeDeserializeUtil.serializeToString(postUpdate).getBytes(StandardCharsets.UTF_8));
 		
 		given(postService.update(any(Long.class), any(PostUpdateRequest.class), any(MultipartFile[].class), any(UserDetailsImpl.class))).willAnswer((answer) -> {
@@ -522,7 +540,7 @@ public class PostControllerTest {
 			post1.setContent(postEntity.getContent());
 			post1.setTitle(postEntity.getTitle());
 			
-			return post1;
+			return PostMapper.INSTANCE.fromEntity(postEntity);
 		});
 		
 		action = mockMvc.perform(
@@ -537,14 +555,15 @@ public class PostControllerTest {
 			.andExpect(status().isBadRequest());
 	}
 	
-	@DisplayName("제목이  짧아 포스트를 수정하는데 실패한다.")
+	@DisplayName("제목이 짧아 포스트를 수정하는데 실패한다.")
 	@Test
 	@WithMockCustomUser
 	public void givenPostUpdate_whenCallUpdatePost_thenThrowBadRequestExceptionForTitle() throws Exception {
 		ResultActions action;
 		MockMultipartFile postUpdateFile;
 		
-		postUpdate.title("테");
+		postUpdate.setTitle("포");
+		
 		postUpdateFile = new MockMultipartFile("post", null, MediaType.APPLICATION_JSON_VALUE, SerializeDeserializeUtil.serializeToString(postUpdate).getBytes(StandardCharsets.UTF_8));
 		
 		given(postService.update(any(Long.class), any(PostUpdateRequest.class), any(MultipartFile[].class), any(UserDetailsImpl.class))).willAnswer((answer) -> {
@@ -554,7 +573,7 @@ public class PostControllerTest {
 			post1.setContent(postEntity.getContent());
 			post1.setTitle(postEntity.getTitle());
 			
-			return post1;
+			return PostMapper.INSTANCE.fromEntity(postEntity);
 		});
 
 		action = mockMvc.perform(
@@ -569,14 +588,15 @@ public class PostControllerTest {
 			.andExpect(status().isBadRequest());
 	}
 	
-	@DisplayName("내용이  짧아 포스트를 수정하는데 실패한다.")
+	@DisplayName("내용이 짧아 포스트를 수정하는데 실패한다.")
 	@Test
 	@WithMockCustomUser
 	public void givenPostUpdate_whenCallUpdatePost_thenThrowBadRequestExceptionForContent() throws Exception {
 		ResultActions action;
 		MockMultipartFile postUpdateFile;
 		
-		postUpdate.content("실전 내용");
+		postUpdate.setContent("포스트");
+		
 		postUpdateFile = new MockMultipartFile("post", null, MediaType.APPLICATION_JSON_VALUE, SerializeDeserializeUtil.serializeToString(postUpdate).getBytes(StandardCharsets.UTF_8));
 		
 		given(postService.update(any(Long.class), any(PostUpdateRequest.class), any(MultipartFile[].class), any(UserDetailsImpl.class))).willAnswer((answer) -> {
@@ -586,7 +606,7 @@ public class PostControllerTest {
 			post1.setContent(postEntity.getContent());
 			post1.setTitle(postEntity.getTitle());
 			
-			return post1;
+			return PostMapper.INSTANCE.fromEntity(postEntity);
 		});
 			
 		action = mockMvc.perform(
@@ -640,7 +660,7 @@ public class PostControllerTest {
 			post1.setContent(postEntity.getContent());
 			post1.setTitle(postEntity.getTitle());
 			
-			return post1;
+			return PostMapper.INSTANCE.fromEntity(postEntity);
 		});
 					
 		action = mockMvc.perform(

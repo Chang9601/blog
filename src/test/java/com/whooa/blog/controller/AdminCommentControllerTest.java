@@ -39,6 +39,7 @@ import com.whooa.blog.comment.dto.CommentDto.CommentResponse;
 import com.whooa.blog.comment.dto.CommentDto.CommentUpdateRequest;
 import com.whooa.blog.comment.entity.CommentEntity;
 import com.whooa.blog.comment.exception.CommentNotFoundException;
+import com.whooa.blog.comment.mapper.CommentMapper;
 import com.whooa.blog.common.code.Code;
 import com.whooa.blog.common.exception.AllExceptionHandler;
 import com.whooa.blog.post.entity.PostEntity;
@@ -92,19 +93,16 @@ public class AdminCommentControllerTest {
 	}
 	
 	@BeforeEach
-	public void setUpEach() {
-		String content = "댓글";
-		
-		commentEntity = new CommentEntity();
-		
-		commentEntity.setContent(content);
-		commentEntity.setParentId(null);
-		commentEntity.setPost(postEntity);
-		commentEntity.setUser(userEntity);
-				
+	public void setUpEach() {		
 		commentUpdate = new CommentUpdateRequest();
 		commentUpdate.setContent("댓글2");
 		
+		commentEntity = new CommentEntity();
+		
+		commentEntity.setContent("댓글1");
+		commentEntity.setPost(postEntity);
+		commentEntity.setUser(userEntity);
+	
 		comment = new CommentResponse();
 		comment.setId(commentEntity.getId());
 		comment.setContent(commentEntity.getContent());
@@ -182,7 +180,9 @@ public class AdminCommentControllerTest {
 		given(adminCommentService.update(any(Long.class), any(Long.class), any(CommentUpdateRequest.class))).willAnswer((answer) -> {
 			commentEntity.setContent(commentUpdate.getContent());
 			
-			return comment;
+			comment.setContent(commentEntity.getContent());
+			
+			return CommentMapper.INSTANCE.fromEntity(commentEntity);
 		});
 	
 		action = mockMvc.perform(
@@ -195,7 +195,7 @@ public class AdminCommentControllerTest {
 		action
 			.andDo(print())
 			.andExpect(status().isOk())
-			.andExpect(jsonPath("$.data.content", is(comment.getContent())));
+			.andExpect(jsonPath("$.data.content", is(commentUpdate.getContent())));
 	}
 	
 	@DisplayName("내용이 없어 댓글을 수정하는데 실패한다.")
@@ -207,7 +207,9 @@ public class AdminCommentControllerTest {
 		given(adminCommentService.update(any(Long.class), any(Long.class), any(CommentUpdateRequest.class))).willAnswer((answer) -> {
 			commentEntity.setContent(commentUpdate.getContent());
 			
-			return comment;
+			comment.setContent(commentEntity.getContent());
+			
+			return CommentMapper.INSTANCE.fromEntity(commentEntity);
 		});
 	
 		commentUpdate.setContent(null);
@@ -276,7 +278,9 @@ public class AdminCommentControllerTest {
 		given(adminCommentService.update(any(Long.class), any(Long.class), any(CommentUpdateRequest.class))).willAnswer((answer) -> {
 			commentEntity.setContent(commentUpdate.getContent());
 			
-			return comment;
+			comment.setContent(commentEntity.getContent());
+			
+			return CommentMapper.INSTANCE.fromEntity(commentEntity);
 		});
 	
 		action = mockMvc.perform(

@@ -45,6 +45,7 @@ import com.whooa.blog.user.exception.DuplicateUserException;
 import com.whooa.blog.user.exception.InvalidCredentialsException;
 import com.whooa.blog.user.exception.SamePasswordException;
 import com.whooa.blog.user.exception.UserNotFoundException;
+import com.whooa.blog.user.mapper.UserMapper;
 import com.whooa.blog.user.service.UserService;
 import com.whooa.blog.user.type.UserRole;
 import com.whooa.blog.util.PasswordUtil;
@@ -80,39 +81,30 @@ public class UserControllerTest {
 	
 	@BeforeEach
 	public void setUpEach() {
-		String email, name, password, userRole;
-		
-		email = "user1@naver.com";
-		name = "사용자1";
-		password = "12345678Aa!@#$%";
-		userRole = "USER";
-		
-		userEntity = UserEntity.builder()
-						.email(email)
-						.name(name)
-						.password(password)
-						.userRole(UserRole.USER)
-						.build();
-		
-		userCreate = new UserCreateRequest()
-							.email(email)
-							.name(name)
-							.password(password)
-							.userRole(userRole);
-		
-		userUpdate = new UserUpdateRequest()
-							.email("user2@naver.com")
-							.name("사용자2");
-		
-		userPasswordUpdate = new UserPasswordUpdateRequest()
-									.oldPassword(password)
-									.newPassword("12345679Aa!@#$%");
+		userCreate = new UserCreateRequest();
+		userCreate.setEmail("user1@naver.com");
+		userCreate.setName("사용자1");
+		userCreate.setPassword("12345678Aa!@#$%");
+		userCreate.setUserRole("USER");
 
-		user1 = UserResponse.builder()
-					.id(userEntity.getId())
-					.email(userEntity.getEmail())
-					.userRole(userEntity.getUserRole())
-					.build();
+		userUpdate = new UserUpdateRequest();
+		userUpdate.setEmail("user2@naver.com");
+		userUpdate.setName("사용자2");
+
+		userPasswordUpdate = new UserPasswordUpdateRequest();
+		userPasswordUpdate.setOldPassword("12345678Aa!@#$%");
+		userPasswordUpdate.setNewPassword("12345679Aa!@#$%");
+		
+		userEntity = new UserEntity();
+		userEntity.setEmail(userCreate.getEmail());
+		userEntity.setName(userCreate.getName());
+		userEntity.setPassword(userCreate.getPassword());
+		userEntity.setUserRole(UserRole.USER);
+
+		user1 = new UserResponse();
+		user1.setId(userEntity.getId());
+		user1.setEmail(userEntity.getEmail());
+		user1.setUserRole(userEntity.getUserRole());
 	}
 	
 	@DisplayName("회원가입에 성공한다.")
@@ -167,7 +159,7 @@ public class UserControllerTest {
 		ResultActions action;
 		
 		given(userService.create(any(UserCreateRequest.class))).willAnswer((answer) -> {
-			return user1;
+			return UserMapper.INSTANCE.fromEntity(userEntity);
 		});
 
 		userCreate.email("user1naver.com");
@@ -190,7 +182,7 @@ public class UserControllerTest {
 		ResultActions action;
 		
 		given(userService.create(any(UserCreateRequest.class))).willAnswer((answer) -> {
-			return user1;
+			return UserMapper.INSTANCE.fromEntity(userEntity);
 		});
 
 		userCreate.password("12314241");
@@ -340,7 +332,7 @@ public class UserControllerTest {
 			
 			user1.setEmail(userEntity.getEmail());
 						
-			return user1;
+			return UserMapper.INSTANCE.fromEntity(userEntity);
 		});
 		
 		action = mockMvc.perform(
@@ -368,10 +360,10 @@ public class UserControllerTest {
 			
 			user1.setEmail(userEntity.getEmail());
 			
-			return user1;
+			return UserMapper.INSTANCE.fromEntity(userEntity);
 		});
 
-		userUpdate.name("사");
+		userUpdate.setName("사");
 		
 		action = mockMvc.perform(
 			patch("/api/v1/users")
@@ -396,10 +388,10 @@ public class UserControllerTest {
 			
 			user1.setEmail(userEntity.getEmail());
 			
-			return user1;
+			return UserMapper.INSTANCE.fromEntity(userEntity);
 		});
 
-		userUpdate.email("user1naver.com");
+		userUpdate.setEmail("user1naver.com");
 		
 		action = mockMvc.perform(
 			patch("/api/v1/users")
@@ -441,9 +433,10 @@ public class UserControllerTest {
 		
 		given(userService.update(any(UserUpdateRequest.class), any(UserDetailsImpl.class))).willAnswer((answer) -> {
 			userEntity.setEmail(userUpdate.getEmail());
+			
 			user1.setEmail(userEntity.getEmail());
 			
-			return user1;
+			return UserMapper.INSTANCE.fromEntity(userEntity);
 		});
 		
 		action = mockMvc.perform(
@@ -466,10 +459,8 @@ public class UserControllerTest {
 		
 		given(userService.updatePassowrd(any(UserPasswordUpdateRequest.class), any(UserDetailsImpl.class))).willAnswer((answer) -> {
 			userEntity.setPassword(PasswordUtil.hash(userPasswordUpdate.getNewPassword()));
-			
-			user1.setEmail(userEntity.getPassword());
-			
-			return user1;
+						
+			return UserMapper.INSTANCE.fromEntity(userEntity);
 		});
 		
 		action = mockMvc.perform(
@@ -493,12 +484,11 @@ public class UserControllerTest {
 		given(userService.updatePassowrd(any(UserPasswordUpdateRequest.class), any(UserDetailsImpl.class))).willAnswer((answer) -> {
 			userEntity.setPassword(PasswordUtil.hash(userPasswordUpdate.getNewPassword()));
 			
-			user1.setEmail(userEntity.getPassword());
-			
 			return user1;
 		});
 		
-		userPasswordUpdate.newPassword("12314241");
+		userPasswordUpdate.setNewPassword("12314241");
+		
 		action = mockMvc.perform(
 			patch("/api/v1/users/update-my-password")
 			.content(SerializeDeserializeUtil.serializeToString(userPasswordUpdate))
@@ -519,7 +509,8 @@ public class UserControllerTest {
 		
 		given(userService.updatePassowrd(any(UserPasswordUpdateRequest.class), any(UserDetailsImpl.class))).willThrow(new InvalidCredentialsException(Code.BAD_REQUEST, new String[] {"비밀번호가 정확하지 않습니다."}));
 		
-		userPasswordUpdate.oldPassword("12345678bB!@#$%");
+		userPasswordUpdate.setOldPassword("12345678bB!@#$%");
+		
 		action = mockMvc.perform(
 			patch("/api/v1/users/update-my-password")
 			.content(SerializeDeserializeUtil.serializeToString(userPasswordUpdate))
@@ -541,7 +532,8 @@ public class UserControllerTest {
 		
 		given(userService.updatePassowrd(any(UserPasswordUpdateRequest.class), any(UserDetailsImpl.class))).willThrow(new SamePasswordException(Code.BAD_REQUEST, new String[] {"새 비밀번호는 현재 비밀번호와 달라야 합니다."}));
 		
-		userPasswordUpdate.newPassword(userPasswordUpdate.getOldPassword());
+		userPasswordUpdate.setNewPassword(userPasswordUpdate.getOldPassword());
+		
 		action = mockMvc.perform(
 			patch("/api/v1/users/update-my-password")
 			.content(SerializeDeserializeUtil.serializeToString(userPasswordUpdate))
@@ -563,9 +555,7 @@ public class UserControllerTest {
 		given(userService.updatePassowrd(any(UserPasswordUpdateRequest.class), any(UserDetailsImpl.class))).willAnswer((answer) -> {
 			userEntity.setPassword(PasswordUtil.hash(userPasswordUpdate.getNewPassword()));
 
-			user1.setEmail(userEntity.getPassword());
-			
-			return user1;
+			return UserMapper.INSTANCE.fromEntity(userEntity);
 		});
 		
 		action = mockMvc.perform(

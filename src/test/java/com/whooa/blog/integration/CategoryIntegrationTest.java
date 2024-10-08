@@ -59,10 +59,13 @@ public class CategoryIntegrationTest {
 	
     @Autowired
     private WebApplicationContext webApplicationContext;
+    
 	@Autowired
 	private CategoryRepository categoryRepository;
 	@Autowired
 	private UserRepository userRepository;
+
+	private UserEntity userEntity;
 
 	private CategoryCreateRequest categoryCreate1;
 	private CategoryUpdateRequest categoryUpdate;
@@ -76,31 +79,32 @@ public class CategoryIntegrationTest {
 					.addFilter(new CharacterEncodingFilter("utf-8", true))
 					.apply(springSecurity()).build();
 		
-		userRepository.save(
-			UserEntity.builder()
-				.email("user@naver.com")
-				.name("사용자")
-				.password("12345678Aa!@#$%")
-				.userRole(UserRole.USER)
-				.build()
-		);
+		userEntity = new UserEntity();
+		userEntity.setEmail("admin@naver.com");
+		userEntity.setName("관리자");
+		userEntity.setPassword("12345678Aa!@#$%");
+		userEntity.setUserRole(UserRole.ADMIN);
 		
-		userRepository.save(
-			UserEntity.builder()
-				.email("admin@naver.com")
-				.name("관리자")
-				.password("12345678Aa!@#$%")
-				.userRole(UserRole.ADMIN)
-				.build()
-		);		
+		userRepository.save(userEntity);
+		
+		userEntity = new UserEntity();
+		userEntity.setEmail("user@naver.com");
+		userEntity.setName("사용자");
+		userEntity.setPassword("12345678Aa!@#$%");
+		userEntity.setUserRole(UserRole.USER);
+		
+		userRepository.save(userEntity);	
 		
 		userDetailsImpl = new UserDetailsImpl(userRepository.findByEmailAndActiveTrue("admin@naver.com").get());
 	}
 	
 	@BeforeEach
 	void setUpEach() {
-		categoryCreate1 = new CategoryCreateRequest().name("카테고리1");
-		categoryUpdate = new CategoryUpdateRequest().name("카테고리2");		
+		categoryCreate1 = new CategoryCreateRequest();
+		categoryCreate1.setName("카테고리1");
+		
+		categoryUpdate = new CategoryUpdateRequest();
+		categoryUpdate.setName("카테고리2");		
 	}
 
 	@AfterAll
@@ -136,7 +140,8 @@ public class CategoryIntegrationTest {
 	@WithUserDetails(value = "admin@naver.com", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")
 	public void givenCategoryCreate_whenCallCreateCategory_thenThrowBadRqeustExceptionForName() throws Exception {
 		ResultActions action;
-		categoryCreate1.name("카");
+		
+		categoryCreate1.setName("카");
 		
 		action = mockMvc.perform(
 			post("/api/v1/categories")
@@ -268,7 +273,8 @@ public class CategoryIntegrationTest {
 		MultiValueMap<String, String> params;
 		PaginationUtil pagination;
 		
-		categoryCreate2 = new CategoryCreateRequest().name("실전 카테고리");
+		categoryCreate2 = new CategoryCreateRequest();
+		categoryCreate2.setName("카테고리2");
 		
 		mockMvc.perform(post("/api/v1/categories")
 			.with(user(userDetailsImpl))
@@ -345,7 +351,7 @@ public class CategoryIntegrationTest {
 		Integer id;
 		MvcResult result;
 		
-		categoryUpdate.name("카");
+		categoryUpdate.setName("카");
 		
 		result = mockMvc.perform(
 			post("/api/v1/categories")

@@ -63,6 +63,7 @@ public class CommentIntegrationTest {
 	
     @Autowired
     private WebApplicationContext webApplicationContext;
+    
 	@Autowired
 	private CommentRepository commentRepository;
 	@Autowired
@@ -86,49 +87,47 @@ public class CommentIntegrationTest {
 		mockMvc = MockMvcBuilders
 					.webAppContextSetup(webApplicationContext)
 					.addFilter(new CharacterEncodingFilter("utf-8", true))
-					.apply(springSecurity()).build();
+					.apply(springSecurity()).build();	
+		
+		userEntity = new UserEntity();
+		userEntity.setEmail("user2@naver.com");
+		userEntity.setName("사용자2");
+		userEntity.setPassword("12345678Aa!@#$%");
+		userEntity.setUserRole(UserRole.USER);
+		
+		userRepository.save(userEntity);
 
-		userEntity = userRepository.save(
-			UserEntity.builder()
-				.email("user1@naver.com")
-				.name("사용자1")
-				.password("12345678Aa!@#$%")
-				.userRole(UserRole.USER)
-				.build()
-		);
+		userEntity = new UserEntity();
+		userEntity.setEmail("user1@naver.com");
+		userEntity.setName("사용자1");
+		userEntity.setPassword("12345678Aa!@#$%");
+		userEntity.setUserRole(UserRole.USER);
 		
-		userRepository.save(
-			UserEntity.builder()
-				.email("user2@naver.com")
-				.name("사용자2")
-				.password("12345678Aa!@#$%")
-				.userRole(UserRole.USER)
-				.build()
-		);
+		userEntity = userRepository.save(userEntity);
 		
-		categoryEntity = categoryRepository.save(
-			CategoryEntity.builder()
-				.name("카테고리")
-				.build()
-		);
+		categoryEntity = new CategoryEntity();
+		categoryEntity.setName("카테고리");
+
+		categoryEntity = categoryRepository.save(categoryEntity);
 		
-		postEntity = postRepository.save(
-			 PostEntity.builder()
-				.content("포스트")
-				.title("포스트")
-				.category(categoryEntity)
-				.user(userEntity)
-				.build()
-		);
+		postEntity = new PostEntity();
+		postEntity.setContent("포스트");
+		postEntity.setTitle("포스트");
+		postEntity.setCategory(categoryEntity);
+		postEntity.setUser(userEntity);
+
+		postEntity = postRepository.save(postEntity);
 		
 		userDetailsImpl = new UserDetailsImpl(userEntity);
-
 	}
 	
 	@BeforeEach
 	void setUpEach() {
-		commentCreate1 = new CommentCreateRequest().content("댓글1");
-		commentUpdate = new CommentUpdateRequest().content("댓글2");
+		commentCreate1 = new CommentCreateRequest();
+		commentCreate1.setContent("댓글1");
+		
+		commentUpdate = new CommentUpdateRequest();
+		commentUpdate.setContent("댓글2");
 	}
 	
 	@AfterAll
@@ -146,7 +145,7 @@ public class CommentIntegrationTest {
 	
 	@DisplayName("댓글을 생성하는데 성공한다.")
 	@Test
-	@WithUserDetails(value = "user1@user1.com", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")
+	@WithUserDetails(value = "user1@naver.com", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")
 	public void givenCommentCreate_whenCallCreateComment_thenReturnComment() throws Exception {
 		ResultActions action;
 		
@@ -165,7 +164,7 @@ public class CommentIntegrationTest {
 	
 	@DisplayName("포스트가 존재하지 않아 댓글을 생성하는데 실패한다.")
 	@Test
-	@WithUserDetails(value = "user1@user1.com", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")
+	@WithUserDetails(value = "user1@naver.com", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")
 	public void givenCommentCreate_whenCallCreateComment_thenThrowPostNotFoundException() throws Exception {				
 		ResultActions action;
 		
@@ -201,7 +200,7 @@ public class CommentIntegrationTest {
 	
 	@DisplayName("댓글을 삭제하는데 성공한다.")
 	@Test
-	@WithUserDetails(value = "user1@user1.com", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")
+	@WithUserDetails(value = "user1@naver.com", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")
 	public void givenId_whenCallDeleteComment_thenReturnNothing() throws Exception {
 		ResultActions action;
 		Integer id;
@@ -227,7 +226,7 @@ public class CommentIntegrationTest {
 	
 	@DisplayName("포스트가 존재하지 않아 댓글을 삭제하는데 실패한다.")
 	@Test
-	@WithUserDetails(value = "user1@user1.com", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")
+	@WithUserDetails(value = "user1@naver.com", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")
 	public void givenId_whenCallDeleteComment_thenThrowPostNotFoundException() throws Exception {
 		ResultActions action;
 		Integer id;
@@ -253,7 +252,7 @@ public class CommentIntegrationTest {
 	
 	@DisplayName("댓글이 존재하지 않아 삭제하는데 실패한다.")
 	@Test
-	@WithUserDetails(value = "user1@user1.com", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")
+	@WithUserDetails(value = "user1@naver.com", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")
 	public void givenId_whenCallDeleteComment_thenThrowCommentNotFoundException() throws Exception {
 		ResultActions action;
 		
@@ -267,13 +266,13 @@ public class CommentIntegrationTest {
 
 	@DisplayName("댓글을 생성한 사용자가 아니라서 삭제하는데 실패한다.")
 	@Test
-	@WithUserDetails(value = "user1@user1.com", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")
+	@WithUserDetails(value = "user1@naver.com", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")
 	public void givenId_whenCallDeleteComment_thenThrowUserNotMatchedException() throws Exception {
 		ResultActions action;
 		Integer id;
 		MvcResult result;
 		
-		userDetailsImpl = new UserDetailsImpl(userRepository.findByEmailAndActiveTrue("user2@user2.com").get());
+		userDetailsImpl = new UserDetailsImpl(userRepository.findByEmailAndActiveTrue("user2@naver.com").get());
 
 		result = mockMvc.perform(
 			post("/api/v1/posts/{post-id}/comments", postEntity.getId())
@@ -323,10 +322,11 @@ public class CommentIntegrationTest {
 	public void givenPostId_whenCallGetCommentsByPostId_thenReturnCommentsForPost() throws Exception {
 		ResultActions action;
 		CommentCreateRequest commentCreate2;
-		MultiValueMap<String, String> params;
 		PaginationUtil pagination;
+		MultiValueMap<String, String> params;
 
-		commentCreate2 = new CommentCreateRequest().content("실전 내용");
+		commentCreate2 = new CommentCreateRequest();
+		commentCreate2.setContent("댓글2");
 
 		mockMvc.perform(post("/api/v1/posts/{post-id}/comments", postEntity.getId())
 			.with(user(userDetailsImpl))
@@ -364,7 +364,7 @@ public class CommentIntegrationTest {
 
 	@DisplayName("댓글을 수정하는데 성공한다.")
 	@Test
-	@WithUserDetails(value = "user1@user1.com", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")
+	@WithUserDetails(value = "user1@naver.com", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")
 	public void givenCommentUpdate_whenCallUpdateComment_thenReturnComment() throws Exception {
 		ResultActions action;
 		Integer id;
@@ -395,7 +395,7 @@ public class CommentIntegrationTest {
 	
 	@DisplayName("포스트가 존재하지 않아 댓글을 수정하는데 실패한다.")
 	@Test
-	@WithUserDetails(value = "user1@user1.com", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")
+	@WithUserDetails(value = "user1@naver.com", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")
 	public void givenCommentUpdate_whenCallUpdateComment_thenThrowPostNotFoundException() throws Exception {
 		ResultActions action;
 		Integer id;
@@ -426,7 +426,7 @@ public class CommentIntegrationTest {
 	
 	@DisplayName("댓글이 존재하지 않아 수정하는데 실패한다.")
 	@Test
-	@WithUserDetails(value = "user1@user1.com", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")
+	@WithUserDetails(value = "user1@naver.com", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")
 	public void givenCommentUpdate_whenCallUpdateComment_thenThrowCommentNotFoundException() throws Exception {
 		ResultActions action;
 		
@@ -446,13 +446,13 @@ public class CommentIntegrationTest {
 	
 	@DisplayName("댓글을 생성한 사용자가 아니라서 수정하는데 실패한다.")
 	@Test
-	@WithUserDetails(value = "user1@user1.com", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")
+	@WithUserDetails(value = "user1@naver.com", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")
 	public void givenCommentUpdate_whenCallUpdateComment_thenThrowUserNotMatchedException() throws Exception {
 		ResultActions action;
 		Integer id;
 		MvcResult result;
 		
-		userDetailsImpl = new UserDetailsImpl(userRepository.findByEmailAndActiveTrue("user2@user2.com").get());
+		userDetailsImpl = new UserDetailsImpl(userRepository.findByEmailAndActiveTrue("user2@naver.com").get());
 
 		result = mockMvc.perform(
 			post("/api/v1/posts/{post-id}/comments", postEntity.getId())

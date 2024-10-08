@@ -13,19 +13,23 @@ public class WithMockCustomUserSecurityContextFactory implements WithSecurityCon
 
 	@Override
 	public SecurityContext createSecurityContext(WithMockCustomUser mockCustomUser) {
-		String email = mockCustomUser.email();
-		String userRole = mockCustomUser.userRole();
+		String email, userRole;
+		UserDetailsImpl userDetailsImpl;
+		UserEntity userEntity;
+		SecurityContext securityContext;
+		
+		email = mockCustomUser.email();
+		userRole = mockCustomUser.userRole();
 				
-		UserEntity userEntity = UserEntity.builder()
-											.email(email)
-											.name("사용자")
-											.password("12345678Aa!@#$%")
-											.userRole(UserRoleMapper.map(userRole))
-											.build();
+		userEntity = new UserEntity();
+		userEntity.setEmail(email);
+		userEntity.setName("사용자");
+		userEntity.setPassword("12345678Aa!@#$%");
+		userEntity.setUserRole(UserRoleMapper.map(userRole));
+
+		userDetailsImpl = new UserDetailsImpl(userEntity);
 		
-		UserDetailsImpl userDetailsImpl = new UserDetailsImpl(userEntity);
-		
-		SecurityContext securityContext = SecurityContextHolder.createEmptyContext();
+		securityContext = SecurityContextHolder.createEmptyContext();
 		securityContext.setAuthentication(new UsernamePasswordAuthenticationToken(userDetailsImpl, null, userDetailsImpl.getAuthorities()));
 
 		return securityContext;

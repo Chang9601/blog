@@ -28,7 +28,6 @@ import com.whooa.blog.category.dto.CategoryDto.CategoryUpdateRequest;
 import com.whooa.blog.category.entity.CategoryEntity;
 import com.whooa.blog.category.exception.CategoryNotFoundException;
 import com.whooa.blog.category.exception.DuplicateCategoryException;
-import com.whooa.blog.category.mapper.CategoryMapper;
 import com.whooa.blog.category.repository.CategoryRepository;
 import com.whooa.blog.category.service.impl.CategoryServiceImpl;
 import com.whooa.blog.common.api.PageResponse;
@@ -42,45 +41,38 @@ public class CategoryServiceTest {
 	
 	@Mock
 	private CategoryRepository categoryRepository;
-	@Mock
-	private CategoryMapper categoryMapper;
 	
 	private CategoryEntity categoryEntity1;
 	
+	private CategoryCreateRequest categoryCreate;
+	private CategoryUpdateRequest categoryUpdate;
 	private CategoryResponse category;
 	
 	@BeforeEach
 	public void setUp() {
-		categoryEntity1 = CategoryEntity.builder()
-								.name("카테고리1")
-								.build();
+		categoryCreate = new CategoryCreateRequest();
+		categoryCreate.setName("카테고리1");
+
+		categoryUpdate = new CategoryUpdateRequest();
+		categoryUpdate.setName("카테고리2");
 		
-		category = CategoryResponse.builder()
-						.name("카테고리1")
-						.build();
+		categoryEntity1 = new CategoryEntity();
+		categoryEntity1.setName(categoryCreate.getName());
 	}
 
 	@DisplayName("카테고리를 생성하는데 성공한다.")
 	@Test
 	public void givenCategoryCreate_whenCallCreate_thenReturnCategory() {
-		CategoryCreateRequest categoryCreate;
-		CategoryResponse createdCategory;
-				
-		categoryCreate = new CategoryCreateRequest().name("카테고리1");
-
 		given(categoryRepository.save(any(CategoryEntity.class))).willReturn(categoryEntity1);
 		given(categoryRepository.existsByName(any(String.class))).willReturn(false);
-		given(categoryMapper.toEntity(any(CategoryCreateRequest.class))).willReturn(categoryEntity1);
-		given(categoryMapper.fromEntity(any(CategoryEntity.class))).willReturn(category);
-		
-		createdCategory = categoryServiceImpl.create(categoryCreate);
 
-		assertEquals(category.getName(), createdCategory.getName());
+		category = categoryServiceImpl.create(categoryCreate);
+
+		assertEquals(categoryEntity1.getName(), category.getName());
 
 		then(categoryRepository).should(times(1)).save(any(CategoryEntity.class));
 		then(categoryRepository).should(times(1)).existsByName(any(String.class));
-		then(categoryMapper).should(times(1)).toEntity(any(CategoryCreateRequest.class));
-		then(categoryMapper).should(times(1)).fromEntity(any(CategoryEntity.class));
+
 	}
 	
 	@DisplayName("카테고리를 생성하는데 실패한다.")
@@ -92,17 +84,11 @@ public class CategoryServiceTest {
 
 		then(categoryRepository).should(times(0)).save(any(CategoryEntity.class));
 		then(categoryRepository).should(times(0)).existsByName(any(String.class));
-		then(categoryMapper).should(times(0)).toEntity(any(CategoryCreateRequest.class));
-		then(categoryMapper).should(times(0)).fromEntity(any(CategoryEntity.class));
 	}
 
 	@DisplayName("카테고리가 이미 존재하여 생성하는데 실패한다.")
 	@Test
 	public void givenCategoryCreate_whenCallCreate_thenThrowDuplicateCategoryException() {
-		CategoryCreateRequest categoryCreate;
-
-		categoryCreate = new CategoryCreateRequest().name("카테고리1");
-
 		given(categoryRepository.existsByName(any(String.class))).willReturn(true);
 		
 		assertThrows(DuplicateCategoryException.class, () -> {
@@ -111,8 +97,7 @@ public class CategoryServiceTest {
 		
 		then(categoryRepository).should(times(0)).save(any(CategoryEntity.class));
 		then(categoryRepository).should(times(1)).existsByName(any(String.class));
-		then(categoryMapper).should(times(0)).toEntity(any(CategoryCreateRequest.class));
-		then(categoryMapper).should(times(0)).fromEntity(any(CategoryEntity.class));
+
 	}
 	
 	@DisplayName("카테고리를 삭제하는데 성공한다.")
@@ -143,17 +128,13 @@ public class CategoryServiceTest {
 	@DisplayName("카테고리를 조회하는데 성공한다.")
 	@Test
 	public void givenId_whenCallFind_thenReturnCategory() {
-		CategoryResponse foundCategory;
-		
 		given(categoryRepository.findById(any(Long.class))).willReturn(Optional.of(categoryEntity1));
-		given(categoryMapper.fromEntity(any(CategoryEntity.class))).willReturn(category);
 
-		foundCategory = categoryServiceImpl.find(categoryEntity1.getId());
+		category = categoryServiceImpl.find(categoryEntity1.getId());
 		
-		assertEquals(category.getName(), foundCategory.getName());
+		assertEquals(categoryEntity1.getName(), category.getName());
 		
 		then(categoryRepository).should(times(1)).findById(any(Long.class));
-		then(categoryMapper).should(times(1)).fromEntity(any(CategoryEntity.class));
 	}
 	
 	@DisplayName("카테고리를 조회하는데 실패한다.")
@@ -166,7 +147,6 @@ public class CategoryServiceTest {
 		});
 		
 		then(categoryRepository).should(times(1)).findById(any(Long.class));
-		then(categoryMapper).should(times(0)).fromEntity(any(CategoryEntity.class));
 	}
 	
 	@DisplayName("카테고리 목록을 조회하는데 성공한다.")
@@ -175,56 +155,40 @@ public class CategoryServiceTest {
 		CategoryEntity categoryEntity2;
 		PageResponse<CategoryResponse> page;
 		
-		categoryEntity2 = CategoryEntity.builder()
-								.name("카테고리2")
-								.build();
+		categoryEntity2 = new CategoryEntity();
+		categoryEntity2.setName("카테고리2");
 		
 		given(categoryRepository.findAll(any(Pageable.class))).willReturn(new PageImpl<CategoryEntity>(List.of(categoryEntity1, categoryEntity2)));
-		given(categoryMapper.fromEntity(any(CategoryEntity.class))).willReturn(category);
 
 		page = categoryServiceImpl.findAll(new PaginationUtil());
 		
 		assertEquals(2, page.getTotalElements());
 		
 		then(categoryRepository).should(times(1)).findAll(any(Pageable.class));
-		then(categoryMapper).should(times(2)).fromEntity(any(CategoryEntity.class));
 	}
 	
 	@DisplayName("카테고리를 수정하는데 성공한다.")
 	@Test
 	public void givenCategoryUpdate_whenCallUpdate_thenReturnCategory() {
 		CategoryEntity categoryEntity2;
-		CategoryUpdateRequest categoryUpdate;
-		CategoryResponse updatedCategory;
 		
-		categoryUpdate = new CategoryUpdateRequest().name("카테고리2");
-		
-		categoryEntity2 = CategoryEntity.builder()
-								.name(categoryUpdate.getName())
-								.build();
-		
-		category.setName(categoryEntity2.getName());
-		
+		categoryEntity2 = new CategoryEntity();
+		categoryEntity2.setName(categoryUpdate.getName());
+			
 		given(categoryRepository.save(any(CategoryEntity.class))).willReturn(categoryEntity2);
 		given(categoryRepository.findById(any(Long.class))).willReturn(Optional.of(categoryEntity1));
-		given(categoryMapper.fromEntity(any(CategoryEntity.class))).willReturn(category);
 
-		updatedCategory = categoryServiceImpl.update(categoryEntity1.getId(), categoryUpdate);
+		category = categoryServiceImpl.update(categoryEntity1.getId(), categoryUpdate);
 		
-		assertEquals(category.getName(), updatedCategory.getName());
+		assertEquals(categoryEntity2.getName(), category.getName());
 		
 		then(categoryRepository).should(times(1)).save(any(CategoryEntity.class));
 		then(categoryRepository).should(times(1)).findById(any(Long.class));
-		then(categoryMapper).should(times(1)).fromEntity(any(CategoryEntity.class));
 	}
 	
 	@DisplayName("카테고리가 존재하지 않아 수정하는데 실패한다.")
 	@Test
 	public void givenCategoryUpdate_whenCallUpdate_thenThrowCategoryNotFoundException() {
-		CategoryUpdateRequest categoryUpdate;
-		
-		categoryUpdate = new CategoryUpdateRequest().name("카테고리2");
-		
 		given(categoryRepository.findById(any(Long.class))).willReturn(Optional.empty());
 				
 		assertThrows(CategoryNotFoundException.class, () -> {
@@ -233,6 +197,5 @@ public class CategoryServiceTest {
 		
 		then(categoryRepository).should(times(0)).save(any(CategoryEntity.class));
 		then(categoryRepository).should(times(1)).findById(any(Long.class));
-		then(categoryMapper).should(times(0)).fromEntity(any(CategoryEntity.class));
 	}
 }

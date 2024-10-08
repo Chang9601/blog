@@ -59,30 +59,27 @@ public class PostRepositoryTest {
 	
 	@BeforeAll
 	public void setUpAll() {
-		categoryEntity1 = categoryRepository.save(
-			CategoryEntity.builder()
-				.name("카테고리1")
-				.build()
-		);
+		categoryEntity1 = new CategoryEntity();
+		categoryEntity1.setName("카테고리1");
+
+		categoryEntity1 = categoryRepository.save(categoryEntity1);
 		
-		userEntity = userRepository.save(
-			UserEntity.builder()
-				.email("user@user.com")
-				.name("사용자")
-				.password("12345678Aa!@#$%")
-				.userRole(UserRole.USER)
-				.build()
-		);
+		userEntity = new UserEntity();
+		userEntity.setEmail("user@naver.com");
+		userEntity.setName("사용자");
+		userEntity.setPassword("12345678Aa!@#$%");
+		userEntity.setUserRole(UserRole.USER);
+		
+		userEntity = userRepository.save(userEntity);
 	}
 	
 	@BeforeEach
 	public void setUpEach() {
-		postEntity1 = PostEntity.builder()
-						.content("포스트")
-						.title("포스트")
-						.category(categoryEntity1)
-						.user(userEntity)
-						.build();
+		postEntity1 = new PostEntity();
+		postEntity1.setContent("포스트1");
+		postEntity1.setTitle("포스트1");
+		postEntity1.setCategory(categoryEntity1);
+		postEntity1.setUser(userEntity);		
 	}
 
 	@AfterAll
@@ -95,11 +92,6 @@ public class PostRepositoryTest {
 	@DisplayName("포스트를 생성하는데 성공한다.")
 	@Test
 	public void givenPostEntity_whenCallSaveForCreate_thenReturnPostEntity() {
-		/*
-		 * given: 설정.
-		 * when: 행위.
-		 * then: 검증.
-		 */
 		PostEntity savedPostEntity;
 		
 		savedPostEntity = postRepository.save(postEntity1);
@@ -167,13 +159,12 @@ public class PostRepositoryTest {
 		PostEntity postEntity2;
 		Page<PostEntity> page;
 		
-		postEntity2 = PostEntity.builder()
-						.content("포스트2")
-						.title("포스트2")
-						.category(categoryEntity1)
-						.user(userEntity)
-						.build();
-		
+		postEntity2 = new PostEntity();
+		postEntity2.setContent("포스트2");
+		postEntity2.setTitle("포스트2");
+		postEntity2.setCategory(categoryEntity1);
+		postEntity2.setUser(userEntity);
+
 		postRepository.save(postEntity1);
 		postRepository.save(postEntity2);
 		
@@ -189,18 +180,16 @@ public class PostRepositoryTest {
 		Page<PostEntity> page;
 		PostEntity postEntity2;
 		
-		categoryEntity2 = categoryRepository.save(
-							CategoryEntity.builder()
-								.name("실전 카테고리")
-								.build()
-						);
+		categoryEntity2 = new CategoryEntity();
+		categoryEntity2.setName("카테고리2");
+
+		categoryEntity2 = categoryRepository.save(categoryEntity2);
 		
-		postEntity2 = PostEntity.builder()
-						.content("포스트2")
-						.title("포스트2")
-						.category(categoryEntity2)
-						.user(userEntity)
-						.build();
+		postEntity2 = new PostEntity();
+		postEntity2.setContent("포스트2");
+		postEntity2.setTitle("포스트2");
+		postEntity2.setCategory(categoryEntity2);
+		postEntity2.setUser(userEntity);
 			
 		postRepository.save(postEntity1);
 		postRepository.save(postEntity2);

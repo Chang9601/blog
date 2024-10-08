@@ -43,6 +43,7 @@ import com.whooa.blog.category.dto.CategoryDto.CategoryUpdateRequest;
 import com.whooa.blog.category.entity.CategoryEntity;
 import com.whooa.blog.category.exception.CategoryNotFoundException;
 import com.whooa.blog.category.exception.DuplicateCategoryException;
+import com.whooa.blog.category.mapper.CategoryMapper;
 import com.whooa.blog.category.service.CategoryService;
 import com.whooa.blog.common.api.PageResponse;
 import com.whooa.blog.common.code.Code;
@@ -79,18 +80,17 @@ public class CategoryControllerTest {
 	
 	@BeforeEach
 	public void setUpEach() {
-		String name = "카테고리1";
+		categoryCreate = new CategoryCreateRequest();
+		categoryCreate.setName("카테고리1");
 		
-		categoryEntity = CategoryEntity.builder()
-							.name(name)
-							.build();
-
-		categoryCreate = new CategoryCreateRequest().name(name);
-		categoryUpdate = new CategoryUpdateRequest().name("카테고리2");
+		categoryUpdate = new CategoryUpdateRequest();
+		categoryUpdate.setName("카테고리2");
 		
-		category1 = CategoryResponse.builder()
-						.name(name)
-						.build();
+		categoryEntity = new CategoryEntity();
+		categoryEntity.setName(categoryCreate.getName());
+		
+		category1 = new CategoryResponse();
+		category1.setName(categoryEntity.getName());
 	}
 	
 	@DisplayName("카테고리를 생성하는데 성공한다.")
@@ -100,7 +100,7 @@ public class CategoryControllerTest {
 		ResultActions action;
 		
 		given(categoryService.create(any(CategoryCreateRequest.class))).willAnswer((answer) -> {
-			return category1;		
+			return CategoryMapper.INSTANCE.fromEntity(categoryEntity);		
 		});
 
 		action = mockMvc.perform(
@@ -116,17 +116,18 @@ public class CategoryControllerTest {
 			.andExpect(jsonPath("$.data.name", is(category1.getName())));
 	}
 	
-	@DisplayName("이름이  짧아 카테고리를 생성하는데 실패한다.")
+	@DisplayName("이름이 짧아 카테고리를 생성하는데 실패한다.")
 	@Test
 	@WithMockCustomAdmin
 	public void givenCategoryCreate_whenCallCreateCategory_thenThrowBadRqeustExceptionForName() throws Exception {
 		ResultActions action;
 		
 		given(categoryService.create(any(CategoryCreateRequest.class))).willAnswer((answer) -> {			
-			return category1;
+			return CategoryMapper.INSTANCE.fromEntity(categoryEntity);		
 		});
 
-		categoryCreate.name("가");
+		categoryCreate.setName("카");
+		
 		action = mockMvc.perform(
 			post("/api/v1/categories")
 			.content(SerializeDeserializeUtil.serializeToString(categoryCreate))
@@ -167,7 +168,7 @@ public class CategoryControllerTest {
 		ResultActions action;
 		
 		given(categoryService.create(any(CategoryCreateRequest.class))).willAnswer((answer) -> {
-			return category1;
+			return CategoryMapper.INSTANCE.fromEntity(categoryEntity);		
 		});
 
 		action = mockMvc.perform(
@@ -235,12 +236,12 @@ public class CategoryControllerTest {
 		ResultActions action;
 		CategoryResponse category2;
 		PageResponse<CategoryResponse> page;
-		MultiValueMap<String, String> params;
 		PaginationUtil pagination;
+		MultiValueMap<String, String> params;
 		
-		category2 = CategoryResponse.builder()
-						.name("카테고리2")
-						.build();
+		category2 = new CategoryResponse();
+		category2.setName("카테고리2");
+		
 		pagination = new PaginationUtil();
 		
 		page = PageResponse.handleResponse(List.of(category1, category2), pagination.getPageSize(), pagination.getPageNo(), 2, 1, true, true);
@@ -273,9 +274,10 @@ public class CategoryControllerTest {
 		
 		given(categoryService.update(any(Long.class), any(CategoryUpdateRequest.class))).willAnswer((answer) -> {
 			categoryEntity.setName(categoryUpdate.getName());
+			
 			category1.setName(categoryEntity.getName());
 			
-			return category1;
+			return CategoryMapper.INSTANCE.fromEntity(categoryEntity);		
 		});
 		
 		action = mockMvc.perform(
@@ -291,7 +293,7 @@ public class CategoryControllerTest {
 			.andExpect(jsonPath("$.data.name", is(category1.getName())));
 	}
 
-	@DisplayName("이름이  짧아 카테고리를 수정하는데 실패한다.")
+	@DisplayName("이름이 짧아 카테고리를 수정하는데 실패한다.")
 	@Test
 	@WithMockCustomAdmin
 	public void givenCategoryUpdate_whenCallUpdateCategory_thenThrowBadRqeustExceptionForName() throws Exception {
@@ -299,12 +301,14 @@ public class CategoryControllerTest {
 		
 		given(categoryService.update(any(Long.class), any(CategoryUpdateRequest.class))).willAnswer((answer) -> {
 			categoryEntity.setName(categoryUpdate.getName());
+			
 			category1.setName(categoryEntity.getName());
 			
-			return category1;
+			return CategoryMapper.INSTANCE.fromEntity(categoryEntity);		
 		});
 		
-		categoryUpdate.name("가");
+		categoryUpdate.setName("카");
+		
 		action = mockMvc.perform(
 			patch("/api/v1/categories/{id}", categoryEntity.getId())
 			.content(SerializeDeserializeUtil.serializeToString(categoryUpdate))
@@ -345,9 +349,11 @@ public class CategoryControllerTest {
 		ResultActions action;
 		
 		given(categoryService.update(any(Long.class), any(CategoryUpdateRequest.class))).willAnswer((answer) -> {
+			categoryEntity.setName(categoryUpdate.getName());
+			
 			category1.setName(categoryEntity.getName());
 			
-			return category1;
+			return CategoryMapper.INSTANCE.fromEntity(categoryEntity);		
 		});
 		
 		action = mockMvc.perform(

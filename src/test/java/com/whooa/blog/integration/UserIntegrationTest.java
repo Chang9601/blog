@@ -67,26 +67,19 @@ class UserIntegrationTest {
 	
 	@BeforeEach
 	void setUpEach() {
-		String email, name, password, userRole;
-		
-		email = "user1@naver.com";
-		name = "사용자1";
-		password = "12345678Aa!@#$%";
-		userRole = "USER";
-		
-		userCreate = new UserCreateRequest()
-							.email(email)
-							.name(name)
-							.password(password)
-							.userRole(userRole);
+		userCreate = new UserCreateRequest();
+		userCreate.setEmail("user1@naver.com");
+		userCreate.setName("사용자1");
+		userCreate.setPassword("12345678Aa!@#$%");
+		userCreate.setUserRole("USER");
 
-		userUpdate = new UserUpdateRequest()
-							.email("user2@naver.com")
-							.name("사용자2");
-		
-		userPasswordUpdate = new UserPasswordUpdateRequest()
-									.oldPassword(password)
-									.newPassword("12345679Aa!@#$%");		
+		userUpdate = new UserUpdateRequest();
+		userUpdate.setEmail("user2@naver.com");
+		userUpdate.setName("사용자2");
+
+		userPasswordUpdate = new UserPasswordUpdateRequest();
+		userPasswordUpdate.setOldPassword("12345678Aa!@#$%");
+		userPasswordUpdate.setNewPassword("12345679Aa!@#$%");	
 	}
 	
 	@AfterAll
@@ -118,7 +111,7 @@ class UserIntegrationTest {
 			.andExpect(jsonPath("$.data.userRole", is(userCreate.getUserRole())));
 	}
 	
-	@DisplayName("이름이  짧아 회원가입에 실패한다.")
+	@DisplayName("이름이 짧아 회원가입에 실패한다.")
 	@Test
 	public void givenUserCreate_whenCallCreateMe_thenThrowBadRequestExceptionForName() throws Exception {
 		ResultActions action;
@@ -321,12 +314,12 @@ class UserIntegrationTest {
 			.andExpect(jsonPath("$.data.email", is(userUpdate.getEmail())));
 	}
 	
-	@DisplayName("이름이  짧아 회원수정에 실패한다.")
+	@DisplayName("이름이 짧아 회원수정에 실패한다.")
 	@Test
 	public void givenUserUpdate_whenCallUpdateMe_thenThrowBadRequestExceptionForName() throws Exception {
 		ResultActions action;
 		
-		userUpdate.name("실");
+		userUpdate.setName("사");
 		
 		mockMvc.perform(
 			post("/api/v1/users")
@@ -354,7 +347,7 @@ class UserIntegrationTest {
 	public void givenUserUpdate_whenCallUpdateMe_thenThrowBadRequestExceptionForEmail() throws Exception {
 		ResultActions action;
 		
-		userUpdate.email("realreal.com");
+		userUpdate.setEmail("user1naver.com");
 
 		mockMvc.perform(
 			post("/api/v1/users")
@@ -486,7 +479,7 @@ class UserIntegrationTest {
 
 		userDetailsImpl = new UserDetailsImpl(userRepository.findByEmailAndActiveTrue(userCreate.getEmail()).get());
 
-		userPasswordUpdate.newPassword("12312414");
+		userPasswordUpdate.setNewPassword("12312414");
 		
 		action = mockMvc.perform(
 			patch("/api/v1/users/update-my-password")
@@ -516,7 +509,7 @@ class UserIntegrationTest {
 
 		userDetailsImpl = new UserDetailsImpl(userRepository.findByEmailAndActiveTrue(userCreate.getEmail()).get());
 
-		userPasswordUpdate.oldPassword("12345678bB!@#$%");
+		userPasswordUpdate.setOldPassword("12345678bB!@#$%");
 		
 		action = mockMvc.perform(
 			patch("/api/v1/users/update-my-password")
@@ -546,7 +539,7 @@ class UserIntegrationTest {
 
 		userDetailsImpl = new UserDetailsImpl(userRepository.findByEmailAndActiveTrue(userCreate.getEmail()).get());
 
-		userPasswordUpdate.newPassword(userPasswordUpdate.getOldPassword());
+		userPasswordUpdate.setNewPassword(userPasswordUpdate.getOldPassword());
 		
 		action = mockMvc.perform(
 			patch("/api/v1/users/update-my-password")

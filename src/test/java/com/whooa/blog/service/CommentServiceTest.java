@@ -15,7 +15,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.params.provider.MethodSource;
 
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -31,7 +30,6 @@ import com.whooa.blog.comment.dto.CommentDto.CommentResponse;
 import com.whooa.blog.comment.entity.CommentEntity;
 import com.whooa.blog.comment.exception.CommentNotBelongingToPostException;
 import com.whooa.blog.comment.exception.CommentNotFoundException;
-import com.whooa.blog.comment.mapper.CommentMapper;
 import com.whooa.blog.comment.repository.CommentRepository;
 import com.whooa.blog.comment.service.impl.CommentServiceImpl;
 import com.whooa.blog.common.api.PageResponse;
@@ -57,8 +55,6 @@ public class CommentServiceTest {
 	private PostRepository postRepository;
 	@Mock
 	private UserRepository userRepository;
-	@Mock
-	private CommentMapper commentMapper;
 	
 	private CommentEntity commentEntity1;
 	private CategoryEntity categoryEntity;
@@ -73,75 +69,54 @@ public class CommentServiceTest {
 	
 	@BeforeAll
 	public void setUpAll() {
-		commentCreate = new CommentCreateRequest().content("댓글1");
-		commentUpdate = new CommentUpdateRequest().content("댓글2");
+		commentCreate = new CommentCreateRequest();
+		commentCreate.setContent("댓글1");
 
-		categoryEntity = CategoryEntity.builder()
-							.id(1L)
-							.name("카테고리1")
-							.build();
-		
-		userEntity1 = UserEntity.builder()
-						.id(1L)
-						.email("user1@naver.com")
-						.name("사용자1")
-						.password("12345678Aa!@#$%")
-						.userRole(UserRole.USER)
-						.build();
-			
-		postEntity1 = PostEntity.builder()
-						.id(1L)
-						.content("포스트1")
-						.title("포스트1")
-						.category(categoryEntity)
-						.user(userEntity1)
-						.build();
-		
-		System.out.println(postEntity1);
-		
+		commentUpdate = new CommentUpdateRequest();
+		commentUpdate.setContent("댓글2");
+
+		categoryEntity = new CategoryEntity();
+		categoryEntity.setName("카테고리1");
+
+		userEntity1 = new UserEntity();
+		userEntity1.setId(1L);
+		userEntity1.setEmail("user1@naver.com");
+		userEntity1.setName("사용자1");
+		userEntity1.setPassword("12345678Aa!@#$%");
+		userEntity1.setUserRole(UserRole.USER);
+
+		postEntity1 = new PostEntity();
+		postEntity1.setId(1L);
+		postEntity1.setContent("포스트1");
+		postEntity1.setTitle("포스트1");
+		postEntity1.setCategory(categoryEntity);
+		postEntity1.setUser(userEntity1);
+				
 		userDetailsImpl = new UserDetailsImpl(userEntity1);
 	}
 	
 	@BeforeEach
 	public void setUpEach() {
-		commentEntity1 = CommentEntity.builder()
-							.id(1L)
-							.content("댓글1")
-							.parentId(null)
-							.post(postEntity1)
-							.user(userEntity1)
-							.build();
-		
-		comment = CommentResponse.builder()
-					.id(commentEntity1.getId())
-					.content(commentEntity1.getContent())
-					.build();
+		commentEntity1 = new CommentEntity();
+		commentEntity1.setContent("댓글1");
+		commentEntity1.setPost(postEntity1);
+		commentEntity1.setUser(userEntity1);
 	}
 
 	@DisplayName("댓글을 생성하는데 성공한다.")
 	@Test
-	public void givenCommentCreate_whenCallCreate_thenReturnComment() {
-		CommentResponse createdComment;
-		
+	public void givenCommentCreate_whenCallCreate_thenReturnComment() {		
 		given(commentRepository.save(any(CommentEntity.class))).willReturn(commentEntity1);
 		given(postRepository.findById(any(Long.class))).willReturn(Optional.of(postEntity1));
 		given(userRepository.findById(any(Long.class))).willReturn(Optional.of(userEntity1));
-		given(commentMapper.toEntity(any(CommentCreateRequest.class))).willReturn(commentEntity1);
-		given(commentMapper.fromEntity(any(CommentEntity.class))).willReturn(comment);
-		
-		System.out.println("WHERE1?");
 
-		createdComment = commentServiceImpl.create(postEntity1.getId(), commentCreate, userDetailsImpl);
+		comment = commentServiceImpl.create(postEntity1.getId(), commentCreate, userDetailsImpl);
 		
-		System.out.println("WHERE2?");
-
-		assertEquals(createdComment.getContent(), comment.getContent());
+		assertEquals(commentEntity1.getContent(), comment.getContent());
 
 		then(commentRepository).should(times(1)).save(any(CommentEntity.class));
 		then(postRepository).should(times(1)).findById(any(Long.class));
 		then(userRepository).should(times(1)).findById(any(Long.class));
-		then(commentMapper).should(times(1)).toEntity(any(CommentCreateRequest.class));
-		then(commentMapper).should(times(1)).fromEntity(any(CommentEntity.class));		
 	}
 	
 	@DisplayName("포스트가 존재하지 않아서 댓글을 생성하는데 실패한다.")
@@ -156,8 +131,6 @@ public class CommentServiceTest {
 		then(commentRepository).should(times(0)).save(any(CommentEntity.class));
 		then(postRepository).should(times(1)).findById(any(Long.class));
 		then(userRepository).should(times(0)).findById(any(Long.class));
-		then(commentMapper).should(times(0)).toEntity(any(CommentCreateRequest.class));
-		then(commentMapper).should(times(0)).fromEntity(any(CommentEntity.class));	
 	}
 	
 	@DisplayName("댓글을 생성하는데 실패한다.")
@@ -173,8 +146,6 @@ public class CommentServiceTest {
 		then(commentRepository).should(times(0)).save(any(CommentEntity.class));
 		then(postRepository).should(times(1)).findById(any(Long.class));
 		then(userRepository).should(times(1)).findById(any(Long.class));
-		then(commentMapper).should(times(0)).toEntity(any(CommentCreateRequest.class));
-		then(commentMapper).should(times(0)).fromEntity(any(CommentEntity.class));	
 	}
 	
 	@DisplayName("댓글을 삭제하는데 성공한다.")
@@ -225,13 +196,12 @@ public class CommentServiceTest {
 	public void givenId_whenCallDelete_thenThrowCommentNotBelongingToPostException() {
 		PostEntity postEntity2;
 		
-		postEntity2 = PostEntity.builder()
-						.id(2L)
-						.content(postEntity1.getContent())
-						.title(postEntity1.getTitle())
-						.category(categoryEntity)
-						.user(userEntity1)
-						.build();
+		postEntity2 = new PostEntity();
+		postEntity2.setId(2L);
+		postEntity2.setContent("포스트2");
+		postEntity2.setTitle("포스트2");
+		postEntity2.setCategory(categoryEntity);
+		postEntity2.setUser(userEntity1);
 		
 		given(commentRepository.findById(any(Long.class))).willReturn(Optional.of(commentEntity1));
 		given(postRepository.findById(any(Long.class))).willReturn(Optional.of(postEntity2));
@@ -248,21 +218,20 @@ public class CommentServiceTest {
 	@DisplayName("댓글을 작성한 사용자와 일치하지 않아 삭제하는데 실패한다.")
 	@Test
 	public void givenId_whenCallDelete_thenThrowUserNotMatchedException() {
-		UserEntity userEntity12;
+		UserEntity userEntity2;
 		
-		userEntity12 = UserEntity.builder()
-						.id(2L)
-						.email("user2@naver.com")
-						.name("사용자2")
-						.password("12345678Aa!@#$%")
-						.userRole(UserRole.USER)
-						.build();
-		
+		userEntity2 = new UserEntity();
+		userEntity2.setId(2L);
+		userEntity2.setEmail("user2@naver.com");
+		userEntity2.setName("사용자2");
+		userEntity2.setPassword("12345678Aa!@#$%");
+		userEntity2.setUserRole(UserRole.USER);
+	
 		given(commentRepository.findById(any(Long.class))).willReturn(Optional.of(commentEntity1));
 		given(postRepository.findById(any(Long.class))).willReturn(Optional.of(postEntity1));
 
 		assertThrows(UserNotMatchedException.class, () -> {
-			commentServiceImpl.delete(commentEntity1.getId(), postEntity1.getId(), new UserDetailsImpl(userEntity12));
+			commentServiceImpl.delete(commentEntity1.getId(), postEntity1.getId(), new UserDetailsImpl(userEntity2));
 		});
 
 		then(commentRepository).should(times(0)).delete(any(CommentEntity.class));
@@ -272,21 +241,17 @@ public class CommentServiceTest {
 
 	@DisplayName("댓글 목록을 조회하는데 성공한다.")
 	@Test
-	@MethodSource("commentParametersProvider")
 	public void givenPostId_whenCallFindAllByPostId_thenReturnAllCommentsForPost() {
 		CommentEntity commentEntity2;
 		PageResponse<CommentResponse> page;
 		
-		commentEntity2 = CommentEntity.builder()
-							.content("댓글2")
-							.parentId(null)
-							.post(postEntity1)
-							.user(userEntity1)
-							.build();
+		commentEntity2 = new CommentEntity();
+		commentEntity2.setContent("댓글2");
+		commentEntity2.setPost(postEntity1);
+		commentEntity2.setUser(userEntity1);
 
 		given(commentRepository.findByPostId(any(Long.class), any(Pageable.class))).willReturn(new PageImpl<CommentEntity>(List.of(commentEntity1, commentEntity2)));
 		given(postRepository.findById(any(Long.class))).willReturn(Optional.of(postEntity1));
-		given(commentMapper.fromEntity(any(CommentEntity.class))).willReturn(comment);
 
 		page = commentServiceImpl.findAllByPostId(postEntity1.getId(), new PaginationUtil());
 
@@ -294,41 +259,32 @@ public class CommentServiceTest {
 
 		then(commentRepository).should(times(1)).findByPostId(any(Long.class), any(Pageable.class));
 		then(postRepository).should(times(1)).findById(any(Long.class));
-		then(commentMapper).should(times(1)).fromEntity(any(CommentEntity.class));
-
 	}
 
 	@DisplayName("댓글에 답하는데 성공한다.")
 	@Test
-	@MethodSource("commentParametersProvider")
 	public void givenCommentCreate_whenCallReply_thenReturnComment() {
-		CommentResponse repliedComment;
 		CommentEntity commentEntity2;
 		
-		commentEntity2 = CommentEntity.builder()
-							.content("댓글2")
-							.parentId(commentEntity1.getId())
-							.post(postEntity1)
-							.user(userEntity1)
-							.build();
-
+		commentEntity2 = new CommentEntity();
+		commentEntity2.setContent("댓글2");
+		commentEntity2.setParentId(commentEntity1.getId());
+		commentEntity2.setPost(postEntity1);
+		commentEntity2.setUser(userEntity1);
+		
 		given(commentRepository.save(any(CommentEntity.class))).willReturn(commentEntity2);
 		given(commentRepository.findById(any(Long.class))).willReturn(Optional.of(commentEntity1));
 		given(postRepository.findById(any(Long.class))).willReturn(Optional.of(postEntity1));
 		given(userRepository.findById(any(Long.class))).willReturn(Optional.of(userEntity1));
-		given(commentMapper.toEntity(any(CommentCreateRequest.class))).willReturn(commentEntity2);
-		given(commentMapper.fromEntity(any(CommentEntity.class))).willReturn(comment);
 		
-		repliedComment = commentServiceImpl.reply(commentEntity1.getId(), postEntity1.getId(), commentCreate, userDetailsImpl); 
+		comment = commentServiceImpl.reply(commentEntity1.getId(), postEntity1.getId(), commentCreate, userDetailsImpl); 
 		
-		assertEquals(repliedComment.getId(), comment.getParentId());
+		assertEquals(commentEntity2.getParentId(), comment.getId());
 
 		then(commentRepository).should(times(1)).save(any(CommentEntity.class));
 		then(commentRepository).should(times(1)).findById(any(Long.class));
 		then(postRepository).should(times(1)).findById(any(Long.class));
 		then(userRepository).should(times(1)).findById(any(Long.class));
-		then(commentMapper).should(times(1)).toEntity(any(CommentCreateRequest.class));
-		then(commentMapper).should(times(1)).fromEntity(any(CommentEntity.class));	
 	}
 
 	@DisplayName("포스트가 존재하지 않아 답하는데 실패한다.")
@@ -344,13 +300,10 @@ public class CommentServiceTest {
 		then(commentRepository).should(times(0)).findById(any(Long.class));
 		then(postRepository).should(times(1)).findById(any(Long.class));
 		then(userRepository).should(times(0)).findById(any(Long.class));
-		then(commentMapper).should(times(0)).toEntity(any(CommentCreateRequest.class));
-		then(commentMapper).should(times(0)).fromEntity(any(CommentEntity.class));	
 	}
 	
 	@DisplayName("댓글이 존재하지 않아 답하는데 실패한다.")
 	@Test
-	@MethodSource("commentParametersProvider")
 	public void givenCommentCreate_whenCallReply_thenThrowCommentNotFoundException() {		
 		given(commentRepository.findById(any(Long.class))).willReturn(Optional.empty());
 		given(postRepository.findById(any(Long.class))).willReturn(Optional.of(postEntity1));
@@ -364,25 +317,22 @@ public class CommentServiceTest {
 		then(commentRepository).should(times(1)).findById(any(Long.class));
 		then(postRepository).should(times(1)).findById(any(Long.class));
 		then(userRepository).should(times(1)).findById(any(Long.class));
-		then(commentMapper).should(times(0)).toEntity(any(CommentCreateRequest.class));
-		then(commentMapper).should(times(0)).fromEntity(any(CommentEntity.class));	
 	}
 	
 	@DisplayName("댓글이 포스트에 속하지 않아 답하는데 실패한다.")
 	@Test
 	public void givenCommentCreate_whenCallReply_thenThrowCommentNotBelongingToPostException() {
-		PostEntity postEntity12;
+		PostEntity postEntity2;
 		
-		postEntity12 = PostEntity.builder()
-						.id(2L)
-						.content(postEntity1.getContent())
-						.title(postEntity1.getTitle())
-						.category(categoryEntity)
-						.user(userEntity1)
-						.build();
+		postEntity2 = new PostEntity();
+		postEntity2.setId(2L);
+		postEntity2.setContent("포스트2");
+		postEntity2.setTitle("포스트2");
+		postEntity2.setCategory(categoryEntity);
+		postEntity2.setUser(userEntity1);
 		
 		given(commentRepository.findById(any(Long.class))).willReturn(Optional.of(commentEntity1));
-		given(postRepository.findById(any(Long.class))).willReturn(Optional.of(postEntity12));
+		given(postRepository.findById(any(Long.class))).willReturn(Optional.of(postEntity2));
 		given(userRepository.findById(any(Long.class))).willReturn(Optional.of(userEntity1));
 		
 		assertThrows(CommentNotBelongingToPostException.class, () -> {
@@ -393,8 +343,6 @@ public class CommentServiceTest {
 		then(commentRepository).should(times(1)).findById(any(Long.class));
 		then(postRepository).should(times(1)).findById(any(Long.class));
 		then(userRepository).should(times(1)).findById(any(Long.class));
-		then(commentMapper).should(times(0)).toEntity(any(CommentCreateRequest.class));
-		then(commentMapper).should(times(0)).fromEntity(any(CommentEntity.class));	
 	}
 	
 	@DisplayName("댓글을 수정하는데 성공한다.")
@@ -402,33 +350,26 @@ public class CommentServiceTest {
 	public void givenCommentUpdate_whenCallUpdate_thenReturnComment() {
 		CommentEntity commentEntity2;
 		
-		commentEntity2 = CommentEntity.builder()
-							.content(commentUpdate.getContent())
-							.parentId(null)
-							.post(postEntity1)
-							.user(userEntity1)
-							.build();
-		
-		comment.setContent(commentEntity2.getContent());
-		
+		commentEntity2 = new CommentEntity();
+		commentEntity2.setContent(commentUpdate.getContent());
+		commentEntity2.setPost(postEntity1);
+		commentEntity2.setUser(userEntity1);
+				
 		given(commentRepository.save(any(CommentEntity.class))).willReturn(commentEntity2);
 		given(commentRepository.findById(any(Long.class))).willReturn(Optional.of(commentEntity1));
 		given(postRepository.findById(any(Long.class))).willReturn(Optional.of(postEntity1));
-		given(commentMapper.fromEntity(any(CommentEntity.class))).willReturn(comment);
 
 		comment = commentServiceImpl.update(commentEntity1.getId(), postEntity1.getId(), commentUpdate, userDetailsImpl);
 
-		assertEquals(commentUpdate.getContent(), comment.getContent());
+		assertEquals(commentEntity2.getContent(), comment.getContent());
 
 		then(commentRepository).should(times(1)).save(any(CommentEntity.class));
 		then(commentRepository).should(times(1)).findById(any(Long.class));
 		then(postRepository).should(times(1)).findById(any(Long.class));
-		then(commentMapper).should(times(1)).fromEntity(any(CommentEntity.class));	
 	}
 	
 	@DisplayName("포스트가 존재하지 않아 댓글을 수정하는데 실패한다.")
 	@Test
-	@MethodSource("commentParametersProvider")
 	public void givenCommentUpdate_whenCallUpdate_thenThrowPostNotFoundException() {	
 		assertThrows(PostNotFoundException.class, () -> {
 			commentServiceImpl.update(commentEntity1.getId(), postEntity1.getId(), commentUpdate, userDetailsImpl);
@@ -437,12 +378,10 @@ public class CommentServiceTest {
 		then(commentRepository).should(times(0)).save(any(CommentEntity.class));
 		then(commentRepository).should(times(0)).findById(any(Long.class));
 		then(postRepository).should(times(1)).findById(any(Long.class));
-		then(commentMapper).should(times(0)).fromEntity(any(CommentEntity.class));
 	}
 	
 	@DisplayName("댓글이 존재하지 않아 수정하는데 실패한다.")
 	@Test
-	@MethodSource("commentParametersProvider")
 	public void givenCommentUpdate_whenCallUpdate_thenThrowCommentNotFoundException() {	
 		given(postRepository.findById(any(Long.class))).willReturn(Optional.of(postEntity1));
 
@@ -452,23 +391,21 @@ public class CommentServiceTest {
 
 		then(commentRepository).should(times(0)).save(any(CommentEntity.class));
 		then(commentRepository).should(times(1)).findById(any(Long.class));
-		then(postRepository).should(times(0)).findById(any(Long.class));
+		then(postRepository).should(times(1)).findById(any(Long.class));
 	}
 	
 	@DisplayName("댓글이 포스트에 속하지 않아 수정하는데 실패한다.")
 	@Test
-	@MethodSource("commentParametersProvider")
 	public void givenCommentUpdate_whenCallUpdate_thenThrowCommentNotBelongingToPostException() {
 		PostEntity postEntity2;
 		
-		postEntity2 = PostEntity.builder()
-						.id(2L)
-						.content(postEntity1.getContent())
-						.title(postEntity1.getTitle())
-						.category(categoryEntity)
-						.user(userEntity1)
-						.build();
-		
+		postEntity2 = new PostEntity();
+		postEntity2.setId(2L);
+		postEntity2.setContent("포스트2");
+		postEntity2.setTitle("포스트2");
+		postEntity2.setCategory(categoryEntity);
+		postEntity2.setUser(userEntity1);
+				
 		given(commentRepository.findById(any(Long.class))).willReturn(Optional.of(commentEntity1));
 		given(postRepository.findById(any(Long.class))).willReturn(Optional.of(postEntity2));
 
@@ -479,23 +416,20 @@ public class CommentServiceTest {
 		then(commentRepository).should(times(0)).save(any(CommentEntity.class));
 		then(commentRepository).should(times(1)).findById(any(Long.class));
 		then(postRepository).should(times(1)).findById(any(Long.class));
-		then(commentMapper).should(times(0)).fromEntity(any(CommentEntity.class));	
 	}
 	
 	@DisplayName("댓글을 작성한 사용자와 일치하지 않아 수정하는데 실패한다.")
 	@Test
-	@MethodSource("commentParametersProvider")
 	public void givenCommentUpdate_whenCallUpdate_thenThrowUserNotMatchedException() {
 		UserEntity userEntity2;
 		
-		userEntity2 = UserEntity.builder()
-						.id(2L)
-						.email("user2@naver.com")
-						.name("사용자2")
-						.password("12345678Aa!@#$%")
-						.userRole(UserRole.USER)
-						.build();
-		
+		userEntity2 = new UserEntity();
+		userEntity2.setId(2L);
+		userEntity2.setEmail("user2@naver.com");
+		userEntity2.setName("사용자2");
+		userEntity2.setPassword("12345678Aa!@#$%");
+		userEntity2.setUserRole(UserRole.USER);
+
 		given(commentRepository.findById(any(Long.class))).willReturn(Optional.of(commentEntity1));
 		given(postRepository.findById(any(Long.class))).willReturn(Optional.of(postEntity1));
 
@@ -506,6 +440,5 @@ public class CommentServiceTest {
 		then(commentRepository).should(times(0)).save(any(CommentEntity.class));
 		then(commentRepository).should(times(1)).findById(any(Long.class));
 		then(postRepository).should(times(1)).findById(any(Long.class));
-		then(commentMapper).should(times(0)).fromEntity(any(CommentEntity.class));
 	}	
 }

@@ -71,43 +71,40 @@ public class AdminUserIntegrationTest {
 					.addFilter(new CharacterEncodingFilter("utf-8", true))
 					.apply(springSecurity()).build();
 		
+		userEntity = new UserEntity();
+		userEntity.setEmail("admin@naver.com");
+		userEntity.setName("관리자");
+		userEntity.setPassword("12345678Aa!@#$%");
+		userEntity.setUserRole(UserRole.ADMIN);
+
 		new UserDetailsImpl(
-			userRepository.save(
-				UserEntity.builder()
-					.email("admin@naver.com")
-					.name("관리자")
-					.password("12345678Aa!@#$%")
-					.userRole(UserRole.ADMIN)
-					.build()
-			)
+			userRepository.save(userEntity)
 		);
 	}
 	
 	@BeforeEach
 	void setUpEach() {
-		userEntity = userRepository.save(
-			UserEntity.builder()
-				.email("user1@naver.com")
-				.name("사용자1")
-				.password("12345678Aa!@#$%")
-				.userRole(UserRole.USER)
-				.build()
-		);
+		userAdminUpdate = new UserAdminUpdateRequest();
+		userAdminUpdate.setEmail("user3@naver.com");
+		userAdminUpdate.setName("사용자3");
+		userAdminUpdate.setPassword("87654321Aa!@#$%");
+		userAdminUpdate.setUserRole("MANAGER");
+
+		userEntity = new UserEntity();
+		userEntity.setEmail("user2@naver.com");
+		userEntity.setName("사용자2");
+		userEntity.setPassword("12345678Aa!@#$%");
+		userEntity.setUserRole(UserRole.USER);
 		
-		userRepository.save(
-			UserEntity.builder()
-				.email("user2@naver.com")
-				.name("사용자2")
-				.password("12345678Aa!@#$%")
-				.userRole(UserRole.USER)
-				.build()
-		);
+		userRepository.save(userEntity);
 		
-		userAdminUpdate = new UserAdminUpdateRequest()
-								.email("user3@naver.com")
-								.name("사용자3")
-								.password("87654321Aa!@#$%")
-								.userRole("MANAGER");
+		userEntity = new UserEntity();
+		userEntity.setEmail("user1@naver.com");
+		userEntity.setName("사용자1");
+		userEntity.setPassword("12345678Aa!@#$%");
+		userEntity.setUserRole(UserRole.USER);
+		
+		userEntity = userRepository.save(userEntity);
 	}
 	
 	@AfterAll
@@ -283,13 +280,13 @@ public class AdminUserIntegrationTest {
 			.andExpect(jsonPath("$.data.email", is(userAdminUpdate.getEmail())));
 	}
 	
-	@DisplayName("이름이  짧아 사용자를 수정하는데 실패한다.")
+	@DisplayName("이름이 짧아 사용자를 수정하는데 실패한다.")
 	@Test
 	@WithUserDetails(value = "admin@naver.com", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")	
 	public void givenUserUpdate_whenCallUpdateUser_thenThrowBadRequestExceptionForName() throws Exception {
 		ResultActions action;
 		
-		userAdminUpdate.name("없");
+		userAdminUpdate.setName("사");
 		
 		action = mockMvc.perform(
 			patch("/api/v1/admin/users/{id}", userEntity.getId())
@@ -309,7 +306,7 @@ public class AdminUserIntegrationTest {
 	public void givenUserUpdate_whenCallUpdateUser_thenThrowBadRequestExceptionForEmail() throws Exception {
 		ResultActions action;
 		
-		userAdminUpdate.email("user3user3.com");
+		userAdminUpdate.setEmail("user3naver.com");
 		
 		action = mockMvc.perform(
 			patch("/api/v1/admin/users/{id}", userEntity.getId())
@@ -348,7 +345,7 @@ public class AdminUserIntegrationTest {
 	public void givenUserUpdate_whenCallUpdateUser_thenThrowDuplicateUserException() throws Exception {
 		ResultActions action;
 		
-		userAdminUpdate.email("user2@user2.com");
+		userAdminUpdate.setEmail("user2@naver.com");
 		
 		action = mockMvc.perform(
 			patch("/api/v1/admin/users/{id}", userEntity.getId())

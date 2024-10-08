@@ -79,11 +79,10 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
 	}
 	
 	private UserResponse toUserResponseDTO(UserDetailsImpl userDetailsImpl) {
-		UserResponse userResponse = UserResponse.builder()
-										.id(userDetailsImpl.getId())
-										.email(userDetailsImpl.getUsername())
-										.userRole(userDetailsImpl.getUserRole())
-										.build();		
+		UserResponse userResponse = new UserResponse();
+		userResponse.setId(userDetailsImpl.getId());
+		userResponse.setEmail(userDetailsImpl.getUsername());
+		userResponse.setUserRole(userDetailsImpl.getUserRole());		
 		
 		return userResponse;				
 	}

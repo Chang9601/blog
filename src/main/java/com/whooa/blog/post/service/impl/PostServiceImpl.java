@@ -73,15 +73,16 @@ public class PostServiceImpl implements PostService {
 
 		postEntity.setCategory(categoryEntity);
 		postEntity.setUser(userEntity);
-										
+									
+		post = PostMapper.INSTANCE.fromEntity(postRepository.save(postEntity));		
+
 		if (uploadFiles != null && uploadFiles.length > 0) {
 			files = Arrays.stream(uploadFiles)
 					.map(uploadFile -> fileService.upload(postEntity, uploadFile))
 					.collect(Collectors.toList());
+			
+			post.setFiles(files);
 		}
-	
-		post = PostMapper.INSTANCE.fromEntity(postRepository.save(postEntity));		
-		post.setFiles(files);
 		
 		return post;
 	}

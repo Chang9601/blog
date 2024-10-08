@@ -72,17 +72,11 @@ public class AdminUserControllerTest {
 	}
 	
 	@BeforeEach
-	public void setUpEach() {
-		String email, name, password;
-		
-		email = "user1@user1.com";
-		name = "사용자1";
-		password = "12345678Aa!@#$%";
-		
+	public void setUpEach() {	
 		userEntity = new UserEntity();
-		userEntity.setEmail(email);
-		userEntity.setName(name);
-		userEntity.setPassword(password);
+		userEntity.setEmail("user1@user1.com");
+		userEntity.setName("사용자1");
+		userEntity.setPassword("12345678Aa!@#$%");
 		userEntity.setUserRole(UserRole.USER);
 	
 		user1 = new UserResponse();
@@ -199,14 +193,13 @@ public class AdminUserControllerTest {
 	public void givenPagination_whenCallGetUsers_thenReturnUsers() throws Exception {
 		ResultActions action;
 		PageResponse<UserResponse> page;
+		PaginationUtil pagination;
 		MultiValueMap<String, String> params;
 		UserResponse user2;
-		PaginationUtil pagination;
 		
-		user2 = UserResponse.builder()
-					.email("user2@naver.com")
-					.userRole(UserRole.USER)
-					.build();
+		user2 = new UserResponse();
+		user2.setEmail("user2@naver.com");
+		user2.setUserRole(UserRole.USER);
 		
 		pagination = new PaginationUtil();
 		page = PageResponse.handleResponse(List.of(user1, user2), pagination.getPageSize(), pagination.getPageNo(), 2, 1, true, true);
@@ -237,15 +230,14 @@ public class AdminUserControllerTest {
 	public void givenPagination_whenCallGetUsers_thenThrowUnauthorizedUserException() throws Exception {
 		ResultActions action;
 		PageResponse<UserResponse> page;
+		PaginationUtil pagination;
 		MultiValueMap<String, String> params;
 		UserResponse user2;
-		PaginationUtil pagination;
 
-		user2 = UserResponse.builder()
-					.email("user2@naver.com")
-					.userRole(UserRole.USER)
-					.build();
-	
+		user2 = new UserResponse();
+		user2.setEmail("user2@naver.com");
+		user2.setUserRole(UserRole.USER);
+
 		pagination = new PaginationUtil();
 		page = PageResponse.handleResponse(List.of(user1, user2), pagination.getPageSize(), pagination.getPageNo(), 2, 1, true, true);
 

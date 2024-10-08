@@ -10,6 +10,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Random;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
@@ -54,6 +55,7 @@ public class AdminPostIntegrationTest {
 	
 	@Autowired
 	private WebApplicationContext webApplicationContext;
+	
 	@Autowired
 	private PostRepository postRepository;
 	@Autowired
@@ -61,12 +63,29 @@ public class AdminPostIntegrationTest {
 	@Autowired
 	private UserRepository userRepository;
 	
-	private CategoryEntity categoryEntity;
 	private PostEntity postEntity;
+	private CategoryEntity categoryEntity;
 	private UserEntity userEntity;
 	
 	private PostUpdateRequest postUpdate;
+	
+	private static final String CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+	
+	private static String generateRandomString(int length) {
+		Random random;
+		StringBuilder stringBuilder;
+		int i;
+		
+		random = new Random();
+		stringBuilder = new StringBuilder(length);
 
+		for (i = 0; i < length; i++) {
+			stringBuilder.append(CHARACTERS.charAt(random.nextInt(CHARACTERS.length())));
+		}
+		
+		return stringBuilder.toString();
+	}
+	
 	@BeforeAll
 	void setUpAll() {
 		mockMvc = MockMvcBuilders
@@ -74,51 +93,42 @@ public class AdminPostIntegrationTest {
 					.addFilter(new CharacterEncodingFilter("utf-8", true))
 					.apply(springSecurity()).build();
 		
-		categoryEntity = categoryRepository.save(
-			CategoryEntity.builder()
-				.name("카테고리")
-				.build()
-		);
+		categoryEntity = new CategoryEntity();
+		categoryEntity.setName("카테고리");
 		
-		userEntity = userRepository.save(
-			UserEntity.builder()
-				.email("admin@naver.com")
-				.name("관리자")
-				.password("12345678Aa!@#$%")
-				.userRole(UserRole.ADMIN)
-				.build()
-		);
-			
-		userRepository.save(
-			UserEntity.builder()
-				.email("user@naver.com")
-				.name("관리자")
-				.password("12345678Aa!@#$%")
-				.userRole(UserRole.USER)
-				.build()
-		);
+		categoryEntity = categoryRepository.save(categoryEntity);
+
+		userEntity = new UserEntity();
+		userEntity.setEmail("admin@naver.com");
+		userEntity.setName("관리자");
+		userEntity.setPassword("12345678Aa!@#$%");
+		userEntity.setUserRole(UserRole.ADMIN);
+		
+		userRepository.save(userEntity);
+
+		userEntity = new UserEntity();
+		userEntity.setEmail("user@naver.com");
+		userEntity.setName("사용자");
+		userEntity.setPassword("12345678Aa!@#$%");
+		userEntity.setUserRole(UserRole.USER);
+		
+		userEntity = userRepository.save(userEntity);
+
 	}
 
 	@BeforeEach
 	void setUpEach() {
-		String content, title;
+		postUpdate = new PostUpdateRequest();
+		postUpdate.setCategoryName(categoryEntity.getName());
+		postUpdate.setContent(generateRandomString(200));
 		
-		content = "포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포";
-		title = "포스트";
+		postEntity = new PostEntity();
+		postEntity.setContent("포스트");
+		postEntity.setTitle("포스트");
+		postEntity.setCategory(categoryEntity);
+		postEntity.setUser(userEntity);
 		
-		postEntity = postRepository.save(
-			PostEntity.builder()
-				.content(content)
-				.title(title)
-				.category(categoryEntity)
-				.user(userEntity)
-				.build()
-		);
-		
-		postUpdate = new PostUpdateRequest()
-							.categoryName(categoryEntity.getName())
-							.content("포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2")
-							.title("포스트2");		
+		postEntity = postRepository.save(postEntity);
 	}
 	
 	@AfterAll
@@ -217,11 +227,11 @@ public class AdminPostIntegrationTest {
 				);
 
 		action
-		.andDo(print())
-		.andExpect(status().isOk())
-		.andExpect(jsonPath("$.data.title", is(postUpdate.getTitle())))
-		.andExpect(jsonPath("$.data.content", is(postUpdate.getContent())))
-		.andExpect(jsonPath("$.data.files.length()", is(1)));
+			.andDo(print())
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.data.title", is(postUpdate.getTitle())))
+			.andExpect(jsonPath("$.data.content", is(postUpdate.getContent())))
+			.andExpect(jsonPath("$.data.files.length()", is(1)));
 	}
 	
 	@DisplayName("카테고리 이름이 짧아 포스트를 수정하는데 실패한다.")
@@ -231,7 +241,7 @@ public class AdminPostIntegrationTest {
 		ResultActions action;
 		MockMultipartFile postUpdateFile;
 		
-		postUpdate.categoryName("카");
+		postUpdate.setCategoryName("카");
 	
 		postUpdateFile = new MockMultipartFile("post", null, MediaType.APPLICATION_JSON_VALUE, SerializeDeserializeUtil.serializeToString(postUpdate).getBytes(StandardCharsets.UTF_8));
 
@@ -254,7 +264,7 @@ public class AdminPostIntegrationTest {
 		ResultActions action;
 		MockMultipartFile postUpdateFile;
 		
-		postUpdate.title("포");
+		postUpdate.setTitle("포");
 
 		postUpdateFile = new MockMultipartFile("post", null, MediaType.APPLICATION_JSON_VALUE, SerializeDeserializeUtil.serializeToString(postUpdate).getBytes(StandardCharsets.UTF_8));
 		
@@ -277,7 +287,7 @@ public class AdminPostIntegrationTest {
 		ResultActions action;
 		MockMultipartFile postUpdateFile;
 		
-		postUpdate.content("포스트2");
+		postUpdate.setContent("포스트2");
 		
 		postUpdateFile = new MockMultipartFile("post", null, MediaType.APPLICATION_JSON_VALUE, SerializeDeserializeUtil.serializeToString(postUpdate).getBytes(StandardCharsets.UTF_8));
 		

@@ -15,6 +15,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import java.nio.charset.StandardCharsets;
 
 import java.util.List;
+import java.util.Random;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -48,6 +49,7 @@ import com.whooa.blog.post.dto.PostDto.PostResponse;
 import com.whooa.blog.post.dto.PostDto.PostUpdateRequest;
 import com.whooa.blog.post.entity.PostEntity;
 import com.whooa.blog.post.exception.PostNotFoundException;
+import com.whooa.blog.post.mapper.PostMapper;
 import com.whooa.blog.user.entity.UserEntity;
 import com.whooa.blog.user.type.UserRole;
 import com.whooa.blog.util.SerializeDeserializeUtil;
@@ -73,6 +75,23 @@ public class AdminPostControllerTest {
 	private PostResponse post;
 	private CategoryResponse category;
 	
+	private static final String CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+	
+	private static String generateRandomString(int length) {
+		Random random;
+		StringBuilder stringBuilder;
+		int i;
+		
+		random = new Random();
+		stringBuilder = new StringBuilder(length);
+
+		for (i = 0; i < length; i++) {
+			stringBuilder.append(CHARACTERS.charAt(random.nextInt(CHARACTERS.length())));
+		}
+		
+		return stringBuilder.toString();
+	}
+	
 	@BeforeAll
 	public void setUpAll() {
 		mockMvc = MockMvcBuilders
@@ -83,7 +102,6 @@ public class AdminPostControllerTest {
 		categoryEntity = new CategoryEntity();
 		categoryEntity.setName("카테고리");
 
-
 		userEntity = new UserEntity();
 		userEntity.setEmail("user1@naver.com");
 		userEntity.setName("사용자1");
@@ -93,21 +111,16 @@ public class AdminPostControllerTest {
 	
 	@BeforeEach
 	public void setUpEach() {
-		String content, title;
-		
-		content = "포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포스트포";
-		title = "포스트";
-		
-		postEntity = new PostEntity();
-		postEntity.setContent(content);
-		postEntity.setTitle(title);
-		postEntity.setCategory(categoryEntity);
-		postEntity.setUser(userEntity);
-		
 		postUpdate = new PostUpdateRequest();
 		postUpdate.setCategoryName(categoryEntity.getName());
-		postUpdate.setContent("포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포스트2포");
+		postUpdate.setContent(generateRandomString(200));
 		postUpdate.setTitle("포스트2");
+		
+		postEntity = new PostEntity();
+		postEntity.setContent(generateRandomString(200));
+		postEntity.setTitle("포스트1");
+		postEntity.setCategory(categoryEntity);
+		postEntity.setUser(userEntity);
 		
 		category = new CategoryResponse();
 		category.setId(categoryEntity.getId());
@@ -115,8 +128,8 @@ public class AdminPostControllerTest {
 		
 		post = new PostResponse();
 		post.setId(postEntity.getId());
-		post.setContent(content);
-		post.setTitle(title);
+		post.setContent(postEntity.getContent());
+		post.setTitle(postEntity.getTitle());
 		post.setCategory(category);
 	}
 	
@@ -189,7 +202,7 @@ public class AdminPostControllerTest {
 			post.setTitle(postEntity.getTitle());
 			post.setFiles(List.of(file));
 			
-			return post;
+			return PostMapper.INSTANCE.fromEntity(postEntity);
 		});
 		
 		action = mockMvc.perform(
@@ -224,7 +237,7 @@ public class AdminPostControllerTest {
 			post.setContent(postEntity.getContent());
 			post.setTitle(postEntity.getTitle());
 			
-			return post;
+			return PostMapper.INSTANCE.fromEntity(postEntity);
 		});
 			
 		action = mockMvc.perform(
@@ -242,14 +255,14 @@ public class AdminPostControllerTest {
 			.andExpect(jsonPath("$.data.files.length()", is(0)));
 	}
 	
-	@DisplayName("카테고리 이름이  짧아 포스트를 수정하는데 실패한다.")
+	@DisplayName("카테고리 이름이 짧아 포스트를 수정하는데 실패한다.")
 	@Test
 	@WithMockCustomAdmin
 	public void givenPostUpdate_whenCallUpdatePost_thenThrowBadRequestExceptionForCategoryName() throws Exception {
 		ResultActions action;
 		MockMultipartFile postUpdateFile;
 
-		postUpdate.setCategoryName("테");
+		postUpdate.setCategoryName("카");
 		
 		postUpdateFile = new MockMultipartFile("post", null, MediaType.APPLICATION_JSON_VALUE, SerializeDeserializeUtil.serializeToString(postUpdate).getBytes(StandardCharsets.UTF_8));
 		
@@ -260,7 +273,7 @@ public class AdminPostControllerTest {
 			post.setContent(postEntity.getContent());
 			post.setTitle(postEntity.getTitle());
 			
-			return post;
+			return PostMapper.INSTANCE.fromEntity(postEntity);
 		});
 		
 		action = mockMvc.perform(
@@ -275,14 +288,14 @@ public class AdminPostControllerTest {
 			.andExpect(status().isBadRequest());
 	}
 	
-	@DisplayName("제목이  짧아 포스트를 수정하는데 실패한다.")
+	@DisplayName("제목이 짧아 포스트를 수정하는데 실패한다.")
 	@Test
 	@WithMockCustomAdmin
 	public void givenPostUpdate_whenCallUpdatePost_thenThrowBadRequestExceptionForTitle() throws Exception {		
 		ResultActions action;
 		MockMultipartFile postUpdateFile;
 		
-		postUpdate.setTitle("테");
+		postUpdate.setTitle("포");
 
 		postUpdateFile = new MockMultipartFile("post", null, MediaType.APPLICATION_JSON_VALUE, SerializeDeserializeUtil.serializeToString(postUpdate).getBytes(StandardCharsets.UTF_8));
 		
@@ -293,7 +306,7 @@ public class AdminPostControllerTest {
 			post.setContent(postEntity.getContent());
 			post.setTitle(postEntity.getTitle());	
 			
-			return post;
+			return PostMapper.INSTANCE.fromEntity(postEntity);
 		});
 
 		action = mockMvc.perform(
@@ -308,14 +321,15 @@ public class AdminPostControllerTest {
 			.andExpect(status().isBadRequest());
 	}
 	
-	@DisplayName("내용이  짧아 포스트를 수정하는데 실패한다.")
+	@DisplayName("내용이 짧아 포스트를 수정하는데 실패한다.")
 	@Test
 	@WithMockCustomAdmin
 	public void givenPostUpdate_whenCallUpdatePost_thenThrowBadRequestExceptionForContent() throws Exception {
 		ResultActions action;
 		MockMultipartFile postUpdateFile;
 		
-		postUpdate.setContent("실전 내용");
+		postUpdate.setContent("포");
+		
 		postUpdateFile = new MockMultipartFile("post", null, MediaType.APPLICATION_JSON_VALUE, SerializeDeserializeUtil.serializeToString(postUpdate).getBytes(StandardCharsets.UTF_8));
 		
 		given(adminPostService.update(any(Long.class), any(PostUpdateRequest.class), any(MultipartFile[].class))).willAnswer((answer) -> {
@@ -325,7 +339,7 @@ public class AdminPostControllerTest {
 			post.setContent(postEntity.getContent());
 			post.setTitle(postEntity.getTitle());	
 			
-			return post;
+			return PostMapper.INSTANCE.fromEntity(postEntity);
 		});
 			
 		action = mockMvc.perform(
@@ -380,7 +394,7 @@ public class AdminPostControllerTest {
 			post.setContent(postEntity.getContent());
 			post.setTitle(postEntity.getTitle());
 			
-			return post;
+			return PostMapper.INSTANCE.fromEntity(postEntity);
 		});
 					
 		action = mockMvc.perform(
@@ -393,5 +407,5 @@ public class AdminPostControllerTest {
 		action
 			.andDo(print())
 			.andExpect(status().isForbidden());
-	}			
+	}
 }

@@ -42,6 +42,7 @@ import com.whooa.blog.comment.dto.CommentDto.CommentUpdateRequest;
 import com.whooa.blog.comment.dto.CommentDto.CommentResponse;
 import com.whooa.blog.comment.entity.CommentEntity;
 import com.whooa.blog.comment.exception.CommentNotFoundException;
+import com.whooa.blog.comment.mapper.CommentMapper;
 import com.whooa.blog.comment.service.CommentService;
 import com.whooa.blog.common.api.PageResponse;
 import com.whooa.blog.common.code.Code;
@@ -83,46 +84,38 @@ public class CommentControllerTest {
 					.webAppContextSetup(webApplicationContext)
 					.addFilter(new CharacterEncodingFilter("utf-8", true))
 					.apply(springSecurity()).build();
-		
-		userEntity = UserEntity.builder()
-						.email("user1@naver.com")
-						.name("사용자1")
-						.password("12345678Aa!@#$%")
-						.userRole(UserRole.USER)
-						.build();
 
-		categoryEntity = CategoryEntity.builder()
-							.name("카테고리")
-							.build();
+		userEntity = new UserEntity();
+		userEntity.setEmail("user1@naver.com");
+		userEntity.setName("사용자1");
+		userEntity.setPassword("12345678Aa!@#$%");
+		userEntity.setUserRole(UserRole.USER);
 
-		postEntity = PostEntity.builder()
-						.content("포스트")
-						.title("포스트")
-						.category(categoryEntity)
-						.user(userEntity)
-						.build();
+		categoryEntity = new CategoryEntity();
+		categoryEntity.setName("카테고리");
+
+		postEntity = new PostEntity();
+		postEntity.setContent("포스트");
+		postEntity.setTitle("포스트");
+		postEntity.setCategory(categoryEntity);
+		postEntity.setUser(userEntity);
 	}
 	
 	@BeforeEach
 	public void setUpEach() {
-		String content;
+		commentCreate = new CommentCreateRequest();
+		commentCreate.setContent("댓글1");
+
+		commentUpdate = new CommentUpdateRequest();
+		commentUpdate.setContent("댓글2");
+
+		commentEntity = new CommentEntity();
+		commentEntity.setContent(commentCreate.getContent());
+		commentEntity.setPost(postEntity);
+		commentEntity.setUser(userEntity);
 		
-		content = "댓글1";
-		
-		commentEntity = CommentEntity.builder()
-							.content(content)
-							.parentId(null)
-							.post(postEntity)
-							.user(userEntity)
-							.build();
-		
-		commentCreate = new CommentCreateRequest().content(content);
-		commentUpdate = new CommentUpdateRequest().content("댓글2");
-		
-		comment1 = CommentResponse.builder()
-					.content(content)
-					.parentId(null)
-					.build();
+		comment1 = new CommentResponse();
+		comment1.setContent(commentEntity.getContent());
 	}
 	
 	@DisplayName("댓글을 생성하는데 성공한다.")
@@ -155,10 +148,11 @@ public class CommentControllerTest {
 		ResultActions action;
 		
 		given(commentService.create(any(Long.class), any(CommentCreateRequest.class), any(UserDetailsImpl.class))).willAnswer((answer) -> {
-			return comment1;
+			return CommentMapper.INSTANCE.fromEntity(commentEntity);
 		});
 		
-		commentCreate.content(null);
+		commentCreate.setContent(null);
+		
 		action = mockMvc.perform(
 			post("/api/v1/posts/{post-id}/comments", postEntity.getId())
 			.content(SerializeDeserializeUtil.serializeToString(commentCreate))
@@ -198,7 +192,7 @@ public class CommentControllerTest {
 		ResultActions action;
 		
 		given(commentService.create(any(Long.class), any(CommentCreateRequest.class), any(UserDetailsImpl.class))).willAnswer((answer) -> {
-			return comment1;
+			return CommentMapper.INSTANCE.fromEntity(commentEntity);
 		});
 		
 		action = mockMvc.perform(
@@ -296,13 +290,11 @@ public class CommentControllerTest {
 		ResultActions action;
 		CommentResponse comment2;
 		PageResponse<CommentResponse> page;
-		MultiValueMap<String, String> params;
 		PaginationUtil pagination;
+		MultiValueMap<String, String> params;
 		
-		comment2 = CommentResponse.builder()
-					.content("실전 내용")
-					.parentId(null)
-					.build();
+		comment2 = new CommentResponse();
+		comment2.setContent("댓글2");
 
 		pagination = new PaginationUtil();
 		page = PageResponse.handleResponse(List.of(comment1, comment2), pagination.getPageSize(), pagination.getPageNo(), 2, 1, true, true);
@@ -335,9 +327,10 @@ public class CommentControllerTest {
 		
 		given(commentService.update(any(Long.class), any(Long.class), any(CommentUpdateRequest.class), any(UserDetailsImpl.class))).willAnswer((answer) -> {
 			commentEntity.setContent(commentUpdate.getContent());
+			
 			comment1.setContent(commentEntity.getContent());
 						
-			return comment1;
+			return CommentMapper.INSTANCE.fromEntity(commentEntity);
 		});
 	
 		action = mockMvc.perform(
@@ -361,12 +354,14 @@ public class CommentControllerTest {
 		
 		given(commentService.update(any(Long.class), any(Long.class), any(CommentUpdateRequest.class), any(UserDetailsImpl.class))).willAnswer((answer) -> {
 			commentEntity.setContent(commentUpdate.getContent());
+			
 			comment1.setContent(commentEntity.getContent());
 			
-			return comment1;
+			return CommentMapper.INSTANCE.fromEntity(commentEntity);
 		});
 	
-		commentUpdate.content(null);
+		commentUpdate.setContent(null);
+		
 		action = mockMvc.perform(
 			patch("/api/v1/posts/{post-id}/comments/{id}", postEntity.getId(), commentEntity.getId())
 			.content(SerializeDeserializeUtil.serializeToString(commentUpdate))
@@ -450,9 +445,10 @@ public class CommentControllerTest {
 		
 		given(commentService.update(any(Long.class), any(Long.class), any(CommentUpdateRequest.class), any(UserDetailsImpl.class))).willAnswer((answer) -> {
 			commentEntity.setContent(commentUpdate.getContent());
+			
 			comment1.setContent(commentEntity.getContent());
 			
-			return comment1;
+			return CommentMapper.INSTANCE.fromEntity(commentEntity);
 		});
 	
 		action = mockMvc.perform(

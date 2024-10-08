@@ -36,9 +36,8 @@ public class CategoryRepositoryTest {
 	
 	@BeforeEach
 	public void setUp() {
-		categoryEntity1 = CategoryEntity.builder()
-							.name("카테고리1")
-							.build();
+		categoryEntity1 = new CategoryEntity();
+		categoryEntity1.setName("카테고리1");
 	}
 	
 	@AfterEach
@@ -109,9 +108,8 @@ public class CategoryRepositoryTest {
 		CategoryEntity categoryEntity2;
 		Page<CategoryEntity> page;
 		
-		categoryEntity2 = CategoryEntity.builder()
-							.name("카테고리2")
-							.build();
+		categoryEntity2 = new CategoryEntity();
+		categoryEntity2.setName("카테고리2");
 		
 		categoryRepository.save(categoryEntity1);
 		categoryRepository.save(categoryEntity2);

@@ -52,38 +52,34 @@ public class CommentRepositoryTest {
 	
 	@BeforeAll
 	public void setUpAll() {
-		categoryEntity = categoryRepository.save(
-			CategoryEntity.builder()
-				.name("카테고리")
-				.build()
-		);
+		categoryEntity = new CategoryEntity();
+		categoryEntity.setName("카테고리");
 
-		userEntity = userRepository.save(
-			UserEntity.builder()
-				.email("user@naver.com")
-				.name("사용자")
-				.password("12345678Aa!@#$%")
-				.userRole(UserRole.USER)
-				.build()
-		);
+		categoryEntity = categoryRepository.save(categoryEntity);
 		
-		postEntity = postRepository.save(
-			PostEntity.builder()
-				.content("포스트")
-				.title("포스트")
-				.category(categoryEntity)
-				.user(userEntity)
-				.build()
-		);
+		userEntity = new UserEntity();
+		userEntity.setEmail("user@naver.com");
+		userEntity.setName("사용자");
+		userEntity.setPassword("12345678Aa!@#$%");
+		userEntity.setUserRole(UserRole.USER);
+		
+		userEntity = userRepository.save(userEntity);
+		
+		postEntity = new PostEntity();
+		postEntity.setContent("포스트");
+		postEntity.setTitle("포스트");
+		postEntity.setCategory(categoryEntity);
+		postEntity.setUser(userEntity);
+
+		postEntity = postRepository.save(postEntity);
 	}
 	
 	@BeforeEach
 	public void setUpEach() {
-		commentEntity1 = CommentEntity.builder()
-							.content("댓글1")	
-							.post(postEntity)
-							.user(userEntity)
-							.build();
+		commentEntity1 = new CommentEntity();
+		commentEntity1.setContent("댓글1");
+		commentEntity1.setPost(postEntity);
+		commentEntity1.setUser(userEntity);
 	}
 	
 	@AfterAll
@@ -180,11 +176,10 @@ public class CommentRepositoryTest {
 		CommentEntity commentEntity2;
 		Page<CommentEntity> page;
 		
-		commentEntity2 = CommentEntity.builder()
-							.content("댓글2")
-							.post(postEntity)
-							.user(userEntity)
-							.build();
+		commentEntity2 = new CommentEntity();
+		commentEntity2.setContent("댓글2");
+		commentEntity2.setPost(postEntity);
+		commentEntity2.setUser(userEntity);
 		
 		commentRepository.save(commentEntity1);
 		commentRepository.save(commentEntity2);

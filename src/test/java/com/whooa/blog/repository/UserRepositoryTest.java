@@ -34,12 +34,13 @@ public class UserRepositoryTest {
 	
 	@BeforeEach
 	public void setUp() {
-		userEntity1 = UserEntity.builder()
-						.email("user1@naver.com")
-						.name("사용자1")
-						.password("12345678Aa!@#$%")
-						.userRole(UserRole.USER)
-						.build();
+		userEntity1 = new UserEntity();
+		userEntity1.setEmail("user1@naver.com");
+		userEntity1.setName("사용자1");
+		userEntity1.setPassword("12345678Aa!@#$%");
+		userEntity1.setUserRole(UserRole.USER);
+		
+		userEntity1 = userRepository.save(userEntity1);
 	}
 	
 	@AfterEach
@@ -129,15 +130,14 @@ public class UserRepositoryTest {
 		UserEntity userEntity2;
 		Page<UserEntity> page;
 		
-		userEntity2 = userRepository.save(
-			UserEntity.builder()
-						.email("user2@naver.com")
-						.name("사용자2")
-						.password("12345678Aa!@#$%")
-						.userRole(UserRole.USER)
-						.build()
-		);
+		userEntity2 = new UserEntity();
 		userEntity2.setActive(false);
+		userEntity2.setEmail("user2@naver.com");
+		userEntity2.setName("사용자2");
+		userEntity2.setPassword("12345678Aa!@#$%");
+		userEntity2.setUserRole(UserRole.USER);
+		
+		userEntity2 = userRepository.save(userEntity2);
 		
 		userRepository.save(userEntity1);
 		userRepository.save(userEntity2);

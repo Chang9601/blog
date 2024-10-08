@@ -89,53 +89,49 @@ public class AdminCommentIntegrationTest {
 					.addFilter(new CharacterEncodingFilter("utf-8", true))
 					.apply(springSecurity()).build();
 
-		userEntity = userRepository.save(
-			UserEntity.builder()
-				.email("admin@naver.com")
-				.name("관리자")
-				.password("12345678Aa!@#$%")
-				.userRole(UserRole.ADMIN)
-				.build()
-		);
+		UserEntity userEntity = new UserEntity();
+		userEntity.setEmail("admin@naver.com");
+		userEntity.setName("관리자");
+		userEntity.setPassword("12345678Aa!@#$%");
+		userEntity.setUserRole(UserRole.ADMIN);
 		
-		userRepository.save(
-			UserEntity.builder()
-				.email("user1@naver.com")
-				.name("사용자1")
-				.password("12345678Aa!@#$%")
-				.userRole(UserRole.USER)
-				.build()
-		);
+		userRepository.save(userEntity);
+
+		userEntity = new UserEntity();
+		userEntity.setEmail("user1@naver.com");
+		userEntity.setName("사용자1");
+		userEntity.setPassword("12345678Aa!@#$%");
+		userEntity.setUserRole(UserRole.USER);
 		
-		categoryEntity = categoryRepository.save(
-			CategoryEntity.builder()
-				.name("카테고리")
-				.build()
-		);
+		userEntity = userRepository.save(userEntity);
+
+		categoryEntity = new CategoryEntity();
+		categoryEntity.setName("카테고리");
 		
-		postEntity = postRepository.save(
-			PostEntity.builder()
-				.category(categoryEntity)
-				.content("포스트")
-				.title("포스트")
-				.user(userEntity)
-				.build()
-		);
+		categoryEntity = categoryRepository.save(categoryEntity);
+
+		postEntity = new PostEntity();
+		postEntity.setContent("포스트");
+		postEntity.setTitle("포스트");
+		postEntity.setCategory(categoryEntity);
+		postEntity.setUser(userEntity);
+		
+		postEntity = postRepository.save(postEntity);
 
 		new UserDetailsImpl(userEntity);
 	}
 	
 	@BeforeEach
-	void setUpEach() {	
-		commentEntity = commentRepository.save(
-			 CommentEntity.builder()
-				.content("댓글1")
-				.post(postEntity)
-				.user(userEntity)
-				.build()
-		);
-	
-		commentUpdate = new CommentUpdateRequest().content("댓글2");
+	void setUpEach() {
+		commentUpdate = new CommentUpdateRequest();
+		commentUpdate.setContent("댓글2");
+		
+		commentEntity = new CommentEntity();
+		commentEntity.setContent("댓글1");
+		commentEntity.setPost(postEntity);
+		commentEntity.setUser(userEntity);
+
+		commentEntity = commentRepository.save(commentEntity);
 	}
 	
 	@AfterAll
