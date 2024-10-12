@@ -1,6 +1,5 @@
 package com.whooa.blog.post.doc;
 
-import java.util.Date;
 import java.util.List;
 
 import org.springframework.data.elasticsearch.annotations.Document;
@@ -10,11 +9,10 @@ import org.springframework.data.elasticsearch.annotations.JoinTypeRelation;
 import org.springframework.data.elasticsearch.annotations.JoinTypeRelations;
 import org.springframework.data.elasticsearch.core.join.JoinField;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
 import com.whooa.blog.common.doc.CoreDoc;
 
 @Document(indexName = "posts")
-public class PostDoc extends CoreDoc {
+public class PostDoc extends CoreDoc {	
 	@Field(type = FieldType.Text, name = "category_name")
 	private String categoryName;
 	
@@ -33,15 +31,6 @@ public class PostDoc extends CoreDoc {
 	@Field(type = FieldType.Keyword, name = "user_id")
 	private Long userId;
 	
-	@JsonFormat(pattern = "yyyy-MM-dd")
-	private Date createdAt;
-	
-	@JsonFormat(pattern = "yyyy-MM-dd")
-	private Date updatedAt;
-	
-	@JsonFormat(pattern = "yyyy-MM-dd")
-	private Date deletedAt;
-	
 	@JoinTypeRelations(
 		relations = {
 			@JoinTypeRelation(parent = "category", children = "post"),
@@ -50,16 +39,12 @@ public class PostDoc extends CoreDoc {
 	private JoinField<String> relation;
 	
 	public PostDoc() {}
-	
-	public static PostDocBuilder builder() {
-		return new PostDocBuilder();
-	}
 
-	public String getId() {
+	public Long getId() {
 		return super.getId();
 	}
 
-	public void setId(String id) {
+	public void setId(Long id) {
 		super.setId(id);
 	}
 	
@@ -117,72 +102,5 @@ public class PostDoc extends CoreDoc {
 
 	public void setRelation(JoinField<String> relation) {
 		this.relation = relation;
-	}
-
-	public static final class PostDocBuilder {
-		private String id;
-		private String categoryName;
-		private String content;
-		private String title;
-		private Long categoryId;
-		private List<Long> commentIds;
-		private Long userId;
-		
-		public PostDocBuilder() {}
-		
-		public PostDocBuilder id(String id) {
-			this.id = id;
-			return this;
-		}
-		
-		public PostDocBuilder categoryName(String categoryName) {
-			this.categoryName = categoryName;
-			return this;
-		}
-		
-		public PostDocBuilder content(String content) {
-			this.content = content;
-			return this;
-		}
-		
-		public PostDocBuilder title(String title) {
-			this.title = title;
-			return this;
-		}
-		
-		public PostDocBuilder categoryId(Long categoryId) {
-			this.categoryId = categoryId;
-			return this;
-		}
-		
-		public PostDocBuilder commentIds(List<Long> commentIds) {
-			this.commentIds = commentIds;
-			return this;
-		}
-		
-		public PostDocBuilder userId(Long userId) {
-			this.userId = userId;
-			return this;
-		}
-		
-		public PostDoc build() {
-			PostDoc postDoc = new PostDoc();
-			
-			if (id != null) {
-				postDoc.setId(id);
-			}
-			
-			postDoc.setCategoryName(categoryName);
-			postDoc.setContent(content);
-			postDoc.setTitle(title);
-			postDoc.setCategoryId(categoryId);
-			postDoc.setUserId(userId);
-			
-			if (commentIds != null) {
-				postDoc.setCommentIds(commentIds);
-			}
-			
-			return postDoc;
-		}
 	}
 }

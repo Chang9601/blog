@@ -1,4 +1,4 @@
-package com.whooa.blog.query;
+package com.whooa.blog.elasticsearch;
 
 import java.util.Date;
 import java.util.List;
@@ -16,28 +16,28 @@ import co.elastic.clients.elasticsearch.core.SearchRequest;
 import co.elastic.clients.json.JsonData;
 import co.elastic.clients.elasticsearch._types.query_dsl.TextQueryType;
 
-public final class QueryUtil {
-	
-	private QueryUtil() {}
-	
-	public static SearchRequest buildSearchRequest(String index, QueryDto queryDto) {		
+public final class ElasticsearchUtil<T> {
+	private ElasticsearchUtil() {}
+		
+	public static SearchRequest buildSearchRequest(String index, ElasticsearchParam elasticsearchParam) {		
 		try {
-			SearchRequest.Builder searchRequestBuilder = new SearchRequest.Builder()
-				.index(List.of(index))
-				.query(buildQuery(queryDto));
+			SearchRequest.Builder searchRequestBuilder;
 			
-			if (queryDto.getSortBy() != null) {
+			searchRequestBuilder = new SearchRequest.Builder()
+											.index(index)
+											.postFilter(buildQuery(elasticsearchParam));
+											//.query(buildQuery(elasticsearchParam));
+			
+			if (elasticsearchParam.getSortBy() != null) {
 				SortOptions sortOptions = new SortOptions.Builder()
-					.field(fn -> fn.field(queryDto.getSortBy())
-					.order(queryDto.getSortOrder() != null ? queryDto.getSortOrder() : SortOrder.Asc))
+					.field(fn -> fn.field(elasticsearchParam.getSortBy())
+					.order(elasticsearchParam.getSortOrder() != null ? elasticsearchParam.getSortOrder() : SortOrder.Asc))
 					.build();
 				
 				searchRequestBuilder.sort(sortOptions);
 			}
 			
-			SearchRequest searchRequest = searchRequestBuilder.build();
-
-			return searchRequest;
+			return searchRequestBuilder.build();
 		} catch (Exception exception) {
 			exception.printStackTrace();
 			
@@ -61,7 +61,7 @@ public final class QueryUtil {
 		
 	}
 	
-	public static Query buildRangeQuery(String field, Date date) {
+	private static Query buildRangeQuery(String field, Date date) {
 		return new RangeQuery
 			.Builder()
 			.field(field)
@@ -70,40 +70,39 @@ public final class QueryUtil {
 			._toQuery();
 	}
 	
-	public static Query buildQuery(QueryDto queryDto) {
+	private static Query buildQuery(ElasticsearchParam elasticsearchDto) {
 		List<String> fields;
-		String query;
+		String searchTerm;
 		
-		if (queryDto == null) {
+		if (elasticsearchDto == null) {
 			return null;
 		}
 		
-		fields = queryDto.getFields();
-		query = queryDto.getQuery();
+		fields = elasticsearchDto.getFields();
+		searchTerm = elasticsearchDto.getSearchTerm();
 		
 		if (CollectionUtils.isEmpty(fields)) {
 			return null;
 		}
 		
-		if (fields.size() > 1) {
+		if (fields.size() > 1) {			
 			 return new MultiMatchQuery
 			 	.Builder()
-				.query(query)
+				.query(searchTerm)
 				.type(TextQueryType.CrossFields)
 				.operator(Operator.And)
 				.fields(fields)
 				.build()
-				._toQuery();						
+				._toQuery();
 		}
 
 		return fields.stream()
-			.findFirst()
-			.map((field) -> new MatchQuery.Builder()
-			.query(query)
-			.operator(Operator.And)
-			.field(field))
-			.orElse(null)
-			.build()
-			._toQuery();	
+				.findFirst()
+				.map((field) -> new MatchQuery.Builder()
+				.query(searchTerm)
+				.operator(Operator.And)
+				.field(field).build())
+				.orElse(null)
+				._toQuery();	
 	}
 }

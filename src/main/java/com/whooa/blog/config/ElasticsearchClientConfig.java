@@ -28,7 +28,7 @@ public class ElasticsearchClientConfig extends ElasticsearchConfiguration {
 	private String username;
 
 	@Override
-	public ClientConfiguration clientConfiguration() {		
+	public ClientConfiguration clientConfiguration() {
 		return ClientConfiguration.builder()
 				.connectedTo(url)
 				.usingSsl(buildSslContext())

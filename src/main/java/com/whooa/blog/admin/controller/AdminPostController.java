@@ -23,7 +23,8 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 
 @Tag(
-	name = "관리자(포스트) API"
+	name = "관리자(포스트) API",
+	description = "포스트 수정/삭제를 수행하는 관리자 포스트 컨트롤러"
 )
 @RestController
 @RequestMapping("/api/v1/admin/posts")

@@ -16,14 +16,13 @@ import com.whooa.blog.common.api.ApiResponse;
 import com.whooa.blog.common.code.Code;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 import jakarta.validation.Valid;
 
-@Tag(
-	name = "관리자(댓글) API"
-)
+@Tag(description = "댓글 수정/삭제를 수행하는 관리자 댓글 컨트롤러", name = "관리자(댓글) API")
 @RestController
 @RequestMapping("/api/v1/admin/posts")
 public class AdminCommentController {
@@ -33,12 +32,9 @@ public class AdminCommentController {
 		this.adminCommentService = adminCommentService;
 	}
 	
-	@Operation(
-		summary = "댓글 삭제(관리자)"
-	)
-	@SecurityRequirement(
-		name = "JWT Cookie Authentication"
-	)
+	@SecurityRequirement(name = "JWT Cookie Authentication")
+	@Operation(description = "아이디에 해당하는 댓글을 삭제", method = "DELETE", summary = "댓글 삭제")
+	@io.swagger.v3.oas.annotations.responses.ApiResponse(content = @Content(mediaType = "application/json"), description = "댓글 삭제 성공", responseCode = "200")
 	@ResponseStatus(value = HttpStatus.OK)
 	@DeleteMapping("/{post-id}/comments/{id}")
 	public ApiResponse<CommentResponse> deleteComment(@PathVariable("id") Long id, @PathVariable("post-id") Long postId) {
@@ -47,12 +43,9 @@ public class AdminCommentController {
 		return ApiResponse.handleSuccess(Code.NO_CONTENT.getCode(), Code.NO_CONTENT.getMessage(), null, new String[] {"댓글을 삭제했습니다."});
 	}
 
-	@Operation(
-		summary = "댓글 수정(관리자)"
-	)
-	@SecurityRequirement(
-		name = "JWT Cookie Authentication"
-	)	
+	@SecurityRequirement(name = "JWT Cookie Authentication")
+	@Operation(description = "아이디에 해당하는 댓글을 수정", method = "PATCH", summary = "댓글 수정")
+	@io.swagger.v3.oas.annotations.responses.ApiResponse(content = @Content(mediaType = "application/json"), description = "댓글 수정 성공", responseCode = "200")
 	@ResponseStatus(value = HttpStatus.OK)
 	@PatchMapping("/{post-id}/comments/{id}")
 	public ApiResponse<CommentResponse> updateComment(@PathVariable("id") Long id, @PathVariable("post-id") Long postId, @Valid @RequestBody CommentUpdateRequest commentUpdate) {		

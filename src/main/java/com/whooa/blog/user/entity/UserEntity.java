@@ -46,6 +46,9 @@ public class UserEntity extends CoreEntity {
 	@Column(name = "oauth2_provider_id", length = 500)
 	private String oAuth2ProviderId;
 	
+	@Column(name = "oauth2_provider_refresh_token", length = 500)
+	private String oAuth2ProviderRefreshToken;
+	
 	@Column(name = "refresh_token", length = 500)
 	private String refreshToken;
 	

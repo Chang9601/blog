@@ -15,8 +15,11 @@ import com.whooa.blog.category.repository.CategoryRepository;
 import com.whooa.blog.common.api.PageResponse;
 import com.whooa.blog.common.code.Code;
 import com.whooa.blog.common.security.UserDetailsImpl;
+import com.whooa.blog.elasticsearch.ElasticsearchOperationsWrapper;
+import com.whooa.blog.elasticsearch.ElasticsearchParam;
 import com.whooa.blog.file.service.FileService;
 import com.whooa.blog.file.value.File;
+import com.whooa.blog.post.doc.PostDoc;
 import com.whooa.blog.post.dto.PostDto.PostCreateRequest;
 import com.whooa.blog.post.dto.PostDto.PostUpdateRequest;
 import com.whooa.blog.post.dto.PostDto.PostResponse;
@@ -24,6 +27,7 @@ import com.whooa.blog.post.entity.PostEntity;
 import com.whooa.blog.post.exception.PostNotFoundException;
 import com.whooa.blog.post.mapper.PostMapper;
 import com.whooa.blog.post.repository.PostRepository;
+import com.whooa.blog.post.service.PostElasticsearchService;
 import com.whooa.blog.post.service.PostService;
 import com.whooa.blog.user.entity.UserEntity;
 import com.whooa.blog.user.exception.UserNotFoundException;
@@ -37,7 +41,9 @@ public class PostServiceImpl implements PostService {
 	private PostRepository postRepository;
 	private CategoryRepository categoryRepository;
 	private UserRepository userRepository;
+	private PostElasticsearchService postElasticsearchService;
 	private FileService fileService;
+	private ElasticsearchOperationsWrapper<PostDoc> elasticsearchOperationsWrapper;
 
 	/*
 	 * 생성자 주입은 생성자를 사용해서 의존성을 주입한다.
@@ -51,19 +57,23 @@ public class PostServiceImpl implements PostService {
 	public PostServiceImpl(
 			CategoryRepository categoryRepository, 
 			PostRepository postRepository, 
-			UserRepository userRepository, 
-			FileService fileService) {
+			UserRepository userRepository,
+			PostElasticsearchService postElasticsearchService,
+			FileService fileService,
+			ElasticsearchOperationsWrapper<PostDoc> elasticsearchOperationsWrapper) {
 		this.categoryRepository = categoryRepository;
 		this.postRepository = postRepository;
 		this.userRepository = userRepository;
+		this.postElasticsearchService = postElasticsearchService;
 		this.fileService = fileService;
+		this.elasticsearchOperationsWrapper = elasticsearchOperationsWrapper;
 	}
 
 	@Override
 	public PostResponse create(PostCreateRequest postCreate, MultipartFile[] uploadFiles, UserDetailsImpl userDetailsImpl) {
 		List<File> files = null;
 		CategoryEntity categoryEntity;
-		PostEntity postEntity;
+		PostEntity postEntity, createdPostEntity;
 		UserEntity userEntity;
 		PostResponse post;
 				
@@ -73,16 +83,28 @@ public class PostServiceImpl implements PostService {
 
 		postEntity.setCategory(categoryEntity);
 		postEntity.setUser(userEntity);
-									
-		post = PostMapper.INSTANCE.fromEntity(postRepository.save(postEntity));		
-
+		
 		if (uploadFiles != null && uploadFiles.length > 0) {
 			files = Arrays.stream(uploadFiles)
 					.map(uploadFile -> fileService.upload(postEntity, uploadFile))
-					.collect(Collectors.toList());
-			
-			post.setFiles(files);
+					.collect(Collectors.toList());			
 		}
+
+		createdPostEntity = postRepository.save(postEntity);
+		
+		post = PostMapper.INSTANCE.fromEntity(createdPostEntity);
+		post.setFiles(files);
+		
+		PostDoc postDoc = new PostDoc();
+						
+		postDoc.setId(createdPostEntity.getId());
+		postDoc.setContent(createdPostEntity.getContent());
+		postDoc.setTitle(createdPostEntity.getTitle());
+		postDoc.setCategoryName(createdPostEntity.getCategory().getName());
+		postDoc.setCategoryId(createdPostEntity.getCategory().getId());
+		postDoc.setUserId(createdPostEntity.getUser().getId());
+		
+		elasticsearchOperationsWrapper.create(postDoc);
 		
 		return post;
 	}
@@ -161,6 +183,15 @@ public class PostServiceImpl implements PostService {
 		postResponse = postEntities.stream().map((postEntity) -> PostMapper.INSTANCE.fromEntity(postEntity)).collect(Collectors.toList());
 		
 		return PageResponse.handleResponse(postResponse, pageSize, pageNo, totalElements, totalPages, isLast, isFirst);
+	}
+	
+	@Override
+	public PageResponse<PostResponse> search(ElasticsearchParam elasticsearchParam) {
+		List<PostDoc> postDocs = postElasticsearchService.search(elasticsearchParam);
+		
+		System.out.println(postDocs);
+		
+		return null;
 	}
 
 	@Override

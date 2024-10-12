@@ -5,24 +5,19 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
+import org.elasticsearch.client.RequestOptions;
+import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
 import org.springframework.stereotype.Service;
 
-import com.whooa.blog.category.entity.CategoryEntity;
-import com.whooa.blog.category.exception.CategoryNotFoundException;
-import com.whooa.blog.category.repository.CategoryRepository;
-import com.whooa.blog.common.api.PageResponse;
-import com.whooa.blog.common.code.Code;
-import com.whooa.blog.common.security.UserDetailsImpl;
+import com.whooa.blog.elasticsearch.ElasticsearchIndex;
+import com.whooa.blog.elasticsearch.ElasticsearchParam;
+import com.whooa.blog.elasticsearch.ElasticsearchUtil;
 import com.whooa.blog.post.doc.PostDoc;
-import com.whooa.blog.post.doc.PostDoc.PostDocBuilder;
-import com.whooa.blog.post.dto.PostDto.PostCreateRequest;
 import com.whooa.blog.post.repository.PostElasticsearchRepository;
 import com.whooa.blog.post.service.PostElasticsearchService;
-import com.whooa.blog.query.Index;
-import com.whooa.blog.query.QueryDto;
-import com.whooa.blog.query.QueryUtil;
 
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
+import co.elastic.clients.elasticsearch._types.query_dsl.Query;
 import co.elastic.clients.elasticsearch.core.SearchRequest;
 import co.elastic.clients.elasticsearch.core.SearchResponse;
 import co.elastic.clients.elasticsearch.core.search.Hit;
@@ -30,77 +25,28 @@ import co.elastic.clients.elasticsearch.core.search.Hit;
 @Service
 public class PostElasticsearchServiceImpl implements PostElasticsearchService {
 	private PostElasticsearchRepository postElasticsearchRepository;
-	private CategoryRepository categoryRepository;
 	private ElasticsearchClient elasticsearchClient;
-	
-	public PostElasticsearchServiceImpl(PostElasticsearchRepository postElasticsearchRepository, CategoryRepository categoryRepository, ElasticsearchClient elasticsearchClient) {
+	private ElasticsearchOperations elasticsearchOperations;
+
+	public PostElasticsearchServiceImpl(PostElasticsearchRepository postElasticsearchRepository,
+			ElasticsearchClient elasticsearchClient,
+			ElasticsearchOperations elasticsearchOperations) {
 		this.postElasticsearchRepository = postElasticsearchRepository;
-		this.categoryRepository = categoryRepository;
 		this.elasticsearchClient = elasticsearchClient;
+		this.elasticsearchOperations = elasticsearchOperations;
 	}
 	
 	@Override
-	public PostDoc create(PostCreateRequest postCreate, UserDetailsImpl userDetailsImpl) {		
-		Long categoryId, userId;
-		String categoryName, content, title;
+	public List<PostDoc> search(ElasticsearchParam elasticsearchParam) {
+		System.out.println(elasticsearchParam);
 		
-		categoryName = postCreate.getCategoryName();
-		content = postCreate.getContent();
-		title = postCreate.getTitle();
-		
-		CategoryEntity categoryEntity = categoryRepository.findByName(categoryName).orElseThrow(() -> new CategoryNotFoundException(Code.NOT_FOUND, new String[] {"카테고리가 존재하지 않습니다."}));
-
-		categoryId = categoryEntity.getId();
-		userId = userDetailsImpl.getId();
-		
-		PostDocBuilder postDocBuilder = PostDoc.builder();
-		PostDoc postDoc = postDocBuilder
-			.categoryName(categoryName)
-			.content(content)
-			.title(title)
-			.categoryId(categoryId)
-			.userId(userId)
-			.build();
-		
-		postDoc = postElasticsearchRepository.save(postDoc);
-		
-		return postDoc;
-	}
-
-	@Override
-	public PostDoc find(Long id) {
-		PostDoc postDoc = postElasticsearchRepository.findById(id).orElse(null);
-		
-		return postDoc;
-	}
-
-	@Override
-	public PageResponse<PostDoc> findByContent(String content) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public PageResponse<PostDoc> findByTitle(String title) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public PageResponse<PostDoc> findByCategoryName(String categoryName) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public List<PostDoc> search(QueryDto queryDto) {		
-		SearchRequest searchRequest = QueryUtil.buildSearchRequest(Index.POST_INDEX, queryDto);
+		SearchRequest searchRequest = ElasticsearchUtil.buildSearchRequest(ElasticsearchIndex.POST_INDEX, elasticsearchParam);
 		
 		return searchHelper(searchRequest);
 	}
 	
 	public List<PostDoc> searchSince(Date date) {
-		SearchRequest searchRequest = QueryUtil.buildSearchRequest(Index.POST_INDEX, "createdAt", date);
+		SearchRequest searchRequest = ElasticsearchUtil.buildSearchRequest(ElasticsearchIndex.POST_INDEX, "createdAt", date);
 		
 		return searchHelper(searchRequest);
 	}
@@ -110,23 +56,29 @@ public class PostElasticsearchServiceImpl implements PostElasticsearchService {
 			return Collections.emptyList();
 		}
 		
-		System.out.println("hi");
 		System.out.println(searchRequest);
 		
-		try {
-			SearchResponse searchResponse = elasticsearchClient.search(searchRequest, PostDoc.class);
+		try {			
+			SearchResponse<PostDoc> searchResponse = elasticsearchClient.search(searchRequest, PostDoc.class);
 			
-			List<Hit<PostDoc>> searchHits = searchResponse.hits().hits();
-			
-			System.out.println(searchHits);
-			
-			List<PostDoc> posts = new ArrayList<>(searchHits.size());
-			
-			for (Hit<PostDoc> hit: searchHits) {
+			System.out.println(searchResponse);
+//			elasticsearchClient.
+//			
+//			List<Hit<PostDoc>> searchHits = searchResponse.hits().hits();
+//			
+//			System.out.println(searchHits);
+//			System.out.println(searchResponse);
+//
+			List<PostDoc> posts = new ArrayList<>();
+//			
+			for (Hit<PostDoc> hit: searchResponse.hits().hits()) {
 				posts.add(hit.source());
 			}
 			
-			return posts;
+			System.out.println(posts);
+			System.out.println("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
+			
+			return null;
 			
 		} catch (Exception exception) {
 			return Collections.emptyList();

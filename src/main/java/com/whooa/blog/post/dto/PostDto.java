@@ -25,7 +25,7 @@ public class PostDto {
 		@NotBlank(message = "카테고리를 입력하세요.")
 		private String categoryName;
 		
-		@Size(min = 100, max = 2000, message = "내용은 최소 100자 이상 최대 2000자 이하입니다.")
+		@Size(min = 3, max = 100, message = "내용은 최소 100자 이상 최대 2000자 이하입니다.")
 		@NotBlank(message = "내용을 입력하세요.")
 		private String content;
 		

@@ -18,6 +18,7 @@ import com.whooa.blog.common.api.PageResponse;
 import com.whooa.blog.common.code.Code;
 import com.whooa.blog.common.security.CurrentUser;
 import com.whooa.blog.common.security.UserDetailsImpl;
+import com.whooa.blog.elasticsearch.ElasticsearchParam;
 import com.whooa.blog.post.dto.PostDto.PostResponse;
 import com.whooa.blog.post.dto.PostDto.PostCreateRequest;
 import com.whooa.blog.post.dto.PostDto.PostUpdateRequest;
@@ -94,7 +95,7 @@ public class PostController {
 	}
 	
 	@Operation(
-		summary = "포스트 목록 조회"
+		summary = "포스트 목록"
 	)
 	@ResponseStatus(value = HttpStatus.OK)
 	@GetMapping
@@ -103,7 +104,7 @@ public class PostController {
 	}
 
 	@Operation(
-		summary = "카테고리에 속하는 포스트 목록 조회"
+		summary = "카테고리에 속하는 포스트 목록"
 	)
 	@ResponseStatus(value = HttpStatus.OK)
 	@GetMapping("/categories/{category-id}")
@@ -112,12 +113,23 @@ public class PostController {
 	}
 
 	@Operation(
+		summary = "포스트 검색"
+	)
+	@SecurityRequirement(
+		name = "JWT Cookie Authentication"
+	)
+	@ResponseStatus(value = HttpStatus.OK)
+	@GetMapping("/search")
+	public ApiResponse<PageResponse<PostResponse>> searchPost(ElasticsearchParam elasticsearchParam) {		
+		return ApiResponse.handleSuccess(Code.OK.getCode(), Code.OK.getMessage(), postService.search(elasticsearchParam), new String[] {"포스트를 검색했습니다."});
+	}
+	
+	@Operation(
 		summary = "포스트 수정"
 	)
 	@SecurityRequirement(
 		name = "JWT Cookie Authentication"
 	)
-	/* @RequestBody 어노테이션은 내부적으로 Spring이 제공하는 HttpMessageConverter를 사용하여 JSON을 Java 객체로 변환한다. */
 	@ResponseStatus(value = HttpStatus.OK)
 	@PatchMapping("/{id}")
 	public ApiResponse<PostResponse> updatePost(@PathVariable Long id, @Valid @RequestPart(name = "post") PostUpdateRequest postUpdate, @RequestPart(name = "files", required = false) MultipartFile[] uploadFiles, @CurrentUser UserDetailsImpl userDetailsImpl) {		
