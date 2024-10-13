@@ -17,6 +17,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.whooa.blog.common.code.Code;
+import com.whooa.blog.common.entity.CoreEntity;
 import com.whooa.blog.file.exception.DirectoryNotCreatedException;
 import com.whooa.blog.file.exception.FileNotDownloadedException;
 import com.whooa.blog.file.exception.FileNotFoundException;
@@ -30,7 +31,7 @@ import com.whooa.blog.post.entity.PostEntity;
 import jakarta.annotation.PostConstruct;
 
 @Service
-public class FileServiceImpl implements FileService {
+public class FileServiceImpl<T extends CoreEntity> implements FileService<T> {
 	private Path path;
 	
 	public FileServiceImpl(FileProperty fileProperty) {
@@ -61,7 +62,7 @@ public class FileServiceImpl implements FileService {
 	}
 
 	@Override
-	public File upload(PostEntity postEntity, MultipartFile uploadFile) {
+	public File upload(T entity, MultipartFile uploadFile) {
 		String originalFilename, filename, filePath, fileExtension, mimeType;
 		Path uploadPath;
 		Long fileSize;
@@ -77,7 +78,7 @@ public class FileServiceImpl implements FileService {
 			}
 		
 			fileExtension = getExtension(originalFilename);
-			filename = "post" + postEntity.getId() + "-" + Instant.now().toEpochMilli() + "." + fileExtension;
+			filename = getEntityName(entity) + getEntityId(entity) + "-" + Instant.now().toEpochMilli() + "." + fileExtension;
 			fileSize = uploadFile.getSize();
 			mimeType = uploadFile.getContentType();
 			
@@ -97,12 +98,28 @@ public class FileServiceImpl implements FileService {
 			Files.copy(uploadFile.getInputStream(), uploadPath, StandardCopyOption.REPLACE_EXISTING);
 						
 			file =  new File(fileExtension, mimeType, filename, filePath, fileSize);
-			postEntity.getFiles().add(file);
-						
+			//((PostEntity) entity).getFiles().add(file);
+			
 			return file;
 		} catch (IOException exception) {
 			throw new FileNotSavedException(Code.FILE_NOT_SAVED, new String[] {"파일 " + originalFilename + "을 저장할 수 없습니다."});
 		}
+	}
+	
+	private Long getEntityId(T entity) {
+		if (entity instanceof PostEntity) {
+			return ((PostEntity) entity).getId(); 
+		}
+		
+		return 0L;
+	}
+	
+	private String getEntityName(T entity) {
+		if (entity instanceof PostEntity) {
+			return "post";
+		}
+		
+		return "";
 	}
 
 	@Override
@@ -132,6 +149,6 @@ public class FileServiceImpl implements FileService {
 		 * 1. 확장자가 없는 경우 빈 문자열을 반환한다.
 		 * 2. 확장자만 있는 경우 점 뒤의 문자열을 반환한다(e.g., .gitignore).
 		 */
-		return com.google.common.io.Files.getFileExtension(filename);
+		return com.google.common.io.Files.getFileExtension(filename).toLowerCase();
 	}
 }

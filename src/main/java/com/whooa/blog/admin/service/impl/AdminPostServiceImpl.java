@@ -27,12 +27,12 @@ import com.whooa.blog.util.StringUtil;
 public class AdminPostServiceImpl implements AdminPostService {
 	private PostRepository postRepository;
 	private CategoryRepository categoryRepository;
-	private FileService fileService;
+	private FileService<PostEntity> fileService;
 
 	public AdminPostServiceImpl(
 			PostRepository postRepository, 
 			CategoryRepository categoryRepository,
-			FileService fileService) {
+			FileService<PostEntity> fileService) {
 		this.postRepository = postRepository;
 		this.categoryRepository = categoryRepository;
 		this.fileService = fileService;

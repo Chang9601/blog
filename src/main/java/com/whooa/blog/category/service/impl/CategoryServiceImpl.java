@@ -19,7 +19,7 @@ import com.whooa.blog.category.service.CategoryService;
 import com.whooa.blog.common.api.PageResponse;
 import com.whooa.blog.common.code.Code;
 import com.whooa.blog.util.StringUtil;
-import com.whooa.blog.util.PaginationUtil;
+import com.whooa.blog.util.PaginationParam;
 
 @Service
 public class CategoryServiceImpl implements CategoryService {
@@ -61,7 +61,7 @@ public class CategoryServiceImpl implements CategoryService {
 	}
 
 	@Override
-	public PageResponse<CategoryResponse> findAll(PaginationUtil pagination) {
+	public PageResponse<CategoryResponse> findAll(PaginationParam pagination) {
 		Pageable pageable;
 		Page<CategoryEntity> page;
 		List<CategoryEntity> categoryEntities;

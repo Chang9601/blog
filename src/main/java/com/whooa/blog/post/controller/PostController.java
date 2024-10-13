@@ -23,22 +23,18 @@ import com.whooa.blog.post.dto.PostDto.PostResponse;
 import com.whooa.blog.post.dto.PostDto.PostCreateRequest;
 import com.whooa.blog.post.dto.PostDto.PostUpdateRequest;
 import com.whooa.blog.post.service.PostService;
-import com.whooa.blog.util.PaginationUtil;
+import com.whooa.blog.util.PaginationParam;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.Parameters;
+import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 import jakarta.validation.Valid;
 
-@Tag(
-	name = "포스트 API"
-)
-/*
- * @Controller 어노테이션은 클래스를 Spring MVC 컨트롤러로 만든다. 
- * @ResponseBody 어노테이션은 Java 객체를 JSON으로 변환하고 JSON이 다시 HTTP 응답으로 변환된다.
- * @RestController 어노테이션은 내부적으로 두 어노테이션을 사용한다.
- */
+@Tag(description = "포스트 생성/조회/목록/수정/삭제를 수행하는 포스트 컨트롤러", name = "포스트 API")
 @RestController
 @RequestMapping("/api/v1/posts")
 public class PostController {
@@ -48,12 +44,15 @@ public class PostController {
 		this.postService = postService;
 	}
 	
-	@Operation(
-		summary = "포스트 생성"
-	)
-	@SecurityRequirement(
-		name = "JWT Cookie Authentication"
-	)	
+	@SecurityRequirement(name = "JWT Cookie Authentication")
+	@Operation(description = "포스트 생성", method = "POST", summary = "포스트 생성")
+	@io.swagger.v3.oas.annotations.responses.ApiResponse(content = @Content(mediaType = "application/json"), description = "포스트 생성 성공", responseCode = "201")
+	@Parameters({
+		@Parameter(description = "카테고리 이름", example = "운영체제", name = "categoryName"),
+		@Parameter(description = "포스트 내용", example = "100자 이상의 포스트", name = "content"),
+		@Parameter(description = "포스트 제목", example = "프로세스와 스레드", name = "title"),
+		@Parameter(description = "파일 목록", example = "Whistle.jpg", name = "files"),
+	})
 	/*
 	 * @RequestBody 어노테이션은 데이터를 JSON 형식으로 전달받기 때문에 만약 파일을 본문으로 받게 된다면 원하는 결과를 얻을 수 없다. 
 	 * @RequestParam 어노테이션은 또한 기본적으로 문자열 데이터를 처리하는데 사용되므로 미디어 파일과 같은 이진 데이터를 받아오는 것은 적절하지 않다.
@@ -65,17 +64,14 @@ public class PostController {
 	 * consumes 속성은 해당 엔드포인트에서 수신되는 요청의 미디어 타입을 지정하는데 사용된다. 즉, 클라이언트가 요청 본문에 담아 보내는 데이터의 형식을 나타낸다.
 	 */
 	@ResponseStatus(value = HttpStatus.CREATED)
-	@PostMapping(consumes = { MediaType.MULTIPART_FORM_DATA_VALUE })
+	@PostMapping(consumes = { MediaType.MULTIPART_FORM_DATA_VALUE }, produces = MediaType.APPLICATION_JSON_VALUE)
 	public ApiResponse<PostResponse> createPost(@Valid @RequestPart(name = "post") PostCreateRequest postCreate, @RequestPart(name = "files", required = false) MultipartFile[] uploadFiles, @CurrentUser UserDetailsImpl userDetailsImpl) {		
 		return ApiResponse.handleSuccess(Code.CREATED.getCode(), Code.CREATED.getMessage(), postService.create(postCreate, uploadFiles, userDetailsImpl), new String[] {"포스트를 생성했습니다."});
 	}
 
-	@Operation(
-		summary = "포스트 삭제"
-	)
-	@SecurityRequirement(
-		name = "JWT Cookie Authentication"
-	)
+	@SecurityRequirement(name = "JWT Cookie Authentication")
+	@Operation(description = "아이디에 해당하는 포스트 삭제", method = "DELETE", summary = "포스트 삭제")
+	@io.swagger.v3.oas.annotations.responses.ApiResponse(content = @Content(mediaType = "application/json"), description = "포스트 삭제 성공", responseCode = "200")
 	@ResponseStatus(value = HttpStatus.OK)
 	@DeleteMapping("/{id}")
 	public ApiResponse<PostResponse> deletePost(@PathVariable Long id, @CurrentUser UserDetailsImpl userDetailsImpl) {
@@ -84,54 +80,56 @@ public class PostController {
 		return ApiResponse.handleSuccess(Code.NO_CONTENT.getCode(), Code.NO_CONTENT.getMessage(), null, new String[] {"포스트를 삭제했습니다."});
 	}
 
-	@Operation(
-		summary = "포스트 조회"
-	)
-	/* @PathVariable 어노테이션은 메서드 인자를 URI 템플릿 변수의 값에 바인딩한다. */
+	@SecurityRequirement(name = "JWT Cookie Authentication")
+	@Operation(description = "아이디에 해당하는 포스트 조회", method = "GET", summary = "포스트 조회")
+	@io.swagger.v3.oas.annotations.responses.ApiResponse(content = @Content(mediaType = "application/json"), description = "포스트 조회 성공", responseCode = "200")
 	@ResponseStatus(value = HttpStatus.OK)
 	@GetMapping("/{id}")
 	public ApiResponse<PostResponse> getPost(@PathVariable Long id) {		
 		return ApiResponse.handleSuccess(Code.OK.getCode(), Code.OK.getMessage(), postService.find(id), new String[] {"포스트를 조회했습니다."});
 	}
 	
-	@Operation(
-		summary = "포스트 목록"
-	)
+	// TODO: QueryDSL
+	@SecurityRequirement(name = "JWT Cookie Authentication")
+	@Operation(description = "포스트 목록", method = "GET", summary = "포스트 목록")
+	@io.swagger.v3.oas.annotations.responses.ApiResponse(content = @Content(mediaType = "application/json"), description = "포스트 목록 성공", responseCode = "200")
 	@ResponseStatus(value = HttpStatus.OK)
 	@GetMapping
-	public ApiResponse<PageResponse<PostResponse>> getPosts(PaginationUtil paginationUtil) {		
+	public ApiResponse<PageResponse<PostResponse>> getPosts(PaginationParam paginationUtil) {		
 		return ApiResponse.handleSuccess(Code.OK.getCode(), Code.OK.getMessage(), postService.findAll(paginationUtil), new String[] {"포스트 목록을 조회했습니다."});
 	}
 
-	@Operation(
-		summary = "카테고리에 속하는 포스트 목록"
-	)
+	// TODO: QueryDSL
+	@SecurityRequirement(name = "JWT Cookie Authentication")
+	@Operation(description = "카테고리에 해당하는 포스트 목록", method = "GET", summary = "포스트 목록")
+	@io.swagger.v3.oas.annotations.responses.ApiResponse(content = @Content(mediaType = "application/json"), description = "포스트 목록 성공", responseCode = "200")
 	@ResponseStatus(value = HttpStatus.OK)
 	@GetMapping("/categories/{category-id}")
-	public ApiResponse<PageResponse<PostResponse>> getPostsByCategoryId(@PathVariable("category-id") Long categoryId, PaginationUtil paginationUtil) {		
+	public ApiResponse<PageResponse<PostResponse>> getPostsByCategoryId(@PathVariable("category-id") Long categoryId, PaginationParam paginationUtil) {		
 		return ApiResponse.handleSuccess(Code.OK.getCode(), Code.OK.getMessage(), postService.findAllByCategoryId(categoryId, paginationUtil), new String[] {"카테고리 속하는 포스트 목록을 조회했습니다."});
 	}
 
-	@Operation(
-		summary = "포스트 검색"
-	)
-	@SecurityRequirement(
-		name = "JWT Cookie Authentication"
-	)
+	// TODO: 구현 후
+	@SecurityRequirement(name = "JWT Cookie Authentication")
+	@Operation(description = "검색어를 만족하는 포스트 목록", method = "GET", summary = "포스트 목록")
+	@io.swagger.v3.oas.annotations.responses.ApiResponse(content = @Content(mediaType = "application/json"), description = "포스트 목록 성공", responseCode = "200")
 	@ResponseStatus(value = HttpStatus.OK)
 	@GetMapping("/search")
 	public ApiResponse<PageResponse<PostResponse>> searchPost(ElasticsearchParam elasticsearchParam) {		
 		return ApiResponse.handleSuccess(Code.OK.getCode(), Code.OK.getMessage(), postService.search(elasticsearchParam), new String[] {"포스트를 검색했습니다."});
 	}
 	
-	@Operation(
-		summary = "포스트 수정"
-	)
-	@SecurityRequirement(
-		name = "JWT Cookie Authentication"
-	)
+	@SecurityRequirement(name = "JWT Cookie Authentication")
+	@Operation(description = "아이디에 해당하는 포스트 수정", method = "PATCH", summary = "포스트 수정")
+	@io.swagger.v3.oas.annotations.responses.ApiResponse(content = @Content(mediaType = "application/json"), description = "포스트 수정 성공", responseCode = "200")
+	@Parameters({
+		@Parameter(description = "카테고리 이름", example = "운영체제", name = "categoryName"),
+		@Parameter(description = "포스트 내용", example = "100자 이상의 포스트", name = "content"),
+		@Parameter(description = "포스트 제목", example = "프로세스와 스레드", name = "title"),
+		@Parameter(description = "파일 목록", example = "Whistle.jpg", name = "files"),
+	})
 	@ResponseStatus(value = HttpStatus.OK)
-	@PatchMapping("/{id}")
+	@PatchMapping(consumes = { MediaType.MULTIPART_FORM_DATA_VALUE }, produces = MediaType.APPLICATION_JSON_VALUE, value = "/{id}")
 	public ApiResponse<PostResponse> updatePost(@PathVariable Long id, @Valid @RequestPart(name = "post") PostUpdateRequest postUpdate, @RequestPart(name = "files", required = false) MultipartFile[] uploadFiles, @CurrentUser UserDetailsImpl userDetailsImpl) {		
 		return ApiResponse.handleSuccess(Code.OK.getCode(), Code.OK.getMessage(), postService.update(id, postUpdate, uploadFiles, userDetailsImpl), new String[] {"포스트를 수정했습니다."});
 	}

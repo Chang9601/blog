@@ -48,7 +48,7 @@ import com.whooa.blog.common.security.UserDetailsImpl;
 import com.whooa.blog.user.entity.UserEntity;
 import com.whooa.blog.user.repository.UserRepository;
 import com.whooa.blog.user.type.UserRole;
-import com.whooa.blog.util.PaginationUtil;
+import com.whooa.blog.util.PaginationParam;
 import com.whooa.blog.util.SerializeDeserializeUtil;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -271,7 +271,7 @@ public class CategoryIntegrationTest {
 		ResultActions action;
 		CategoryCreateRequest categoryCreate2;
 		MultiValueMap<String, String> params;
-		PaginationUtil pagination;
+		PaginationParam pagination;
 		
 		categoryCreate2 = new CategoryCreateRequest();
 		categoryCreate2.setName("카테고리2");
@@ -292,7 +292,7 @@ public class CategoryIntegrationTest {
 			.andExpect(status().isCreated())
 			.andReturn();
 
-		pagination = new PaginationUtil();
+		pagination = new PaginationParam();
 		
 		params = new LinkedMultiValueMap<String, String>();
 		params.add("pageNo", String.valueOf(pagination.getPageNo()));

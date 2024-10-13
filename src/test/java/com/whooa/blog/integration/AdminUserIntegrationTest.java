@@ -44,7 +44,7 @@ import com.whooa.blog.user.entity.UserEntity;
 import com.whooa.blog.user.exception.UserNotFoundException;
 import com.whooa.blog.user.repository.UserRepository;
 import com.whooa.blog.user.type.UserRole;
-import com.whooa.blog.util.PaginationUtil;
+import com.whooa.blog.util.PaginationParam;
 import com.whooa.blog.util.SerializeDeserializeUtil;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -210,9 +210,9 @@ public class AdminUserIntegrationTest {
 	public void givenPagination_whenCallGetUsers_thenReturnUsers() throws Exception {
 		ResultActions action;
 		MultiValueMap<String, String> params;
-		PaginationUtil pagination;
+		PaginationParam pagination;
 		
-		pagination = new PaginationUtil();
+		pagination = new PaginationParam();
 		
 		params = new LinkedMultiValueMap<String, String>();
 		params.add("pageNo", String.valueOf(pagination.getPageNo()));
@@ -237,9 +237,9 @@ public class AdminUserIntegrationTest {
 	public void givenPagination_whenCallGetUsers_thenThrowUnauthorizedUserException() throws Exception {
 		ResultActions action;
 		MultiValueMap<String, String> params;
-		PaginationUtil pagination;
+		PaginationParam pagination;
 		
-		pagination = new PaginationUtil();
+		pagination = new PaginationParam();
 		
 		userDetailsImpl = new UserDetailsImpl(userRepository.findByEmailAndActiveTrue("user1@naver.com").get());
 		

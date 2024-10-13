@@ -27,7 +27,7 @@ import com.whooa.blog.post.repository.PostRepository;
 import com.whooa.blog.user.entity.UserEntity;
 import com.whooa.blog.user.repository.UserRepository;
 import com.whooa.blog.user.type.UserRole;
-import com.whooa.blog.util.PaginationUtil;
+import com.whooa.blog.util.PaginationParam;
 
 /* 
  * AuditingEntityListener 메서드는 @PrePersist와 @PreUpdate 상태에서 호출된다.
@@ -168,7 +168,7 @@ public class PostRepositoryTest {
 		postRepository.save(postEntity1);
 		postRepository.save(postEntity2);
 		
-		page = postRepository.findAll(new PaginationUtil().makePageable());
+		page = postRepository.findAll(new PaginationParam().makePageable());
 		
 		assertEquals(2, page.getTotalElements());	
 	}
@@ -194,7 +194,7 @@ public class PostRepositoryTest {
 		postRepository.save(postEntity1);
 		postRepository.save(postEntity2);
 		
-		page = postRepository.findByCategoryId(categoryEntity2.getId(), new PaginationUtil().makePageable());
+		page = postRepository.findByCategoryId(categoryEntity2.getId(), new PaginationParam().makePageable());
 		
 		assertEquals(1, page.getTotalElements());
 	}

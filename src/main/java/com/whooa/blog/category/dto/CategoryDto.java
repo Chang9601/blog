@@ -1,20 +1,16 @@
 package com.whooa.blog.category.dto;
 
+import org.hibernate.validator.constraints.Length;
+
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
 
 public class CategoryDto {
 
-	@Schema(
-		description = "카테고리 생성 DTO"
-	)	
 	public static class CategoryCreateRequest {
-		@Schema(
-			description = "카테고리 이름"
-		)
-		@Size(min = 2, message = "이름은 최소 2자 이상입니다.")
+		@Length(message = "이름은 최소 2자 이상입니다.", min = 2)
 		@NotBlank(message = "이름을 입력하세요.")
+		@Schema(description = "카테고리 수정 시 필요한 이름", example = "운영체제", minLength = 2, name = "이름")
 		private String name;
 		
 		public CategoryCreateRequest() {}
@@ -32,16 +28,11 @@ public class CategoryDto {
 			return "CategoryCreateRequest [name=" + name + "]";
 		}
 	}
-	
-	@Schema(
-		description = "카테고리 수정 DTO"
-	)	
+		
 	public static class CategoryUpdateRequest {
-		@Schema(
-			description = "카테고리 이름"
-		)
-		@Size(min = 2, message = "이름은 최소 2자 이상입니다.")
+		@Length(message = "이름은 최소 2자 이상입니다.", min = 2)
 		@NotBlank(message = "이름을 입력하세요.")
+		@Schema(description = "카테고리 생성 시 필요한 이름", example = "운영체제", minLength = 2, name = "이름")
 		private String name;
 		
 		public CategoryUpdateRequest() {}
@@ -59,19 +50,12 @@ public class CategoryDto {
 			return "CategoryUpdateRequest [name=" + name + "]";
 		}
 	}	
-
-	@Schema(
-		description = "카테고리 응답 DTO"
-	)	
+	
 	public static class CategoryResponse {
-		@Schema(
-			description = "카테고리 아이디"
-		)
+		@Schema(description = "데이터베이스에 저장된 카테고리 아이디", example = "1", name = "아이디")
 		private Long id;
 		
-		@Schema(
-			description = "카테고리 이름"
-		)
+		@Schema(description = "데이터베이스에 저장된 카테고리 이름", example = "운영체제", name = "이름")
 		private String name;
 		
 		public CategoryResponse() {}

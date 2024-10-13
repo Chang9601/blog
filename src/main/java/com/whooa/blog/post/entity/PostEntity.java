@@ -52,7 +52,6 @@ public class PostEntity extends CoreEntity {
 	 * List, Set과 같은 자료구조는 엔티티 생성 시 바로 초기화를 하기 때문에 생성자에 포함하지 않는다.
 	 * 포함하면 게터에서 NullPointerException이 발생한다. 
 	 */
-
 	public PostEntity() {
 		super(0L);
 	}

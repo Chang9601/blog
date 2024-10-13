@@ -31,7 +31,7 @@ import com.whooa.blog.user.exception.DuplicateUserException;
 import com.whooa.blog.user.exception.UserNotFoundException;
 import com.whooa.blog.user.repository.UserRepository;
 import com.whooa.blog.user.type.UserRole;
-import com.whooa.blog.util.PaginationUtil;
+import com.whooa.blog.util.PaginationParam;
 
 @ExtendWith(MockitoExtension.class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -113,7 +113,7 @@ public class AdminUserServiceTest {
 
 		given(userRepository.findByActiveTrue(any(Pageable.class))).willReturn(new PageImpl<UserEntity>(List.of(userEntity1, userEntity2)));
 
-		PageResponse<UserResponse> page = adminUserServiceImpl.findAll(new PaginationUtil());
+		PageResponse<UserResponse> page = adminUserServiceImpl.findAll(new PaginationParam());
 					
 		assertEquals(2, page.getTotalElements());
 		

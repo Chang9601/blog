@@ -13,22 +13,26 @@ import com.whooa.blog.common.api.PageResponse;
 import com.whooa.blog.common.code.Code;
 import com.whooa.blog.user.dto.UserDto.UserAdminUpdateRequest;
 import com.whooa.blog.user.dto.UserDto.UserResponse;
+import com.whooa.blog.user.dto.UserDto.UserSearchRequest;
 import com.whooa.blog.user.entity.UserEntity;
 import com.whooa.blog.user.exception.DuplicateUserException;
 import com.whooa.blog.user.exception.UserNotFoundException;
 import com.whooa.blog.user.mapper.UserMapper;
 import com.whooa.blog.user.mapper.UserRoleMapper;
+import com.whooa.blog.user.repository.UserQueryDslRepository;
 import com.whooa.blog.user.repository.UserRepository;
-import com.whooa.blog.util.PaginationUtil;
+import com.whooa.blog.util.PaginationParam;
 import com.whooa.blog.util.PasswordUtil;
 import com.whooa.blog.util.StringUtil;
 
 @Service
 public class AdminUserServiceImpl implements AdminUserService {
 	private UserRepository userRepository;
+	private UserQueryDslRepository userQueryDslRepository;
 
-	public AdminUserServiceImpl(UserRepository userRepository) {
+	public AdminUserServiceImpl(UserRepository userRepository, UserQueryDslRepository userQueryDslRepository) {
 		this.userRepository = userRepository;
+		this.userQueryDslRepository = userQueryDslRepository;
 	}
 	
 	@Override
@@ -50,7 +54,7 @@ public class AdminUserServiceImpl implements AdminUserService {
 	}
 
 	@Override
-	public PageResponse<UserResponse> findAll(PaginationUtil paginationUtil) {
+	public PageResponse<UserResponse> findAll(PaginationParam paginationParam) {
 		Pageable pageable;
 		Page<UserEntity> page;
 		List<UserEntity> userEntities;
@@ -59,7 +63,7 @@ public class AdminUserServiceImpl implements AdminUserService {
 		long totalElements;
 		boolean isLast, isFirst;
 		
-		pageable = paginationUtil.makePageable();
+		pageable = paginationParam.makePageable();
 		page = userRepository.findByActiveTrue(pageable);
 		
 		userEntities = page.getContent();
@@ -70,6 +74,32 @@ public class AdminUserServiceImpl implements AdminUserService {
 		isLast = page.isLast();
 		isFirst = page.isFirst();
 				
+		userResponse = userEntities.stream().map((userEntity) -> UserMapper.INSTANCE.fromEntity(userEntity)).collect(Collectors.toList());
+		
+		return PageResponse.handleResponse(userResponse, pageSize, pageNo, totalElements, totalPages, isLast, isFirst);
+	}
+	
+	@Override
+	public PageResponse<UserResponse> search(UserSearchRequest userSearch, PaginationParam paginationParam) {
+		Pageable pageable;
+		Page<UserEntity> page;
+		List<UserEntity> userEntities;
+		List<UserResponse> userResponse;
+		int pageSize, pageNo, totalPages;
+		long totalElements;
+		boolean isLast, isFirst;
+		
+		pageable = paginationParam.makePageable();
+		page = userQueryDslRepository.search(userSearch, pageable);
+		
+		userEntities = page.getContent();
+		pageSize = page.getSize();
+		pageNo = page.getNumber();
+		totalElements = page.getTotalElements();
+		totalPages = page.getTotalPages();
+		isLast = page.isLast();
+		isFirst = page.isFirst();
+
 		userResponse = userEntities.stream().map((userEntity) -> UserMapper.INSTANCE.fromEntity(userEntity)).collect(Collectors.toList());
 		
 		return PageResponse.handleResponse(userResponse, pageSize, pageNo, totalElements, totalPages, isLast, isFirst);

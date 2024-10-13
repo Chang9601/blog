@@ -53,7 +53,7 @@ import com.whooa.blog.post.exception.PostNotFoundException;
 import com.whooa.blog.user.entity.UserEntity;
 import com.whooa.blog.user.exception.UserNotMatchedException;
 import com.whooa.blog.user.type.UserRole;
-import com.whooa.blog.util.PaginationUtil;
+import com.whooa.blog.util.PaginationParam;
 import com.whooa.blog.util.SerializeDeserializeUtil;
 
 @WebMvcTest(controllers = {CommentController.class})
@@ -290,16 +290,16 @@ public class CommentControllerTest {
 		ResultActions action;
 		CommentResponse comment2;
 		PageResponse<CommentResponse> page;
-		PaginationUtil pagination;
+		PaginationParam pagination;
 		MultiValueMap<String, String> params;
 		
 		comment2 = new CommentResponse();
 		comment2.setContent("댓글2");
 
-		pagination = new PaginationUtil();
+		pagination = new PaginationParam();
 		page = PageResponse.handleResponse(List.of(comment1, comment2), pagination.getPageSize(), pagination.getPageNo(), 2, 1, true, true);
 
-		given(commentService.findAllByPostId(any(Long.class), any(PaginationUtil.class))).willReturn(page);
+		given(commentService.findAllByPostId(any(Long.class), any(PaginationParam.class))).willReturn(page);
 
 		params = new LinkedMultiValueMap<String, String>();
 		params.add("pageNo", String.valueOf(pagination.getPageNo()));

@@ -16,6 +16,7 @@ import com.whooa.blog.common.api.ApiResponse;
 import com.whooa.blog.common.code.Code;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -33,7 +34,7 @@ public class AdminCommentController {
 	}
 	
 	@SecurityRequirement(name = "JWT Cookie Authentication")
-	@Operation(description = "아이디에 해당하는 댓글을 삭제", method = "DELETE", summary = "댓글 삭제")
+	@Operation(description = "아이디에 해당하는 댓글 삭제", method = "DELETE", summary = "댓글 삭제")
 	@io.swagger.v3.oas.annotations.responses.ApiResponse(content = @Content(mediaType = "application/json"), description = "댓글 삭제 성공", responseCode = "200")
 	@ResponseStatus(value = HttpStatus.OK)
 	@DeleteMapping("/{post-id}/comments/{id}")
@@ -44,8 +45,9 @@ public class AdminCommentController {
 	}
 
 	@SecurityRequirement(name = "JWT Cookie Authentication")
-	@Operation(description = "아이디에 해당하는 댓글을 수정", method = "PATCH", summary = "댓글 수정")
+	@Operation(description = "아이디에 해당하는 댓글 수정", method = "PATCH", summary = "댓글 수정")
 	@io.swagger.v3.oas.annotations.responses.ApiResponse(content = @Content(mediaType = "application/json"), description = "댓글 수정 성공", responseCode = "200")
+	@Parameter(description = "댓글", example = "하이!", name = "content")
 	@ResponseStatus(value = HttpStatus.OK)
 	@PatchMapping("/{post-id}/comments/{id}")
 	public ApiResponse<CommentResponse> updateComment(@PathVariable("id") Long id, @PathVariable("post-id") Long postId, @Valid @RequestBody CommentUpdateRequest commentUpdate) {		

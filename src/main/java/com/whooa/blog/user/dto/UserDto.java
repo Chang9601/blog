@@ -1,5 +1,7 @@
 package com.whooa.blog.user.dto;
 
+import org.hibernate.validator.constraints.Length;
+
 import com.whooa.blog.user.type.UserRole;
 
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -7,36 +9,24 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
-import jakarta.validation.constraints.Size;
 
 public class UserDto {
 
-	@Schema(
-		description = "사용자 생성 DTO"
-	)
-	public static class UserCreateRequest {
-		@Schema(
-			description = "사용자 이메일"
-		)
+	public static class UserCreateRequest {	
 		@Email(message = "형식에 맞게 이메일을 입력하세요.")
+		@Schema(description = "회원가입 시 필요한 사용자 이메일", example = "user1@naver.com", name = "이메일")
 		private String email;
-		
-		@Schema(
-			description = "사용자 이름"
-		)		
-		@Size(min = 2, message = "이름은 최소 2자 이상입니다.")		
+			
+		@Length(message = "이름은 최소 2자 이상입니다.", min = 2)		
 		@NotBlank(message = "이름을 입력하세요.")
+		@Schema(description = "회원가입 시 필요한 사용자 이름", example = "사용자1", name = "이름")
 		private String name;
 
-		@Schema(
-			description = "사용자 비밀번호"
-		)
-		@Pattern(regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[!@#$%^&*]).{8,15}$", message = "비밀번호는 최소한 하나의 소문자(a-z), 하나의 대문자(A-Z), 하나의 숫자(0-9), 하나의 특수 문자(!@#$%^&*)를 포함해야 합니다.")
+		@Pattern(message = "비밀번호는 최소한 하나의 소문자(a-z), 하나의 대문자(A-Z), 하나의 숫자(0-9), 하나의 특수 문자(!@#$%^&*)를 포함해야 합니다.", regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[!@#$%^&*]).{8,15}$")
+		@Schema(description = "회원가입 시 필요한 사용자 비밀번호", example = "12341234aA!@", name = "비밀번호")
 		private String password;
 
-		@Schema(
-			description = "사용자 역할"
-		)		
+		@Schema(description = "회원가입 시 필요한 사용자 역할", example = "USER", name = "역할")
 		private String userRole;
 
 		public UserCreateRequest() {}
@@ -100,32 +90,21 @@ public class UserDto {
 		}
 	}
 
-	@Schema(
-		description = "사용자 수정 DTO(관리자)"
-	)
 	public static class UserAdminUpdateRequest {
-		@Schema(
-			description = "사용자 이메일"
-		)
 		@Email(message = "형식에 맞게 이메일을 입력하세요.")
+		@Schema(description = "관리자 권한으로 사용자 수정 시 필요한 사용자 이메일", example = "user1@naver.com", name = "이메일")
 		private String email;
-		
-		@Schema(
-			description = "사용자 이름"
-		)		
-		@Size(min = 2, message = "이름은 최소 2자 이상입니다.")		
+			
+		@Length(message = "이름은 최소 2자 이상입니다.", min = 2)		
 		@NotBlank(message = "이름을 입력하세요.")
+		@Schema(description = "관리자 권한으로 사용자 수정 시 필요한 사용자 이름", example = "사용자1", name = "이름")
 		private String name;
 
-		@Schema(
-			description = "사용자 비밀번호"
-		)
-		@Pattern(regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[!@#$%^&*]).{8,15}$", message = "비밀번호는 최소한 하나의 소문자(a-z), 하나의 대문자(A-Z), 하나의 숫자(0-9), 하나의 특수 문자(!@#$%^&*)를 포함해야 합니다.")
+		@Pattern(message = "비밀번호는 최소한 하나의 소문자(a-z), 하나의 대문자(A-Z), 하나의 숫자(0-9), 하나의 특수 문자(!@#$%^&*)를 포함해야 합니다.", regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[!@#$%^&*]).{8,15}$")
+		@Schema(description = "관리자 권한으로 사용자 수정 시 필요한 사용자 비밀번호", example = "12341234aA!@", name = "비밀번호")
 		private String password;
-		
-		@Schema(
-			description = "사용자 역할"
-		)		
+
+		@Schema(description = "관리자 권한으로 사용자 수정 시 필요한 사용자 역할", example = "USER", name = "역할")
 		private String userRole;
 		
 		public UserAdminUpdateRequest() {}
@@ -169,21 +148,14 @@ public class UserDto {
 		}
 	}
 
-	@Schema(
-		description = "사용자 수정 DTO"
-	)
 	public static class UserUpdateRequest {
-		@Schema(
-			description = "사용자 이메일"
-		)
 		@Email(message = "형식에 맞게 이메일을 입력하세요.")
+		@Schema(description = "회원수정 시 필요한 사용자 이메일", example = "user1@naver.com", name = "이메일")
 		private String email;
-		
-		@Schema(
-			description = "사용자 이름"
-		)		
-		@Size(min = 2, message = "이름은 최소 2자 이상입니다.")		
+			
+		@Length(message = "이름은 최소 2자 이상입니다.", min = 2)		
 		@NotBlank(message = "이름을 입력하세요.")
+		@Schema(description = "회원수정 시 필요한 사용자 이름", example = "사용자1", name = "이름")
 		private String name;
 		
 		public UserUpdateRequest() {}
@@ -210,20 +182,35 @@ public class UserDto {
 		}
 	}
 
-	@Schema(
-		description = "사용자 비밀번호 수정 DTO"
-	)
+	public static class UserSearchRequest {			
+		@Length(message = "이름은 최소 2자 이상입니다.", min = 2)		
+		@NotBlank(message = "이름을 입력하세요.")
+		@Schema(description = "회원검색 시 필요한 사용자 이름", example = "사용자1", name = "이름")
+		private String name;
+		
+		public UserSearchRequest() {}
+		
+		public String getName() {
+			return name;
+		}
+
+		public void setName(String name) {
+			this.name = name;
+		}
+
+		@Override
+		public String toString() {
+			return "UserUpdateRequest [name=" + name + "]";
+		}
+	}
+	
 	public static class UserPasswordUpdateRequest {
-		@Schema(
-			description = "사용자 새 비밀번호"
-		)
-		@Pattern(regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[!@#$%^&*]).{8,15}$", message = "비밀번호는 최소한 하나의 소문자(a-z), 하나의 대문자(A-Z), 하나의 숫자(0-9), 하나의 특수 문자(!@#$%^&*)를 포함해야 합니다.")
+		@Pattern(message = "비밀번호는 최소한 하나의 소문자(a-z), 하나의 대문자(A-Z), 하나의 숫자(0-9), 하나의 특수 문자(!@#$%^&*)를 포함해야 합니다.", regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[!@#$%^&*]).{8,15}$")
+		@Schema(description = "비밀번호 수정 시 필요한 구 비밀번호", example = "12341234aA!@", name = "구 비밀번호")
 		private String newPassword;
 		
-		@Schema(
-			description = "사용자 구 비밀번호"
-		)
-		@Pattern(regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[!@#$%^&*]).{8,15}$", message = "비밀번호는 최소한 하나의 소문자(a-z), 하나의 대문자(A-Z), 하나의 숫자(0-9), 하나의 특수 문자(!@#$%^&*)를 포함해야 합니다.")
+		@Pattern(message = "비밀번호는 최소한 하나의 소문자(a-z), 하나의 대문자(A-Z), 하나의 숫자(0-9), 하나의 특수 문자(!@#$%^&*)를 포함해야 합니다.", regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[!@#$%^&*]).{8,15}$")
+		@Schema(description = "비밀번호 수정 시 필요한 신 비밀번호", example = "43214321aA!@", name = "신 비밀번호")
 		private String oldPassword;
 		
 		public UserPasswordUpdateRequest() {}
@@ -250,23 +237,14 @@ public class UserDto {
 		}
 	}
 
-	@Schema(
-		description = "사용자 응답 DTO"
-	)
 	public static class UserResponse {
-		@Schema(
-			description = "사용자 아이디"
-		)		
+		@Schema(description = "데이터베이스에 저장된 사용자 아이디", example = "1", name = "아이디")		
 		private Long id;
 		
-		@Schema(
-			description = "사용자 이메일"
-		)
+		@Schema(description = "데이터베이스에 저장된 사용자 이메일", example = "user1@naver.com", name = "이메일")
 		private String email;
 		
-		@Schema(
-			description = "사용자 역할"
-		)
+		@Schema(contentSchema = UserRole.class, description = "데이터베이스에 저장된 사용자 역할", name = "역할")
 		private UserRole userRole;
 		
 		public UserResponse(Long id, String email, UserRole userRole) {

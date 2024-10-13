@@ -58,12 +58,29 @@ dependencies {
 	testImplementation 'org.testcontainers:testcontainers:1.20.1'
 	testImplementation 'org.testcontainers:junit-jupiter:1.20.1'
 	testImplementation 'org.testcontainers:mysql:1.20.1'
+	
+	// QueryDsl
+	// https://mvnrepository.com/artifact/com.querydsl/querydsl-core
+	implementation group: 'com.querydsl', name: 'querydsl-jpa', version: '5.1.0'
+	annotationProcessor "com.querydsl:querydsl-apt:${dependencyManagement.importedProperties['querydsl.version']}:jakarta"
+	annotationProcessor "jakarta.annotation:jakarta.annotation-api"
+	annotationProcessor "jakarta.persistence:jakarta.persistence-api"
 
 	developmentOnly 'org.springframework.boot:spring-boot-devtools'
 }
 
 tasks.named('test') {
 	useJUnitPlatform()
+}
+
+def querydslDir = "src/main/generated"
+
+tasks.withType(JavaCompile) {
+	options.annotationProcessorGeneratedSourcesDirectory = file(querydslDir)
+}
+
+clean {
+	delete file(querydslDir)
 }
 
 /* ./gradlew test에서 출력을 표시한다. */

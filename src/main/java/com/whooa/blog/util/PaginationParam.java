@@ -4,7 +4,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 
-public class PaginationUtil {
+public class PaginationParam {
 	private final int PAGE_NO = 0;
 	private final int PAGE_SIZE = 10;
 	private final String SORT_BY = "id";
@@ -15,14 +15,14 @@ public class PaginationUtil {
 	private String sortBy = SORT_BY;
 	private String sortDir = SORT_DIR;
 	
-	public PaginationUtil(int pageNo, int pageSize, String sortBy, String sortDir) {
+	public PaginationParam(int pageNo, int pageSize, String sortBy, String sortDir) {
 		this.pageNo = pageNo;
 		this.pageSize = pageSize;
 		this.sortBy = sortBy;
 		this.sortDir = sortDir;
 	}
 	
-	public PaginationUtil() {}
+	public PaginationParam() {}
 
 	public Pageable makePageable() {
 		return PageRequest.of(pageNo, pageSize, setSortDir());

@@ -44,7 +44,7 @@ import com.whooa.blog.user.dto.UserDto.UserResponse;
 import com.whooa.blog.user.entity.UserEntity;
 import com.whooa.blog.user.exception.UserNotFoundException;
 import com.whooa.blog.user.type.UserRole;
-import com.whooa.blog.util.PaginationUtil;
+import com.whooa.blog.util.PaginationParam;
 
 @WebMvcTest(controllers = {AdminUserController.class})
 @ContextConfiguration(classes = {AdminUserController.class, TestSecurityConfig.class})
@@ -193,7 +193,7 @@ public class AdminUserControllerTest {
 	public void givenPagination_whenCallGetUsers_thenReturnUsers() throws Exception {
 		ResultActions action;
 		PageResponse<UserResponse> page;
-		PaginationUtil pagination;
+		PaginationParam pagination;
 		MultiValueMap<String, String> params;
 		UserResponse user2;
 		
@@ -201,10 +201,10 @@ public class AdminUserControllerTest {
 		user2.setEmail("user2@naver.com");
 		user2.setUserRole(UserRole.USER);
 		
-		pagination = new PaginationUtil();
+		pagination = new PaginationParam();
 		page = PageResponse.handleResponse(List.of(user1, user2), pagination.getPageSize(), pagination.getPageNo(), 2, 1, true, true);
 
-		given(adminUserService.findAll(any(PaginationUtil.class))).willReturn(page);
+		given(adminUserService.findAll(any(PaginationParam.class))).willReturn(page);
 
 		params = new LinkedMultiValueMap<String, String>();
 		params.add("pageNo", String.valueOf(pagination.getPageNo()));
@@ -230,7 +230,7 @@ public class AdminUserControllerTest {
 	public void givenPagination_whenCallGetUsers_thenThrowUnauthorizedUserException() throws Exception {
 		ResultActions action;
 		PageResponse<UserResponse> page;
-		PaginationUtil pagination;
+		PaginationParam pagination;
 		MultiValueMap<String, String> params;
 		UserResponse user2;
 
@@ -238,10 +238,10 @@ public class AdminUserControllerTest {
 		user2.setEmail("user2@naver.com");
 		user2.setUserRole(UserRole.USER);
 
-		pagination = new PaginationUtil();
+		pagination = new PaginationParam();
 		page = PageResponse.handleResponse(List.of(user1, user2), pagination.getPageSize(), pagination.getPageNo(), 2, 1, true, true);
 
-		given(adminUserService.findAll(any(PaginationUtil.class))).willReturn(page);
+		given(adminUserService.findAll(any(PaginationParam.class))).willReturn(page);
 
 		params = new LinkedMultiValueMap<String, String>();
 		params.add("pageNo", String.valueOf(pagination.getPageNo()));

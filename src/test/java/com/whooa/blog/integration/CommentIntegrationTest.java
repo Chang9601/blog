@@ -52,7 +52,7 @@ import com.whooa.blog.user.entity.UserEntity;
 import com.whooa.blog.user.exception.UserNotMatchedException;
 import com.whooa.blog.user.repository.UserRepository;
 import com.whooa.blog.user.type.UserRole;
-import com.whooa.blog.util.PaginationUtil;
+import com.whooa.blog.util.PaginationParam;
 import com.whooa.blog.util.SerializeDeserializeUtil;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -322,7 +322,7 @@ public class CommentIntegrationTest {
 	public void givenPostId_whenCallGetCommentsByPostId_thenReturnCommentsForPost() throws Exception {
 		ResultActions action;
 		CommentCreateRequest commentCreate2;
-		PaginationUtil pagination;
+		PaginationParam pagination;
 		MultiValueMap<String, String> params;
 
 		commentCreate2 = new CommentCreateRequest();
@@ -342,7 +342,7 @@ public class CommentIntegrationTest {
 			.contentType(MediaType.APPLICATION_JSON))
 			.andExpect(status().isCreated());
 
-		pagination = new PaginationUtil();
+		pagination = new PaginationParam();
 		
 		params = new LinkedMultiValueMap<String, String>();
 		params.add("pageNo", String.valueOf(pagination.getPageNo()));

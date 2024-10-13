@@ -20,16 +20,16 @@ import com.whooa.blog.common.api.PageResponse;
 import com.whooa.blog.common.code.Code;
 import com.whooa.blog.common.security.CurrentUser;
 import com.whooa.blog.common.security.UserDetailsImpl;
-import com.whooa.blog.util.PaginationUtil;
+import com.whooa.blog.util.PaginationParam;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 
-@Tag(
-	name = "댓글 API"
-)
+@Tag(description = "댓글 생성/조회/목록/수정/삭제를 수행하는 댓글 컨트롤러", name = "댓글 API")
 @RestController
 @RequestMapping("/api/v1/posts")
 public class CommentController {
@@ -39,24 +39,19 @@ public class CommentController {
 		this.commentService = commentService;
 	}
 
-	@Operation(
-		summary = "댓글 생성"
-	)
-	@SecurityRequirement(
-		name = "JWT Cookie Authentication"
-	)	
+	@SecurityRequirement(name = "JWT Cookie Authentication")
+	@Operation(description = "댓글 생성", method = "POST", summary = "댓글 생성")
+	@io.swagger.v3.oas.annotations.responses.ApiResponse(content = @Content(mediaType = "application/json"), description = "댓글 생성 성공", responseCode = "201")
+	@Parameter(description = "댓글", example = "하이!", name = "content")
 	@ResponseStatus(value = HttpStatus.CREATED)
 	@PostMapping("/{post-id}/comments")
 	public ApiResponse<CommentResponse> createComment(@PathVariable("post-id") Long postId, @Valid @RequestBody CommentCreateRequest commentCreate, @CurrentUser UserDetailsImpl userDetailsImpl) {		
 		return ApiResponse.handleSuccess(Code.CREATED.getCode(), Code.CREATED.getMessage(), commentService.create(postId, commentCreate, userDetailsImpl), new String[] {"댓글을 생성했습니다."});
 	}
 	
-	@Operation(
-		summary = "댓글 삭제"
-	)
-	@SecurityRequirement(
-		name = "JWT Cookie Authentication"
-	)
+	@SecurityRequirement(name = "JWT Cookie Authentication")
+	@Operation(description = "아이디에 해당하는 댓글 삭제", method = "DELETE", summary = "댓글 삭제")
+	@io.swagger.v3.oas.annotations.responses.ApiResponse(content = @Content(mediaType = "application/json"), description = "댓글 삭제 성공", responseCode = "200")
 	@ResponseStatus(value = HttpStatus.OK)
 	@DeleteMapping("/{post-id}/comments/{id}")
 	public ApiResponse<CommentResponse> deleteComment(@PathVariable("id") Long id, @PathVariable("post-id") Long postId, @CurrentUser UserDetailsImpl userDetailsImpl) {
@@ -65,33 +60,29 @@ public class CommentController {
 		return ApiResponse.handleSuccess(Code.NO_CONTENT.getCode(), Code.NO_CONTENT.getMessage(), null, new String[] {"댓글을 삭제했습니다."});
 	}
 
-	@Operation(
-		summary = "댓글 목록 조회"
-	)
+	@SecurityRequirement(name = "JWT Cookie Authentication")
+	@Operation(description = "포스트의 댓글 목록", method = "GET", summary = "댓글 목록")
+	@io.swagger.v3.oas.annotations.responses.ApiResponse(content = @Content(mediaType = "application/json"), description = "댓글 목록 성공", responseCode = "200")
 	@ResponseStatus(value = HttpStatus.OK)
 	@GetMapping("/{post-id}/comments")
-	public ApiResponse<PageResponse<CommentResponse>> getCommentsByPostId(@PathVariable("post-id") Long postId, PaginationUtil paginationUtil) {		
-		return ApiResponse.handleSuccess(Code.OK.getCode(), Code.OK.getMessage(), commentService.findAllByPostId(postId, paginationUtil), new String[] {"포스트의 댓글 목록을 조회했습니다."});
+	public ApiResponse<PageResponse<CommentResponse>> getCommentsByPostId(@PathVariable("post-id") Long postId, PaginationParam paginationParam) {		
+		return ApiResponse.handleSuccess(Code.OK.getCode(), Code.OK.getMessage(), commentService.findAllByPostId(postId, paginationParam), new String[] {"포스트의 댓글 목록을 조회했습니다."});
 	}
 	
-	@Operation(
-		summary = "대댓글 생성"
-	)
-	@SecurityRequirement(
-		name = "JWT Cookie Authentication"
-	)		
+	@SecurityRequirement(name = "JWT Cookie Authentication")
+	@Operation(description = "대댓글 생성", method = "POST", summary = "대댓글 생성")
+	@io.swagger.v3.oas.annotations.responses.ApiResponse(content = @Content(mediaType = "application/json"), description = "댓글 생성 성공", responseCode = "201")
+	@Parameter(description = "댓글", example = "뭐라고?", name = "content")
 	@ResponseStatus(value = HttpStatus.CREATED)
 	@PostMapping("/{post-id}/comments/{id}")
 	public ApiResponse<CommentResponse> replyComment(@PathVariable("id") Long id, @PathVariable("post-id") Long postId, @Valid @RequestBody CommentCreateRequest commentCreate, @CurrentUser UserDetailsImpl userDetailsImpl) {		
 		return ApiResponse.handleSuccess(Code.CREATED.getCode(), Code.CREATED.getMessage(), commentService.reply(id, postId, commentCreate, userDetailsImpl), new String[] {"댓글에 답했습니다."});
 	}
 
-	@Operation(
-		summary = "댓글 수정"
-	)
-	@SecurityRequirement(
-		name = "JWT Cookie Authentication"
-	)	
+	@SecurityRequirement(name = "JWT Cookie Authentication")
+	@Operation(description = "아이디에 해당하는 댓글 수정", method = "PATCH", summary = "댓글 수정")
+	@io.swagger.v3.oas.annotations.responses.ApiResponse(content = @Content(mediaType = "application/json"), description = "댓글 수정 성공", responseCode = "200")
+	@Parameter(description = "댓글", example = "노우!", name = "content")
 	@ResponseStatus(value = HttpStatus.OK)
 	@PatchMapping("/{post-id}/comments/{id}")
 	public ApiResponse<CommentResponse> updateComment(@PathVariable("id") Long id, @PathVariable("post-id") Long postId, @Valid @RequestBody CommentUpdateRequest commentUpdate, @CurrentUser UserDetailsImpl userDetailsImpl) {		

@@ -31,7 +31,7 @@ import com.whooa.blog.category.exception.DuplicateCategoryException;
 import com.whooa.blog.category.repository.CategoryRepository;
 import com.whooa.blog.category.service.impl.CategoryServiceImpl;
 import com.whooa.blog.common.api.PageResponse;
-import com.whooa.blog.util.PaginationUtil;
+import com.whooa.blog.util.PaginationParam;
 
 @ExtendWith(MockitoExtension.class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -160,7 +160,7 @@ public class CategoryServiceTest {
 		
 		given(categoryRepository.findAll(any(Pageable.class))).willReturn(new PageImpl<CategoryEntity>(List.of(categoryEntity1, categoryEntity2)));
 
-		page = categoryServiceImpl.findAll(new PaginationUtil());
+		page = categoryServiceImpl.findAll(new PaginationParam());
 		
 		assertEquals(2, page.getTotalElements());
 		

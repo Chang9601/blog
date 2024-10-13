@@ -55,7 +55,7 @@ import com.whooa.blog.post.mapper.PostMapper;
 import com.whooa.blog.post.service.PostService;
 import com.whooa.blog.user.entity.UserEntity;
 import com.whooa.blog.user.type.UserRole;
-import com.whooa.blog.util.PaginationUtil;
+import com.whooa.blog.util.PaginationParam;
 import com.whooa.blog.util.SerializeDeserializeUtil;
 
 /*
@@ -417,7 +417,7 @@ public class PostControllerTest {
 	public void givenPagination_whenCallGetPosts_thenReturnPosts() throws Exception {
 		ResultActions action;
 		PageResponse<PostResponse> page;
-		PaginationUtil pagination;
+		PaginationParam pagination;
 		MultiValueMap<String, String> params;
 		PostResponse post2;
 		
@@ -426,10 +426,10 @@ public class PostControllerTest {
 		post2.setContent(generateRandomString(200));
 		post2.setTitle("포스트2");
 		
-		pagination = new PaginationUtil();
+		pagination = new PaginationParam();
 		page = PageResponse.handleResponse(List.of(post1, post2), pagination.getPageSize(), pagination.getPageNo(), 2, 1, false, true);
 
-		given(postService.findAll(any(PaginationUtil.class))).willReturn(page);
+		given(postService.findAll(any(PaginationParam.class))).willReturn(page);
 		
 		params = new LinkedMultiValueMap<String, String>();
 		params.add("pageNo", String.valueOf(pagination.getPageNo()));

@@ -26,6 +26,7 @@ import com.whooa.blog.post.dto.PostDto.PostResponse;
 import com.whooa.blog.post.entity.PostEntity;
 import com.whooa.blog.post.exception.PostNotFoundException;
 import com.whooa.blog.post.mapper.PostMapper;
+import com.whooa.blog.post.repository.PostJdbcRepository;
 import com.whooa.blog.post.repository.PostRepository;
 import com.whooa.blog.post.service.PostElasticsearchService;
 import com.whooa.blog.post.service.PostService;
@@ -34,15 +35,16 @@ import com.whooa.blog.user.exception.UserNotFoundException;
 import com.whooa.blog.user.exception.UserNotMatchedException;
 import com.whooa.blog.user.repository.UserRepository;
 import com.whooa.blog.util.StringUtil;
-import com.whooa.blog.util.PaginationUtil;
+import com.whooa.blog.util.PaginationParam;
 
 @Service
 public class PostServiceImpl implements PostService {
 	private PostRepository postRepository;
+	private PostJdbcRepository postJdbcRepository;
 	private CategoryRepository categoryRepository;
 	private UserRepository userRepository;
 	private PostElasticsearchService postElasticsearchService;
-	private FileService fileService;
+	private FileService<PostEntity> fileService;
 	private ElasticsearchOperationsWrapper<PostDoc> elasticsearchOperationsWrapper;
 
 	/*
@@ -55,14 +57,16 @@ public class PostServiceImpl implements PostService {
 	 * 3. 테스트에서 오류를 방지한다.
 	 */
 	public PostServiceImpl(
-			CategoryRepository categoryRepository, 
 			PostRepository postRepository, 
+			PostJdbcRepository postJdbcRepository,
+			CategoryRepository categoryRepository,
 			UserRepository userRepository,
 			PostElasticsearchService postElasticsearchService,
-			FileService fileService,
+			FileService<PostEntity> fileService,
 			ElasticsearchOperationsWrapper<PostDoc> elasticsearchOperationsWrapper) {
-		this.categoryRepository = categoryRepository;
 		this.postRepository = postRepository;
+		this.postJdbcRepository = postJdbcRepository;
+		this.categoryRepository = categoryRepository;
 		this.userRepository = userRepository;
 		this.postElasticsearchService = postElasticsearchService;
 		this.fileService = fileService;
@@ -89,8 +93,11 @@ public class PostServiceImpl implements PostService {
 					.map(uploadFile -> fileService.upload(postEntity, uploadFile))
 					.collect(Collectors.toList());			
 		}
+		
 
 		createdPostEntity = postRepository.save(postEntity);
+		
+		//postJdbcRepository.bulkInsert(createdPostEntity.getId(), files);
 		
 		post = PostMapper.INSTANCE.fromEntity(createdPostEntity);
 		post.setFiles(files);
@@ -133,7 +140,7 @@ public class PostServiceImpl implements PostService {
 	}
 
 	@Override
-	public PageResponse<PostResponse> findAll(PaginationUtil pagination) {
+	public PageResponse<PostResponse> findAll(PaginationParam pagination) {
 		Page<PostEntity> page;
 		Pageable pageable;
 		List<PostEntity> postEntities;
@@ -159,7 +166,7 @@ public class PostServiceImpl implements PostService {
 	}
 	
 	@Override
-	public PageResponse<PostResponse> findAllByCategoryId(Long categoryId, PaginationUtil pagination) {
+	public PageResponse<PostResponse> findAllByCategoryId(Long categoryId, PaginationParam pagination) {
 		//categoryRepository.findById(categoryId).orElseThrow(() -> new CategoryNotFoundException(Code.NOT_FOUND, new String[] {"카테고리가 존재하지 않습니다."}));
 		Page<PostEntity> page;
 		Pageable pageable;

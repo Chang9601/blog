@@ -22,7 +22,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import com.whooa.blog.category.entity.CategoryEntity;
 import com.whooa.blog.category.repository.CategoryRepository;
 
-import com.whooa.blog.util.PaginationUtil;
+import com.whooa.blog.util.PaginationParam;
 
 @EnableJpaAuditing
 @DataJpaTest
@@ -114,7 +114,7 @@ public class CategoryRepositoryTest {
 		categoryRepository.save(categoryEntity1);
 		categoryRepository.save(categoryEntity2);
 		
-		page = categoryRepository.findAll(new PaginationUtil().makePageable());
+		page = categoryRepository.findAll(new PaginationParam().makePageable());
 
 		assertEquals(2, page.getTotalElements());			
 	}

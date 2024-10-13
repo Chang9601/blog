@@ -46,7 +46,7 @@ import com.whooa.blog.user.entity.UserEntity;
 import com.whooa.blog.user.exception.UserNotMatchedException;
 import com.whooa.blog.user.repository.UserRepository;
 import com.whooa.blog.user.type.UserRole;
-import com.whooa.blog.util.PaginationUtil;
+import com.whooa.blog.util.PaginationParam;
 
 /* Mockito 클래스를 확장해서 의존성을 모의하기 위해 주석을 사용하는 것을 이해한다. */
 @ExtendWith(MockitoExtension.class)
@@ -297,7 +297,7 @@ public class PostServiceTest {
 		
 		given(postRepository.findAll(any(Pageable.class))).willReturn(new PageImpl<PostEntity>(List.of(postEntity1, postEntity2)));
 		
-		page = postServiceImpl.findAll(new PaginationUtil());
+		page = postServiceImpl.findAll(new PaginationParam());
 					
 		assertEquals(2, page.getTotalElements());
 		
@@ -323,7 +323,7 @@ public class PostServiceTest {
 	
 		given(postRepository.findByCategoryId(any(Long.class), any(Pageable.class))).willReturn(new PageImpl<PostEntity>(List.of(postEntity2)));
 
-		page = postServiceImpl.findAllByCategoryId(categoryEntity2.getId(), new PaginationUtil());
+		page = postServiceImpl.findAllByCategoryId(categoryEntity2.getId(), new PaginationParam());
 					
 		assertEquals(1, page.getTotalElements());
 		

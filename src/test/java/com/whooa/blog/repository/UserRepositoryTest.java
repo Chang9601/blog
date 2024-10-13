@@ -21,7 +21,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import com.whooa.blog.user.entity.UserEntity;
 import com.whooa.blog.user.repository.UserRepository;
 import com.whooa.blog.user.type.UserRole;
-import com.whooa.blog.util.PaginationUtil;
+import com.whooa.blog.util.PaginationParam;
 
 @EnableJpaAuditing
 @DataJpaTest
@@ -142,7 +142,7 @@ public class UserRepositoryTest {
 		userRepository.save(userEntity1);
 		userRepository.save(userEntity2);
 		
-		page = userRepository.findByActiveTrue(new PaginationUtil().makePageable());
+		page = userRepository.findByActiveTrue(new PaginationParam().makePageable());
 		
 		assertEquals(1, page.getTotalElements());			
 	}

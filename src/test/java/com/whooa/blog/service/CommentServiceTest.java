@@ -41,7 +41,7 @@ import com.whooa.blog.user.entity.UserEntity;
 import com.whooa.blog.user.exception.UserNotMatchedException;
 import com.whooa.blog.user.repository.UserRepository;
 import com.whooa.blog.user.type.UserRole;
-import com.whooa.blog.util.PaginationUtil;
+import com.whooa.blog.util.PaginationParam;
 
 @ExtendWith(MockitoExtension.class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -253,7 +253,7 @@ public class CommentServiceTest {
 		given(commentRepository.findByPostId(any(Long.class), any(Pageable.class))).willReturn(new PageImpl<CommentEntity>(List.of(commentEntity1, commentEntity2)));
 		given(postRepository.findById(any(Long.class))).willReturn(Optional.of(postEntity1));
 
-		page = commentServiceImpl.findAllByPostId(postEntity1.getId(), new PaginationUtil());
+		page = commentServiceImpl.findAllByPostId(postEntity1.getId(), new PaginationParam());
 
 		assertEquals(2, page.getTotalElements());
 

@@ -27,7 +27,7 @@ import com.whooa.blog.post.repository.PostRepository;
 import com.whooa.blog.user.entity.UserEntity;
 import com.whooa.blog.user.repository.UserRepository;
 import com.whooa.blog.user.type.UserRole;
-import com.whooa.blog.util.PaginationUtil;
+import com.whooa.blog.util.PaginationParam;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -184,7 +184,7 @@ public class CommentRepositoryTest {
 		commentRepository.save(commentEntity1);
 		commentRepository.save(commentEntity2);
 		
-		page = commentRepository.findByPostId(postEntity.getId(), new PaginationUtil().makePageable());
+		page = commentRepository.findByPostId(postEntity.getId(), new PaginationParam().makePageable());
 				
 		assertEquals(2, page.getTotalElements());
 	}

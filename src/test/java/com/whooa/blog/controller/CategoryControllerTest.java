@@ -48,7 +48,7 @@ import com.whooa.blog.category.service.CategoryService;
 import com.whooa.blog.common.api.PageResponse;
 import com.whooa.blog.common.code.Code;
 import com.whooa.blog.common.exception.AllExceptionHandler;
-import com.whooa.blog.util.PaginationUtil;
+import com.whooa.blog.util.PaginationParam;
 import com.whooa.blog.util.SerializeDeserializeUtil;
 
 @WebMvcTest(controllers = {CategoryController.class})
@@ -236,17 +236,17 @@ public class CategoryControllerTest {
 		ResultActions action;
 		CategoryResponse category2;
 		PageResponse<CategoryResponse> page;
-		PaginationUtil pagination;
+		PaginationParam pagination;
 		MultiValueMap<String, String> params;
 		
 		category2 = new CategoryResponse();
 		category2.setName("카테고리2");
 		
-		pagination = new PaginationUtil();
+		pagination = new PaginationParam();
 		
 		page = PageResponse.handleResponse(List.of(category1, category2), pagination.getPageSize(), pagination.getPageNo(), 2, 1, true, true);
 
-		given(categoryService.findAll(any(PaginationUtil.class))).willReturn(page);
+		given(categoryService.findAll(any(PaginationParam.class))).willReturn(page);
 		
 		params = new LinkedMultiValueMap<String, String>();
 		params.add("pageNo", String.valueOf(pagination.getPageNo()));
