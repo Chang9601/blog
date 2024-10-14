@@ -89,7 +89,6 @@ public class PostController {
 		return ApiResponse.handleSuccess(Code.OK.getCode(), Code.OK.getMessage(), postService.find(id), new String[] {"포스트를 조회했습니다."});
 	}
 	
-	// TODO: QueryDSL
 	@SecurityRequirement(name = "JWT Cookie Authentication")
 	@Operation(description = "포스트 목록", method = "GET", summary = "포스트 목록")
 	@io.swagger.v3.oas.annotations.responses.ApiResponse(content = @Content(mediaType = "application/json"), description = "포스트 목록 성공", responseCode = "200")
@@ -99,7 +98,6 @@ public class PostController {
 		return ApiResponse.handleSuccess(Code.OK.getCode(), Code.OK.getMessage(), postService.findAll(paginationUtil), new String[] {"포스트 목록을 조회했습니다."});
 	}
 
-	// TODO: QueryDSL
 	@SecurityRequirement(name = "JWT Cookie Authentication")
 	@Operation(description = "카테고리에 해당하는 포스트 목록", method = "GET", summary = "포스트 목록")
 	@io.swagger.v3.oas.annotations.responses.ApiResponse(content = @Content(mediaType = "application/json"), description = "포스트 목록 성공", responseCode = "200")
@@ -109,14 +107,13 @@ public class PostController {
 		return ApiResponse.handleSuccess(Code.OK.getCode(), Code.OK.getMessage(), postService.findAllByCategoryId(categoryId, paginationUtil), new String[] {"카테고리 속하는 포스트 목록을 조회했습니다."});
 	}
 
-	// TODO: 구현 후
 	@SecurityRequirement(name = "JWT Cookie Authentication")
-	@Operation(description = "검색어를 만족하는 포스트 목록", method = "GET", summary = "포스트 목록")
-	@io.swagger.v3.oas.annotations.responses.ApiResponse(content = @Content(mediaType = "application/json"), description = "포스트 목록 성공", responseCode = "200")
+	@Operation(description = "검색어를 만족하는 포스트 목록", method = "GET", summary = "포스트 검색")
+	@io.swagger.v3.oas.annotations.responses.ApiResponse(content = @Content(mediaType = "application/json"), description = "포스트 검색 성공", responseCode = "200")
 	@ResponseStatus(value = HttpStatus.OK)
 	@GetMapping("/search")
-	public ApiResponse<PageResponse<PostResponse>> searchPost(ElasticsearchParam elasticsearchParam) {		
-		return ApiResponse.handleSuccess(Code.OK.getCode(), Code.OK.getMessage(), postService.search(elasticsearchParam), new String[] {"포스트를 검색했습니다."});
+	public ApiResponse<PageResponse<PostResponse>> searchPosts(ElasticsearchParam elasticsearchParam) {		
+		return ApiResponse.handleSuccess(Code.OK.getCode(), Code.OK.getMessage(), postService.search(elasticsearchParam), new String[] {"검색어를 만족하는 포스트를 검색했습니다."});
 	}
 	
 	@SecurityRequirement(name = "JWT Cookie Authentication")

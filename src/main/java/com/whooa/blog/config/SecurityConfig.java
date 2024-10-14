@@ -184,64 +184,64 @@ public class SecurityConfig {
 	@Bean
 	public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {		
 		return httpSecurity
-				.csrf((csrf) -> csrf.disable())
-				.httpBasic((http) -> http.disable())
-				.formLogin((form) -> form.disable())
-				/* 
-				 * STATELESS는 인증 관련 세션 기능을 사용하지 않도록 하는 설정이다. 
-				 * 하지만 인증 외 세션을 사용할 경우 인증 외에 세션에 관련된 필터(e.g., SessionManagementFilter, DisableEncodeUrlFilter)는 계속 필터 체인에 존재한다. 
-				 * disable로 설정하면 세션 관련 설정을 아얘 하지 않기에 세션 관련 필터도 설정되지 않는다. 
-				 */
-				.sessionManagement((session) -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-				// TODO: 로그인과 로그아웃 URL은 예외로 작동한다. 따로 필터를 만들어야 하나?
-				.logout((logout) -> logout.logoutUrl("/api/v1/auth/sign-out").addLogoutHandler(logoutHandlerImpl).logoutSuccessHandler(logoutSuccessHandlerImpl))
-				.authorizeHttpRequests((authorize) -> 
-					authorize
-						.dispatcherTypeMatchers(DispatcherType.FORWARD, DispatcherType.ERROR).permitAll()
-						 /*
-						  * permitAll() 메서드의 의미.
-						  * 모든 필터 체인을 거쳤는데 인증 객체를 담는 SecurityContext 클래스에 인증 객체가 존재하지 않으면 해당 요청이 인증되지 않았음을 의미한다.
-						  * 그러나, 만약 해당 API에 permitAll()을 적용하면 SecurityContext 클래스에 인증 객체가 존재 여부와 상관없이 API 호출이 이루어진다.
-						  * 즉, permitAll() 메서드 적용 시 필터 체인 동작 과정에서 인증/인가 예외가 발생해도 ExceptionTranslationFilter 클래스를 거치지 않는다. 
-						  * 인증 객체 존재 여부와 상관없이 정상적으로 API 호출이 이루어진다.
-						  */
-					     // TODO: 로그아웃 URL은 인증/인가가 적용이 안된다. 
-						 .requestMatchers("/api/v1/auth/sign-out").hasAuthority(UserRole.USER.getRole())
-						 .requestMatchers(HttpMethod.POST, "/api/v1/users/**").permitAll()
-			             .requestMatchers("/api/v1/users/**").hasAuthority(UserRole.USER.getRole())//.authenticated()
-						 .requestMatchers(HttpMethod.GET, "/api/v1/categories/**").permitAll()
-						 .requestMatchers("/api/v1/categories/**").hasAuthority(UserRole.ADMIN.getRole())
-						 .requestMatchers("/api/v1/admin/**").hasAuthority(UserRole.ADMIN.getRole())
-						 /* 
-						  * hasRole() 메서드는 hasAuthority() 메서드와 동일하지만 차이점은 다음과 같다. 
-						  * hasRole('ADMIN') -> 열거형은 ROLE_ADMIN.
-						  * hasAuthority('ADMIN') -> 열거형은 ADMIN.
-						  */
-						 .requestMatchers(HttpMethod.POST, "/api/v1/**").authenticated()
-						 .requestMatchers(HttpMethod.PUT, "/api/v1/**").authenticated()
-						 .requestMatchers(HttpMethod.PATCH, "/api/v1/**").authenticated()
-						 .requestMatchers(HttpMethod.DELETE, "/api/v1/**").authenticated()						 
-						 .anyRequest().permitAll())
-				.oauth2Login((oauth2) -> oauth2
-											.authorizationEndpoint((authorization) -> authorization.baseUri("/api/v1/oauth2/authorization")
-											.authorizationRequestRepository(httpCookieOAuth2AuthorizationRequestRepository))
-											.redirectionEndpoint((redirection) -> redirection.baseUri("/api/v1/oauth2/code/*"))
-											.userInfoEndpoint((userInfo) -> userInfo.userService(oAuth2UserServiceImpl))
-											.successHandler(oAuth2AuthenticationSuccessHandler)
-											.failureHandler(oAuth2AuthenticationFailureHandler))
-			/*
-			 * 요청-응답
-			 * 요청 -> 필터 -> 디스패처서블렛 -> 컨트롤러 -> 서비스 -> 레포지토리 -> 서비스 -> 컨트롤러 -> 디스패처서블렛 -> 필터 -> 응답
-			 * 
-			 * 컨트롤러어드바이스는 디스패처서블렛까지 요청이 전달된 후에 발생하는 예외만 처리할 수 있다.
-			 * 필터는 디스패처서블렛보다 앞에 위치하기 때문에 컨트롤러어드바이스에서 이를 처리할 수 없다.
-			 * 즉, 인증 중에 발생하는 AuthenticationException의 하위 클래스(e.g., UsernameNotFoundException)을 컨트롤러어드바이스가 처리할 수 없다.
-			 * 따라서 Spring Security 관련 핸들러 인터페이스를 직접 구현한 다음 추가한다.
-			 */
-				.exceptionHandling((exception) -> exception.authenticationEntryPoint(authenticationEntryPointImpl).accessDeniedHandler(accessDeniedHandlerImpl))
-				.addFilterAt(jsonUsernamePasswordAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
-				.addFilterBefore(jwtAuthenticationFilter, JsonUsernamePasswordAuthenticationFilter.class)
-				.build();
+					.csrf((csrf) -> csrf.disable())
+					.httpBasic((http) -> http.disable())
+					.formLogin((form) -> form.disable())
+					/* 
+					 * STATELESS는 인증 관련 세션 기능을 사용하지 않도록 하는 설정이다. 
+					 * 하지만 인증 외 세션을 사용할 경우 인증 외에 세션에 관련된 필터(e.g., SessionManagementFilter, DisableEncodeUrlFilter)는 계속 필터 체인에 존재한다. 
+					 * disable로 설정하면 세션 관련 설정을 아얘 하지 않기에 세션 관련 필터도 설정되지 않는다. 
+					 */
+					.sessionManagement((session) -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS).disable())
+					// TODO: 로그인과 로그아웃 URL은 예외로 작동한다. 따로 필터를 만들어야 하나?
+					.logout((logout) -> logout.logoutUrl("/api/v1/auth/sign-out").addLogoutHandler(logoutHandlerImpl).logoutSuccessHandler(logoutSuccessHandlerImpl))
+					.authorizeHttpRequests((authorize) -> 
+						authorize
+							.dispatcherTypeMatchers(DispatcherType.FORWARD, DispatcherType.ERROR).permitAll()
+							 /*
+							  * permitAll() 메서드의 의미.
+							  * 모든 필터 체인을 거쳤는데 인증 객체를 담는 SecurityContext 클래스에 인증 객체가 존재하지 않으면 해당 요청이 인증되지 않았음을 의미한다.
+							  * 그러나, 만약 해당 API에 permitAll()을 적용하면 SecurityContext 클래스에 인증 객체가 존재 여부와 상관없이 API 호출이 이루어진다.
+							  * 즉, permitAll() 메서드 적용 시 필터 체인 동작 과정에서 인증/인가 예외가 발생해도 ExceptionTranslationFilter 클래스를 거치지 않는다. 
+							  * 인증 객체 존재 여부와 상관없이 정상적으로 API 호출이 이루어진다.
+							  */
+						     // TODO: 로그아웃 URL은 인증/인가가 적용이 안된다. 
+							 .requestMatchers("/api/v1/auth/sign-out").hasAuthority(UserRole.USER.getRole())
+							 .requestMatchers(HttpMethod.POST, "/api/v1/users/**").permitAll()
+				             .requestMatchers("/api/v1/users/**").hasAuthority(UserRole.USER.getRole())//.authenticated()
+							 .requestMatchers(HttpMethod.GET, "/api/v1/categories/**").permitAll()
+							 .requestMatchers("/api/v1/categories/**").hasAuthority(UserRole.ADMIN.getRole())
+							 .requestMatchers("/api/v1/admin/**").hasAuthority(UserRole.ADMIN.getRole())
+							 /* 
+							  * hasRole() 메서드는 hasAuthority() 메서드와 동일하지만 차이점은 다음과 같다. 
+							  * hasRole('ADMIN') -> 열거형은 ROLE_ADMIN.
+							  * hasAuthority('ADMIN') -> 열거형은 ADMIN.
+							  */
+							 .requestMatchers(HttpMethod.POST, "/api/v1/**").authenticated()
+							 .requestMatchers(HttpMethod.PUT, "/api/v1/**").authenticated()
+							 .requestMatchers(HttpMethod.PATCH, "/api/v1/**").authenticated()
+							 .requestMatchers(HttpMethod.DELETE, "/api/v1/**").authenticated()						 
+							 .anyRequest().permitAll())
+					.oauth2Login((oauth2) -> oauth2
+												.authorizationEndpoint((authorization) -> authorization.baseUri("/api/v1/oauth2/authorization")
+												.authorizationRequestRepository(httpCookieOAuth2AuthorizationRequestRepository))
+												.redirectionEndpoint((redirection) -> redirection.baseUri("/api/v1/oauth2/code/*"))
+												.userInfoEndpoint((userInfo) -> userInfo.userService(oAuth2UserServiceImpl))
+												.successHandler(oAuth2AuthenticationSuccessHandler)
+												.failureHandler(oAuth2AuthenticationFailureHandler))
+					/*
+					 * 요청-응답
+					 * 요청 -> 필터 -> 디스패처서블렛 -> 컨트롤러 -> 서비스 -> 레포지토리 -> 서비스 -> 컨트롤러 -> 디스패처서블렛 -> 필터 -> 응답
+					 * 
+					 * 컨트롤러어드바이스는 디스패처서블렛까지 요청이 전달된 후에 발생하는 예외만 처리할 수 있다.
+					 * 필터는 디스패처서블렛보다 앞에 위치하기 때문에 컨트롤러어드바이스에서 이를 처리할 수 없다.
+					 * 즉, 인증 중에 발생하는 AuthenticationException의 하위 클래스(e.g., UsernameNotFoundException)을 컨트롤러어드바이스가 처리할 수 없다.
+					 * 따라서 Spring Security 관련 핸들러 인터페이스를 직접 구현한 다음 추가한다.
+					 */
+					.exceptionHandling((exception) -> exception.authenticationEntryPoint(authenticationEntryPointImpl).accessDeniedHandler(accessDeniedHandlerImpl))
+					.addFilterAt(jsonUsernamePasswordAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
+					.addFilterBefore(jwtAuthenticationFilter, JsonUsernamePasswordAuthenticationFilter.class)
+					.build();
 	}
 	
 	@Bean

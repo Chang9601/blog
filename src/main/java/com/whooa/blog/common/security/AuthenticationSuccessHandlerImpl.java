@@ -46,7 +46,7 @@ public class AuthenticationSuccessHandlerImpl implements AuthenticationSuccessHa
 			 Authentication authentication) throws IOException, ServletException {
 		logger.info("[AuthenticationSuccessHandlerImpl] 인증이 성공했습니다.");
 		
-		String email;
+		String email, name;
 		Long id;
 		JwtBundle jwt;
 		ApiResponse<UserResponse> success;
@@ -59,10 +59,17 @@ public class AuthenticationSuccessHandlerImpl implements AuthenticationSuccessHa
 		
 		id = userDetailsImpl.getId();
 		email = userDetailsImpl.getUsername();
+		name = userDetailsImpl.getName();
 		userRole = userDetailsImpl.getUserRole();
 
 		jwt = jwtUtil.issue(email);
-		userResponse = new UserResponse(id, email, userRole);
+		
+		userResponse = new UserResponse();
+		userResponse.setId(id);
+		userResponse.setEmail(email);
+		userResponse.setName(name);
+		userResponse.setUserRole(userRole);
+		
 		success = ApiResponse.handleSuccess(Code.OK.getCode(), Code.OK.getMessage(), userResponse, new String[] {"로그인 했습니다."});
 
 		CookieUtil.set(httpServletResponse, JwtType.ACCESS_TOKEN.getType(), jwt.getAccessToken(), true, 60 * 60, "/", "Strict", false);

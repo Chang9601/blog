@@ -15,20 +15,13 @@ public class PaginationParam {
 	private String sortBy = SORT_BY;
 	private String sortDir = SORT_DIR;
 	
-	public PaginationParam(int pageNo, int pageSize, String sortBy, String sortDir) {
-		this.pageNo = pageNo;
-		this.pageSize = pageSize;
-		this.sortBy = sortBy;
-		this.sortDir = sortDir;
-	}
-	
 	public PaginationParam() {}
 
 	public Pageable makePageable() {
-		return PageRequest.of(pageNo, pageSize, setSortDir());
+		return PageRequest.of(pageNo, pageSize, sortDir());
 	}
 	
-	private Sort setSortDir() {
+	private Sort sortDir() {
 		return this.sortDir.equalsIgnoreCase(Sort.Direction.ASC.name()) ? Sort.by(this.sortBy).ascending() : Sort.by(this.sortBy).descending();
 	}
 	
@@ -66,7 +59,7 @@ public class PaginationParam {
 
 	@Override
 	public String toString() {
-		return "PaginationUtil [pageNo=" + pageNo + ", pageSize=" + pageSize + ", sortBy=" + sortBy + ", sortDir="
+		return "PaginationParam [pageNo=" + pageNo + ", pageSize=" + pageSize + ", sortBy=" + sortBy + ", sortDir="
 				+ sortDir + "]";
 	}
 }

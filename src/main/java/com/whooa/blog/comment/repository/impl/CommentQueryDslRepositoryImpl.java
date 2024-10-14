@@ -42,6 +42,7 @@ public class CommentQueryDslRepositoryImpl extends QuerydslRepositorySupport imp
 		
 		countQuery = jpaQueryFactory
 						.select(commentEntity.countDistinct())
+						.from(commentEntity)
 						.where(containsContent(commentSearch.getContent()));
 		
 		commentEntities = getQuerydsl().applyPagination(pageable, jpaQuery).fetch();
@@ -50,6 +51,6 @@ public class CommentQueryDslRepositoryImpl extends QuerydslRepositorySupport imp
 	}
 	
 	private BooleanExpression containsContent(String content) {
-		return content != null ? QCommentEntity.commentEntity.content.containsIgnoreCase(name) : null;
+		return content != null ? QCommentEntity.commentEntity.content.containsIgnoreCase(content) : null;
 	}
 }

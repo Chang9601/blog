@@ -27,6 +27,7 @@ import com.whooa.blog.post.entity.PostEntity;
 import com.whooa.blog.post.exception.PostNotFoundException;
 import com.whooa.blog.post.mapper.PostMapper;
 import com.whooa.blog.post.repository.PostJdbcRepository;
+import com.whooa.blog.post.repository.PostQueryDslRepository;
 import com.whooa.blog.post.repository.PostRepository;
 import com.whooa.blog.post.service.PostElasticsearchService;
 import com.whooa.blog.post.service.PostService;
@@ -41,6 +42,7 @@ import com.whooa.blog.util.PaginationParam;
 public class PostServiceImpl implements PostService {
 	private PostRepository postRepository;
 	private PostJdbcRepository postJdbcRepository;
+	private PostQueryDslRepository postQueryDslRepository;
 	private CategoryRepository categoryRepository;
 	private UserRepository userRepository;
 	private PostElasticsearchService postElasticsearchService;
@@ -59,6 +61,7 @@ public class PostServiceImpl implements PostService {
 	public PostServiceImpl(
 			PostRepository postRepository, 
 			PostJdbcRepository postJdbcRepository,
+			PostQueryDslRepository postQueryDslRepository,
 			CategoryRepository categoryRepository,
 			UserRepository userRepository,
 			PostElasticsearchService postElasticsearchService,
@@ -66,6 +69,7 @@ public class PostServiceImpl implements PostService {
 			ElasticsearchOperationsWrapper<PostDoc> elasticsearchOperationsWrapper) {
 		this.postRepository = postRepository;
 		this.postJdbcRepository = postJdbcRepository;
+		this.postQueryDslRepository = postQueryDslRepository;
 		this.categoryRepository = categoryRepository;
 		this.userRepository = userRepository;
 		this.postElasticsearchService = postElasticsearchService;
@@ -93,11 +97,12 @@ public class PostServiceImpl implements PostService {
 					.map(uploadFile -> fileService.upload(postEntity, uploadFile))
 					.collect(Collectors.toList());			
 		}
-		
 
 		createdPostEntity = postRepository.save(postEntity);
 		
-		//postJdbcRepository.bulkInsert(createdPostEntity.getId(), files);
+		if (files != null && files.size() > 0) {
+			postJdbcRepository.bulkInsert(createdPostEntity.getId(), files);
+		}
 		
 		post = PostMapper.INSTANCE.fromEntity(createdPostEntity);
 		post.setFiles(files);
@@ -150,7 +155,7 @@ public class PostServiceImpl implements PostService {
 		long totalElements;
 		
 		pageable = pagination.makePageable();
-		page = postRepository.findAll(pageable);
+		page = postQueryDslRepository.findAll(pageable); //postRepository.findAll(pageable);
 		
 		postEntities = page.getContent();
 		pageSize = page.getSize();

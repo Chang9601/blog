@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.whooa.blog.comment.dto.CommentDto.CommentCreateRequest;
 import com.whooa.blog.comment.dto.CommentDto.CommentUpdateRequest;
 import com.whooa.blog.comment.dto.CommentDto.CommentResponse;
+import com.whooa.blog.comment.dto.CommentDto.CommentSearchRequest;
 import com.whooa.blog.comment.service.CommentService;
 import com.whooa.blog.common.api.ApiResponse;
 import com.whooa.blog.common.api.PageResponse;
@@ -71,7 +72,7 @@ public class CommentController {
 	
 	@SecurityRequirement(name = "JWT Cookie Authentication")
 	@Operation(description = "대댓글 생성", method = "POST", summary = "대댓글 생성")
-	@io.swagger.v3.oas.annotations.responses.ApiResponse(content = @Content(mediaType = "application/json"), description = "댓글 생성 성공", responseCode = "201")
+	@io.swagger.v3.oas.annotations.responses.ApiResponse(content = @Content(mediaType = "application/json"), description = "대댓글 생성 성공", responseCode = "201")
 	@Parameter(description = "댓글", example = "뭐라고?", name = "content")
 	@ResponseStatus(value = HttpStatus.CREATED)
 	@PostMapping("/{post-id}/comments/{id}")
@@ -79,6 +80,15 @@ public class CommentController {
 		return ApiResponse.handleSuccess(Code.CREATED.getCode(), Code.CREATED.getMessage(), commentService.reply(id, postId, commentCreate, userDetailsImpl), new String[] {"댓글에 답했습니다."});
 	}
 
+	@SecurityRequirement(name = "JWT Cookie Authentication")
+	@Operation(description = "검색어를 만족하는 댓글 목록", method = "GET", summary = "댓글 검색")
+	@io.swagger.v3.oas.annotations.responses.ApiResponse(content = @Content(mediaType = "application/json"), description = "댓글 검색 성공", responseCode = "200")
+	@ResponseStatus(value = HttpStatus.OK)
+	@GetMapping("/api/v1/comments/search")
+	public ApiResponse<PageResponse<CommentResponse>> searchComments(CommentSearchRequest commentSearch, PaginationParam paginationParam) {		
+		return ApiResponse.handleSuccess(Code.OK.getCode(), Code.OK.getMessage(), commentService.search(commentSearch, paginationParam), new String[] {"검색어를 만족하는 댓글을 검색했습니다."});
+	}
+	
 	@SecurityRequirement(name = "JWT Cookie Authentication")
 	@Operation(description = "아이디에 해당하는 댓글 수정", method = "PATCH", summary = "댓글 수정")
 	@io.swagger.v3.oas.annotations.responses.ApiResponse(content = @Content(mediaType = "application/json"), description = "댓글 수정 성공", responseCode = "200")

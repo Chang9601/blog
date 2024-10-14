@@ -26,8 +26,8 @@ import jakarta.servlet.http.HttpServletResponse;
  * JsonUsernamePasswordAuthFilter 클래스는 JSON(application/json) 로그인을 지원한다.
  * 
  * AbstractAuthenticationProcessingFilter 클래스는는 사용자의 자격 증명을 인증하기 위한 기본 필터로 사용된다. 
- * 자격 증명이 인증되기 전에, Spring Security는 일반적으로 AuthenticationEntryPoint를 사용하여 자격 증명을 요청한다.
- * 다음으로, AbstractAuthenticationProcessingFilter는 제출된 모든 인증 요청을 인증할 수 있다.
+ * 자격 증명이 인증되기 전 Spring Security는 일반적으로 AuthenticationEntryPoint를 사용하여 자격 증명을 요청한다.
+ * 다음으로 AbstractAuthenticationProcessingFilter는 제출된 모든 인증 요청을 인증할 수 있다.
  * 
  * 처리 과정
  * 1. 사용자가 자격 증명을 제출하면 AbstractAuthenticationProcessingFilter는 인증될 Authentication 객체를 HttpServletRequest에서 생성한다. 

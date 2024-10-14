@@ -28,7 +28,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 
-@Tag(description = "사용자 조회/목록/수정/삭제를 수행하는 관리자 사용자 컨트롤러", name = "관리자(사용자) API")
+@Tag(description = "사용자 조회/목록/검색/수정/삭제를 수행하는 관리자 사용자 컨트롤러", name = "관리자(사용자) API")
 @RestController
 @RequestMapping("/api/v1/admin/users")
 public class AdminUserController {
@@ -68,12 +68,12 @@ public class AdminUserController {
 	}
 
 	@SecurityRequirement(name = "JWT Cookie Authentication")
-	@Operation(description = "사용자 검색", method = "GET", summary = "사용자 검색")
-	@io.swagger.v3.oas.annotations.responses.ApiResponse(content = @Content(mediaType = "application/json"), description = "사용자 목록 성공", responseCode = "200")
+	@Operation(description = "검색어를 만족하는 사용자 목록", method = "GET", summary = "사용자 검색")
+	@io.swagger.v3.oas.annotations.responses.ApiResponse(content = @Content(mediaType = "application/json"), description = "사용자 검색 성공", responseCode = "200")
 	@ResponseStatus(value = HttpStatus.OK)
-	@GetMapping
-	public ApiResponse<PageResponse<UserResponse>> searchUsers(@Valid @RequestBody UserSearchRequest userSearch, PaginationParam paginationParam) {
-		return ApiResponse.handleSuccess(Code.OK.getCode(), Code.OK.getMessage(), adminUserService.search(userSearch, paginationParam), new String[] {"사용자 목록을 조회했습니다."});
+	@GetMapping("/search")
+	public ApiResponse<PageResponse<UserResponse>> searchUsers(UserSearchRequest userSearch, PaginationParam paginationParam) {
+		return ApiResponse.handleSuccess(Code.OK.getCode(), Code.OK.getMessage(), adminUserService.search(userSearch, paginationParam), new String[] {"검색어를 만족하는 사용자를 검색했습니다."});
 	}
 	
 	@SecurityRequirement(name = "JWT Cookie Authentication")

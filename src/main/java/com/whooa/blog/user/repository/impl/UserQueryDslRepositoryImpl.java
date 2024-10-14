@@ -42,6 +42,7 @@ public class UserQueryDslRepositoryImpl extends QuerydslRepositorySupport implem
 		
 		countQuery = jpaQueryFactory
 						.select(userEntity.countDistinct())
+						.from(userEntity)
 						.where(containsName(userSearch.getName()), isActive());
 		
 		userEntities = getQuerydsl().applyPagination(pageable, jpaQuery).fetch();
