@@ -89,7 +89,7 @@ spring:
       hibernate:
         '[format_sql]': true
         dialect: org.hibernate.dialect.MySQLDialect
-        default_batch_fetch_size: 100
+        
         
 swagger:
   version: 1.0.0

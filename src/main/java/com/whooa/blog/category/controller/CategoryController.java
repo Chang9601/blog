@@ -29,6 +29,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 
 import jakarta.validation.Valid;
 
+// TODO: 검색에서 포스트까지 가져오는 API
 @Tag(description = "카테고리 생성/조회/목록/검색/수정/삭제를 수행하는 카테고리 컨트롤러", name = "카테고리 API")
 @RestController
 @RequestMapping("/api/v1/categories")

@@ -285,7 +285,7 @@ public class PostControllerTest {
 		ResultActions action;
 		MockMultipartFile postCreateFile;
 		
-		postCreate.setContent("포스트");
+		postCreate.setContent("");
 		
 		postCreateFile = new MockMultipartFile("post", null, MediaType.APPLICATION_JSON_VALUE, SerializeDeserializeUtil.serializeToString(postCreate).getBytes(StandardCharsets.UTF_8));
 
@@ -596,7 +596,7 @@ public class PostControllerTest {
 		ResultActions action;
 		MockMultipartFile postUpdateFile;
 		
-		postUpdate.setContent("포스트");
+		postUpdate.setContent("");
 		
 		postUpdateFile = new MockMultipartFile("post", null, MediaType.APPLICATION_JSON_VALUE, SerializeDeserializeUtil.serializeToString(postUpdate).getBytes(StandardCharsets.UTF_8));
 		
@@ -634,7 +634,7 @@ public class PostControllerTest {
 		given(postService.update(any(Long.class), any(PostUpdateRequest.class), any(MultipartFile[].class), any(UserDetailsImpl.class))).willThrow(new PostNotFoundException(Code.NOT_FOUND, new String[] {"포스트가 존재하지 않습니다."}));
 
 		action = mockMvc.perform(
-			multipart(HttpMethod.PATCH, "/api/v1/posts/{id}", 100L)
+			multipart(HttpMethod.PATCH, "/api/v1/posts/{id}", 1000L)
 			.file(postUpdateFile)
 			.characterEncoding(StandardCharsets.UTF_8)
 			.contentType(MediaType.MULTIPART_FORM_DATA)

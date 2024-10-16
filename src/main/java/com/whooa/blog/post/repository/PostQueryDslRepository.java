@@ -7,4 +7,5 @@ import com.whooa.blog.post.entity.PostEntity;
 
 public interface PostQueryDslRepository {
 	public abstract Page<PostEntity> findAll(Pageable pageable);
+	public abstract Page<PostEntity> findAllByCategoryId(Long categoryId, Pageable pageable);
 }

@@ -54,7 +54,7 @@ public class AdminPostController {
 		@Parameter(description = "카테고리 이름", example = "운영체제", name = "categoryName"),
 		@Parameter(description = "포스트 내용", example = "100자 이상의 포스트", name = "content"),
 		@Parameter(description = "포스트 제목", example = "프로세스와 스레드", name = "title"),
-		@Parameter(description = "파일 목록", example = "Whistle.jpg", name = "files"),
+		@Parameter(description = "파일 목록", example = "[Whistle.jpg]", name = "files"),
 	})
 	@ResponseStatus(value = HttpStatus.OK)
 	@PatchMapping(consumes = { MediaType.MULTIPART_FORM_DATA_VALUE }, produces = MediaType.APPLICATION_JSON_VALUE, value = "/{id}")

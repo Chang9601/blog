@@ -46,6 +46,7 @@ public class CategoryServiceImpl implements CategoryService {
 		return CategoryMapper.INSTANCE.fromEntity(categoryRepository.save(categoryEntity));
 	}
 
+	// TODO: 포스트를 제거하면 당연히 댓글을 제거 하지만 카테고리를 제거한다고 포스트를 전부 삭제?
 	@Override
 	public void delete(Long id) {
 		CategoryEntity categoryEntity;

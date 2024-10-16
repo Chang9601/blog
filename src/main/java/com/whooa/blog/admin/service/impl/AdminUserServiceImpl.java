@@ -23,7 +23,6 @@ import com.whooa.blog.user.repository.UserQueryDslRepository;
 import com.whooa.blog.user.repository.UserRepository;
 import com.whooa.blog.util.PaginationParam;
 import com.whooa.blog.util.PasswordUtil;
-import com.whooa.blog.util.StringUtil;
 
 @Service
 public class AdminUserServiceImpl implements AdminUserService {
@@ -107,35 +106,18 @@ public class AdminUserServiceImpl implements AdminUserService {
 
 	@Override
 	public UserResponse update(Long id, UserAdminUpdateRequest userAdminUpdate) {
-		String email, name, password, userRole;
 		UserEntity userEntity;
 		
 		userEntity = userRepository.findByIdAndActiveTrue(id).orElseThrow(() -> new UserNotFoundException(Code.NOT_FOUND, new String[] {"아이디에 해당하는 사용자가 존재하지 않습니다."}));
-
-		email = userAdminUpdate.getEmail();
-		name = userAdminUpdate.getName();
-		password = userAdminUpdate.getPassword();
-		userRole = userAdminUpdate.getUserRole();
 		
-		if (StringUtil.notEmpty(email)) {
-			if (userRepository.existsByEmail(email)) {
-				throw new DuplicateUserException(Code.CONFLICT, new String[] {"이메일을 사용하는 사용자가 이미 존재합니다."});
-			}
+		if (userRepository.existsByEmail(userAdminUpdate.getEmail())) {
+			throw new DuplicateUserException(Code.CONFLICT, new String[] {"이메일을 사용하는 사용자가 이미 존재합니다."});
+		}
 			
-			userEntity.setEmail(email);
-		}
-		
-		if (StringUtil.notEmpty(name)) {
-			userEntity.setName(name);
-		}
-		
-		if (StringUtil.notEmpty(password)) {
-			userEntity.setPassword(PasswordUtil.hash(password));
-		}
-		
-		if (!StringUtil.notEmpty(userRole)) {
-			userEntity.setUserRole(UserRoleMapper.map(userRole));
-		}
+		userEntity.setEmail(userAdminUpdate.getEmail());
+		userEntity.setName(userAdminUpdate.getName());
+		userEntity.setPassword(PasswordUtil.hash(userAdminUpdate.getPassword()));
+		userEntity.setUserRole(UserRoleMapper.map(userAdminUpdate.getUserRole()));
 		
 		return UserMapper.INSTANCE.fromEntity(userRepository.save(userEntity));
 	}

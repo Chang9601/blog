@@ -30,6 +30,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 
+// TODO: 검색에서 포스트까지 가져오는 API 검색 
 @Tag(description = "댓글 생성/조회/목록/수정/삭제를 수행하는 댓글 컨트롤러", name = "댓글 API")
 @RestController
 @RequestMapping("/api/v1/posts")
@@ -84,7 +85,7 @@ public class CommentController {
 	@Operation(description = "검색어를 만족하는 댓글 목록", method = "GET", summary = "댓글 검색")
 	@io.swagger.v3.oas.annotations.responses.ApiResponse(content = @Content(mediaType = "application/json"), description = "댓글 검색 성공", responseCode = "200")
 	@ResponseStatus(value = HttpStatus.OK)
-	@GetMapping("/api/v1/comments/search")
+	@GetMapping("/comments/search") 
 	public ApiResponse<PageResponse<CommentResponse>> searchComments(CommentSearchRequest commentSearch, PaginationParam paginationParam) {		
 		return ApiResponse.handleSuccess(Code.OK.getCode(), Code.OK.getMessage(), commentService.search(commentSearch, paginationParam), new String[] {"검색어를 만족하는 댓글을 검색했습니다."});
 	}

@@ -199,10 +199,11 @@ public class AdminPostControllerTest {
 			
 			postEntity.setContent(postUpdate.getContent());
 			postEntity.setTitle(postUpdate.getTitle());
+			postEntity.setFiles(List.of(file));
 
 			post.setContent(postEntity.getContent());
 			post.setTitle(postEntity.getTitle());
-			post.setFiles(List.of(file));
+			post.setFiles(postEntity.getFiles());
 			
 			return PostMapper.INSTANCE.fromEntity(postEntity);
 		});
@@ -330,7 +331,7 @@ public class AdminPostControllerTest {
 		ResultActions action;
 		MockMultipartFile postUpdateFile;
 		
-		postUpdate.setContent("포");
+		postUpdate.setContent("");
 		
 		postUpdateFile = new MockMultipartFile("post", null, MediaType.APPLICATION_JSON_VALUE, SerializeDeserializeUtil.serializeToString(postUpdate).getBytes(StandardCharsets.UTF_8));
 		
@@ -368,7 +369,7 @@ public class AdminPostControllerTest {
 		given(adminPostService.update(any(Long.class), any(PostUpdateRequest.class), any(MultipartFile[].class))).willThrow(new PostNotFoundException(Code.NOT_FOUND, new String[] {"포스트가 존재하지 않습니다."}));
 
 		action = mockMvc.perform(
-			multipart(HttpMethod.PATCH, "/api/v1/admin/posts/{id}", 100L)
+			multipart(HttpMethod.PATCH, "/api/v1/admin/posts/{id}", 1000L)
 			.file(postUpdateFile)
 			.characterEncoding(StandardCharsets.UTF_8)
 			.contentType(MediaType.MULTIPART_FORM_DATA)

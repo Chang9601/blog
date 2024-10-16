@@ -43,7 +43,8 @@ public class UserServiceImpl implements UserService {
 
 		return UserMapper.INSTANCE.fromEntity(userRepository.save(userEntity));
 	}
-		
+	
+	// TODO: 포스트를 제거하면 당연히 댓글을 제거 사용자 제거하면 포스트와 댓글 전부 삭제?
 	@Override
 	public void delete(UserDetailsImpl userDetailsImpl) {
 		Long id;

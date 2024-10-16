@@ -52,5 +52,5 @@ public class AdminCommentController {
 	@PatchMapping("/{post-id}/comments/{id}")
 	public ApiResponse<CommentResponse> updateComment(@PathVariable("id") Long id, @PathVariable("post-id") Long postId, @Valid @RequestBody CommentUpdateRequest commentUpdate) {		
 		return ApiResponse.handleSuccess(Code.OK.getCode(), Code.OK.getMessage(), adminCommentService.update(id, postId, commentUpdate), new String[] {"댓글을 수정했습니다."});
-	}	
+	}
 }

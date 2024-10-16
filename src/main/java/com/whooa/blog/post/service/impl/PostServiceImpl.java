@@ -15,7 +15,7 @@ import com.whooa.blog.category.repository.CategoryRepository;
 import com.whooa.blog.common.api.PageResponse;
 import com.whooa.blog.common.code.Code;
 import com.whooa.blog.common.security.UserDetailsImpl;
-import com.whooa.blog.elasticsearch.ElasticsearchOperationsWrapper;
+import com.whooa.blog.elasticsearch.ElasticsearchOperationsUtil;
 import com.whooa.blog.elasticsearch.ElasticsearchParam;
 import com.whooa.blog.file.service.FileService;
 import com.whooa.blog.file.value.File;
@@ -47,7 +47,7 @@ public class PostServiceImpl implements PostService {
 	private UserRepository userRepository;
 	private PostElasticsearchService postElasticsearchService;
 	private FileService<PostEntity> fileService;
-	private ElasticsearchOperationsWrapper<PostDoc> elasticsearchOperationsWrapper;
+	private ElasticsearchOperationsUtil<PostDoc> elasticsearchOperationsUtil;
 
 	/*
 	 * 생성자 주입은 생성자를 사용해서 의존성을 주입한다.
@@ -66,7 +66,7 @@ public class PostServiceImpl implements PostService {
 			UserRepository userRepository,
 			PostElasticsearchService postElasticsearchService,
 			FileService<PostEntity> fileService,
-			ElasticsearchOperationsWrapper<PostDoc> elasticsearchOperationsWrapper) {
+			ElasticsearchOperationsUtil<PostDoc> elasticsearchOperationsUtil) {
 		this.postRepository = postRepository;
 		this.postJdbcRepository = postJdbcRepository;
 		this.postQueryDslRepository = postQueryDslRepository;
@@ -74,7 +74,7 @@ public class PostServiceImpl implements PostService {
 		this.userRepository = userRepository;
 		this.postElasticsearchService = postElasticsearchService;
 		this.fileService = fileService;
-		this.elasticsearchOperationsWrapper = elasticsearchOperationsWrapper;
+		this.elasticsearchOperationsUtil = elasticsearchOperationsUtil;
 	}
 
 	@Override
@@ -116,7 +116,7 @@ public class PostServiceImpl implements PostService {
 		postDoc.setCategoryId(createdPostEntity.getCategory().getId());
 		postDoc.setUserId(createdPostEntity.getUser().getId());
 		
-		elasticsearchOperationsWrapper.create(postDoc);
+		elasticsearchOperationsUtil.create(postDoc);
 		
 		return post;
 	}
@@ -150,12 +150,12 @@ public class PostServiceImpl implements PostService {
 		Pageable pageable;
 		List<PostEntity> postEntities;
 		List<PostResponse> postResponse;
-		boolean isLast, isFirst;
-		int pageSize, pageNo, totalPages;
+		boolean isFirst, isLast;
+		int pageNo, pageSize, totalPages;
 		long totalElements;
 		
 		pageable = pagination.makePageable();
-		page = postQueryDslRepository.findAll(pageable); //postRepository.findAll(pageable);
+		page = postQueryDslRepository.findAll(pageable);
 		
 		postEntities = page.getContent();
 		pageSize = page.getSize();
@@ -182,7 +182,7 @@ public class PostServiceImpl implements PostService {
 		long totalElements;
 		
 		pageable = pagination.makePageable();
-		page = postRepository.findByCategoryId(categoryId, pageable);
+		page = postQueryDslRepository.findAllByCategoryId(categoryId, pageable); //postRepository.findByCategoryId(categoryId, pageable);
 		
 		postEntities = page.getContent();
 		pageSize = page.getSize();
@@ -241,9 +241,19 @@ public class PostServiceImpl implements PostService {
 		}
 
 		if (uploadFiles != null && uploadFiles.length > 0) {
+			files = postEntity.getFiles();
+			
+			files.removeAll(files);
+			
 			files = Arrays.stream(uploadFiles)
 					.map(uploadFile -> fileService.upload(postEntity, uploadFile))
 					.collect(Collectors.toList());
+		}
+		
+		System.out.println(files);
+		
+		if (files != null && files.size() > 0) {
+			postJdbcRepository.bulkInsert(postEntity.getId(), files);
 		}
 		
 		post = PostMapper.INSTANCE.fromEntity(postRepository.save(postEntity));

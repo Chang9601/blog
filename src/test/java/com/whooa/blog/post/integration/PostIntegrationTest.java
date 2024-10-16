@@ -255,7 +255,7 @@ public class PostIntegrationTest {
 		ResultActions action;
 		MockMultipartFile postCreateFile;
 		
-		postCreate.setContent("포");
+		postCreate.setContent("");
 		
 		postCreateFile = new MockMultipartFile("post", null, MediaType.APPLICATION_JSON_VALUE, SerializeDeserializeUtil.serializeToString(postCreate).getBytes(StandardCharsets.UTF_8));
 					
@@ -631,7 +631,7 @@ public class PostIntegrationTest {
 		MockMultipartFile postCreateFile, postUpdateFile;
 		MvcResult result;
 		
-		postUpdate.setContent("포");
+		postUpdate.setContent("");
 		
 		postCreateFile = new MockMultipartFile("post", null, MediaType.APPLICATION_JSON_VALUE, SerializeDeserializeUtil.serializeToString(postCreate).getBytes(StandardCharsets.UTF_8));
 		postUpdateFile = new MockMultipartFile("post", null, MediaType.APPLICATION_JSON_VALUE, SerializeDeserializeUtil.serializeToString(postUpdate).getBytes(StandardCharsets.UTF_8));

@@ -121,10 +121,11 @@ public class AdminPostIntegrationTest {
 		postUpdate = new PostUpdateRequest();
 		postUpdate.setCategoryName(categoryEntity.getName());
 		postUpdate.setContent(generateRandomString(200));
+		postUpdate.setTitle("포스트2");
 		
 		postEntity = new PostEntity();
-		postEntity.setContent("포스트");
-		postEntity.setTitle("포스트");
+		postEntity.setContent("포스트1");
+		postEntity.setTitle("포스트1");
 		postEntity.setCategory(categoryEntity);
 		postEntity.setUser(userEntity);
 		
@@ -287,7 +288,7 @@ public class AdminPostIntegrationTest {
 		ResultActions action;
 		MockMultipartFile postUpdateFile;
 		
-		postUpdate.setContent("포스트2");
+		postUpdate.setContent("");
 		
 		postUpdateFile = new MockMultipartFile("post", null, MediaType.APPLICATION_JSON_VALUE, SerializeDeserializeUtil.serializeToString(postUpdate).getBytes(StandardCharsets.UTF_8));
 		

@@ -7,7 +7,7 @@ public class CommentDto {
 
 	public static class CommentCreateRequest {
 		@NotBlank(message = "내용을 입력하세요.")
-		@Schema(description = "댓글 생성 시 필요한 내용", example = "1번 댓글!", name = "내용")
+		@Schema(description = "댓글 생성 시 필요한 내용", example = "1번 댓글!", name = "content")
 		private String content;
 		
 		public CommentCreateRequest() {}
@@ -28,7 +28,7 @@ public class CommentDto {
 		
 	public static class CommentUpdateRequest {
 		@NotBlank(message = "내용을 입력하세요.")
-		@Schema(description = "댓글 수정 시 필요한 내용", example = "1번 댓글!", name = "내용")
+		@Schema(description = "댓글 수정 시 필요한 내용", example = "1번 댓글!", name = "content")
 		private String content;
 
 		public CommentUpdateRequest() {}
@@ -49,7 +49,7 @@ public class CommentDto {
 	
 	public static class CommentSearchRequest {
 		@NotBlank(message = "내용을 입력하세요.")
-		@Schema(description = "댓글 검색 시 필요한 내용", example = "1번 댓글!", name = "내용")
+		@Schema(description = "댓글 검색 시 필요한 내용", example = "1번 댓글!", name = "content")
 		private String content;
 
 		public CommentSearchRequest() {}
@@ -79,13 +79,13 @@ public class CommentDto {
 	 *    }
 	 */
 	public static class CommentResponse {
-		@Schema(description = "데이터베이스에 저장된 댓글 아이디", example = "1", name = "아이디")
+		@Schema(description = "데이터베이스에 저장된 댓글 아이디", example = "1", name = "id")
 		private Long id;
 		
-		@Schema(description = "데이터베이스에 저장된 댓글 아이디", example = "1번 댓글!", name = "내용")
+		@Schema(description = "데이터베이스에 저장된 댓글 아이디", example = "1번 댓글!", name = "content")
 		private String content;
 		
-		@Schema(description = "데이터베이스에 저장된 대댓글 아이디", example = "3", name = "대댓글 아이디")
+		@Schema(description = "데이터베이스에 저장된 대댓글 아이디", example = "3", name = "parentId")
 		private Long parentId;
 
 		public CommentResponse() {}

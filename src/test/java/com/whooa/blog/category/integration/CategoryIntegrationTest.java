@@ -135,7 +135,7 @@ public class CategoryIntegrationTest {
 			.andExpect(jsonPath("$.data.name", is(categoryCreate1.getName())));
 	}
 
-	@DisplayName("이름이  짧아 카테고리를 생성하는데 실패한다.")
+	@DisplayName("이름이 짧아 카테고리를 생성하는데 실패한다.")
 	@Test
 	@WithUserDetails(value = "admin@naver.com", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")
 	public void givenCategoryCreate_whenCallCreateCategory_thenThrowBadRqeustExceptionForName() throws Exception {

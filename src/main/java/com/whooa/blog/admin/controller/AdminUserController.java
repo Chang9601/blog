@@ -1,7 +1,6 @@
 package com.whooa.blog.admin.controller;
 
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -28,6 +27,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 
+// TODO: 사용자 조회/목록/검색에서 포스트, 댓글까지 가져오는 API
 @Tag(description = "사용자 조회/목록/검색/수정/삭제를 수행하는 관리자 사용자 컨트롤러", name = "관리자(사용자) API")
 @RestController
 @RequestMapping("/api/v1/admin/users")
@@ -86,7 +86,7 @@ public class AdminUserController {
 		@Parameter(description = "역할", example = "USER", name = "userRole"),
 	})
 	@ResponseStatus(value = HttpStatus.OK)
-	@PatchMapping(consumes = { MediaType.MULTIPART_FORM_DATA_VALUE }, value = "/{id}")
+	@PatchMapping("/{id}")
 	public ApiResponse<UserResponse> updateUser(@PathVariable Long id, @Valid @RequestBody(required = true) UserAdminUpdateRequest userAdminUpdate) {
 		return ApiResponse.handleSuccess(Code.OK.getCode(), Code.OK.getMessage(), adminUserService.update(id, userAdminUpdate), new String[] {"사용자를 수정했습니다."});
 	}

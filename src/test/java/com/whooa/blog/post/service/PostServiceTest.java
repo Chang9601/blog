@@ -40,6 +40,7 @@ import com.whooa.blog.post.dto.PostDto.PostUpdateRequest;
 import com.whooa.blog.post.dto.PostDto.PostResponse;
 import com.whooa.blog.post.entity.PostEntity;
 import com.whooa.blog.post.exception.PostNotFoundException;
+import com.whooa.blog.post.repository.PostQueryDslRepository;
 import com.whooa.blog.post.repository.PostRepository;
 import com.whooa.blog.post.service.impl.PostServiceImpl;
 import com.whooa.blog.user.entity.UserEntity;
@@ -65,6 +66,8 @@ public class PostServiceTest {
 	 */
 	@Mock
 	private PostRepository postRepository;
+	@Mock
+	private PostQueryDslRepository postQueryDslRepository;
 	@Mock
 	private CategoryRepository categoryRepository;
 	@Mock
@@ -162,7 +165,6 @@ public class PostServiceTest {
 	@DisplayName("포스트(파일 O)를 생성하는데 성공한다.")
 	@Test
 	public void givenPostCreate_whenCallCreate_thenReturnPostWithFiles() {
-
 		given(postRepository.save(any(PostEntity.class))).willReturn(postEntity1);
 		given(categoryRepository.findByName(any(String.class))).willReturn(Optional.of(categoryEntity1));
 		given(userRepository.findById(any(Long.class))).willReturn(Optional.of(userEntity1));
@@ -295,7 +297,7 @@ public class PostServiceTest {
 		postEntity2.setCategory(categoryEntity2);
 		postEntity2.setUser(userEntity1);
 		
-		given(postRepository.findAll(any(Pageable.class))).willReturn(new PageImpl<PostEntity>(List.of(postEntity1, postEntity2)));
+		given(postQueryDslRepository.findAll(any(Pageable.class))).willReturn(new PageImpl<PostEntity>(List.of(postEntity1, postEntity2)));
 		
 		page = postServiceImpl.findAll(new PaginationParam());
 					

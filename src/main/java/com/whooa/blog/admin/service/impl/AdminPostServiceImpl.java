@@ -20,20 +20,23 @@ import com.whooa.blog.post.dto.PostDto.PostUpdateRequest;
 import com.whooa.blog.post.entity.PostEntity;
 import com.whooa.blog.post.exception.PostNotFoundException;
 import com.whooa.blog.post.mapper.PostMapper;
+import com.whooa.blog.post.repository.PostJdbcRepository;
 import com.whooa.blog.post.repository.PostRepository;
-import com.whooa.blog.util.StringUtil;
 
 @Service
 public class AdminPostServiceImpl implements AdminPostService {
 	private PostRepository postRepository;
+	private PostJdbcRepository postJdbcRepository;
 	private CategoryRepository categoryRepository;
 	private FileService<PostEntity> fileService;
 
 	public AdminPostServiceImpl(
-			PostRepository postRepository, 
+			PostRepository postRepository,
+			PostJdbcRepository postJdbcRepository,
 			CategoryRepository categoryRepository,
 			FileService<PostEntity> fileService) {
 		this.postRepository = postRepository;
+		this.postJdbcRepository = postJdbcRepository;
 		this.categoryRepository = categoryRepository;
 		this.fileService = fileService;
 	}
@@ -42,7 +45,7 @@ public class AdminPostServiceImpl implements AdminPostService {
 	public void delete(Long id) {
 		PostEntity postEntity;
 		
-		postEntity = find(id);
+		postEntity = postRepository.findById(id).orElseThrow(() -> new PostNotFoundException(Code.NOT_FOUND, new String[] {"포스트가 존재하지 않습니다."}));
 				
 		postRepository.delete(postEntity);
 	}
@@ -50,43 +53,30 @@ public class AdminPostServiceImpl implements AdminPostService {
 	@Override
 	public PostResponse update(Long id, PostUpdateRequest postUpdate, MultipartFile[] uploadFiles) {
 		CategoryEntity categoryEntity;
-		String categoryName, content, title;
 		List<File> files = null;
 		PostResponse post;
 		PostEntity postEntity;
 		
-		postEntity = find(id);		
+		postEntity = postRepository.findById(id).orElseThrow(() -> new PostNotFoundException(Code.NOT_FOUND, new String[] {"포스트가 존재하지 않습니다."}));	
 		categoryEntity = categoryRepository.findByName(postUpdate.getCategoryName()).orElseThrow(() -> new CategoryNotFoundException(Code.NOT_FOUND, new String[] {"카테고리가 존재하지 않습니다."}));
 
-		categoryName = postUpdate.getCategoryName();
-		content = postUpdate.getTitle();
-		title = postUpdate.getContent();
-
-		if (StringUtil.notEmpty(categoryName)) {
-			postEntity.setCategory(categoryEntity);
-		}
+		postEntity.setCategory(categoryEntity);
+		postEntity.setContent(postUpdate.getContent());
+		postEntity.setTitle(postUpdate.getTitle());
 		
-		if (StringUtil.notEmpty(content)) {
-			postEntity.setContent(postUpdate.getContent());
-		}
-		
-		if (StringUtil.notEmpty(title)) {
-			postEntity.setTitle(postUpdate.getTitle());
-		}
-
 		if (uploadFiles != null && uploadFiles.length > 0) {
 			files = Arrays.stream(uploadFiles)
 					.map(uploadFile -> fileService.upload(postEntity, uploadFile))
 					.collect(Collectors.toList());
 		}
 		
+		if (files != null && files.size() > 0) {
+			postJdbcRepository.bulkInsert(postEntity.getId(), files);
+		}
+		
 		post = PostMapper.INSTANCE.fromEntity(postRepository.save(postEntity));
 		post.setFiles(files);
 		
 		return post;
-	}
-	
-	private PostEntity find(Long id) {
-		return postRepository.findById(id).orElseThrow(() -> new PostNotFoundException(Code.NOT_FOUND, new String[] {"포스트가 존재하지 않습니다."}));
 	}
 }

@@ -61,7 +61,6 @@ public class AdminCommentIntegrationTest {
 //	private static MySQLContainer<?> mySqlContainer = new MySQLContainer<>("mysql:8.0.33")
 //															.withUsername("root")
 //															.withPassword("root!@");
-	
 	private MockMvc mockMvc;
 	
     @Autowired
@@ -117,8 +116,6 @@ public class AdminCommentIntegrationTest {
 		postEntity.setUser(userEntity);
 		
 		postEntity = postRepository.save(postEntity);
-
-		new UserDetailsImpl(userEntity);
 	}
 	
 	@BeforeEach
@@ -130,7 +127,7 @@ public class AdminCommentIntegrationTest {
 		commentEntity.setContent("댓글1");
 		commentEntity.setPost(postEntity);
 		commentEntity.setUser(userEntity);
-
+		
 		commentEntity = commentRepository.save(commentEntity);
 	}
 	
@@ -152,6 +149,8 @@ public class AdminCommentIntegrationTest {
 	@WithUserDetails(value = "admin@naver.com", setupBefore = TestExecutionEvent.TEST_EXECUTION, userDetailsServiceBeanName = "userDetailsServiceImpl")
 	public void givenId_whenCallDeleteComment_thenReturnNothing() throws Exception {
 		ResultActions action;
+		
+		System.out.println(userEntity);
 		
 		action = mockMvc.perform(delete("/api/v1/admin/posts/{post-id}/comments/{id}", postEntity.getId(), commentEntity.getId()));
 		

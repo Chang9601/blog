@@ -9,10 +9,10 @@ import org.springframework.stereotype.Component;
 import com.whooa.blog.common.doc.CoreDoc;
 
 @Component
-public class ElasticsearchOperationsWrapper<T extends CoreDoc> {
+public class ElasticsearchOperationsUtil<T extends CoreDoc> {
 	private final ElasticsearchOperations elasticsearchOperations;
 
-	public ElasticsearchOperationsWrapper(ElasticsearchOperations elasticsearchOperations) {
+	public ElasticsearchOperationsUtil(ElasticsearchOperations elasticsearchOperations) {
 		this.elasticsearchOperations = elasticsearchOperations;
 	}
 	

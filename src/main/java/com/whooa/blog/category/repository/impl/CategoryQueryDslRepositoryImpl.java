@@ -29,23 +29,23 @@ public class CategoryQueryDslRepositoryImpl extends QuerydslRepositorySupport im
 	@Override
 	public Page<CategoryEntity> search(CategorySearchRequest categorySearch, Pageable pageable) {
 		JPAQuery<Long> countQuery; 
-		JPAQuery<CategoryEntity> jpaQuery;
+		JPAQuery<CategoryEntity> categoryEntityQuery;
 		QCategoryEntity categoryEntity;
 		List<CategoryEntity> categoryEntities;
 		
 		categoryEntity = QCategoryEntity.categoryEntity;
 		
-		jpaQuery = jpaQueryFactory
-						.selectFrom(categoryEntity)
-						.where(containsName(categorySearch.getName()))
-						.distinct();
+		categoryEntityQuery = jpaQueryFactory
+								.selectFrom(categoryEntity)
+								.where(containsName(categorySearch.getName()))
+								.distinct();
 		
 		countQuery = jpaQueryFactory
 						.select(categoryEntity.countDistinct())
 						.from(categoryEntity)
 						.where(containsName(categorySearch.getName()));
 		
-		categoryEntities = getQuerydsl().applyPagination(pageable, jpaQuery).fetch();
+		categoryEntities = getQuerydsl().applyPagination(pageable, categoryEntityQuery).fetch();
 		
 		return PageableExecutionUtils.getPage(categoryEntities, pageable, countQuery::fetchOne);
 	}

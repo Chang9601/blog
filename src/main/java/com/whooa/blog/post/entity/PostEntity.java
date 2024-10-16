@@ -9,6 +9,7 @@ import com.whooa.blog.common.entity.CoreEntity;
 import com.whooa.blog.file.value.File;
 import com.whooa.blog.user.entity.UserEntity;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
 import jakarta.persistence.ElementCollection;
@@ -41,7 +42,7 @@ public class PostEntity extends CoreEntity {
 	@JoinColumn(name = "category_id", nullable = false)
 	private CategoryEntity category;
 	
-	@OneToMany(mappedBy = "post")
+	@OneToMany(mappedBy = "post", cascade = CascadeType.REMOVE)
 	private List<CommentEntity> comments = new ArrayList<CommentEntity>();
 	
 	@ManyToOne(fetch = FetchType.LAZY)

@@ -34,6 +34,7 @@ import com.whooa.blog.post.dto.PostDto.PostResponse;
 import com.whooa.blog.post.dto.PostDto.PostUpdateRequest;
 import com.whooa.blog.post.entity.PostEntity;
 import com.whooa.blog.post.exception.PostNotFoundException;
+import com.whooa.blog.post.repository.PostJdbcRepository;
 import com.whooa.blog.post.repository.PostRepository;
 import com.whooa.blog.user.entity.UserEntity;
 import com.whooa.blog.user.type.UserRole;
@@ -46,6 +47,8 @@ public class AdminPostServiceTest {
 	
 	@Mock
 	private PostRepository postRepository;
+	@Mock
+	private PostJdbcRepository postJdbcRepository;
 	@Mock
 	private CategoryRepository categoryRepository;
 	@Mock	
@@ -144,6 +147,7 @@ public class AdminPostServiceTest {
 
 		then(postRepository).should(times(1)).save(any(PostEntity.class));
 		then(postRepository).should(times(1)).findById(any(Long.class));
+		then(postJdbcRepository).should(times(0)).bulkInsert(any(Long.class), anyList());
 		then(categoryRepository).should(times(1)).findByName(any(String.class));
 		then(fileService).should(times(0)).upload(any(PostEntity.class), any(MultipartFile.class));
 	}
@@ -166,6 +170,7 @@ public class AdminPostServiceTest {
 
 		given(postRepository.save(any(PostEntity.class))).willReturn(postEntity2);
 		given(postRepository.findById(any(Long.class))).willReturn(Optional.of(postEntity1));
+		willDoNothing().given(postJdbcRepository).bulkInsert(any(Long.class), anyList());
 		given(categoryRepository.findByName(any(String.class))).willReturn(Optional.of(categoryEntity1));
 		given(fileService.upload(any(PostEntity.class), any(MultipartFile.class))).willReturn(file);
 
@@ -177,6 +182,7 @@ public class AdminPostServiceTest {
 
 		then(postRepository).should(times(1)).save(any(PostEntity.class));
 		then(postRepository).should(times(1)).findById(any(Long.class));
+		then(postJdbcRepository).should(times(1)).bulkInsert(any(Long.class), anyList());
 		then(categoryRepository).should(times(1)).findByName(any(String.class));
 		then(fileService).should(times(1)).upload(any(PostEntity.class), any(MultipartFile.class));
 	}
