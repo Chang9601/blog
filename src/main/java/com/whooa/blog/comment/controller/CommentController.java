@@ -13,8 +13,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.whooa.blog.comment.dto.CommentDto.CommentCreateRequest;
 import com.whooa.blog.comment.dto.CommentDto.CommentUpdateRequest;
+import com.whooa.blog.comment.param.CommentSearchParam;
 import com.whooa.blog.comment.dto.CommentDto.CommentResponse;
-import com.whooa.blog.comment.dto.CommentDto.CommentSearchRequest;
 import com.whooa.blog.comment.service.CommentService;
 import com.whooa.blog.common.api.ApiResponse;
 import com.whooa.blog.common.api.PageResponse;
@@ -30,7 +30,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 
-// TODO: 검색에서 포스트까지 가져오는 API 검색 
+// TODO: 검색에서 포스트까지 가져오는 API
 @Tag(description = "댓글 생성/조회/목록/수정/삭제를 수행하는 댓글 컨트롤러", name = "댓글 API")
 @RestController
 @RequestMapping("/api/v1/posts")
@@ -86,8 +86,8 @@ public class CommentController {
 	@io.swagger.v3.oas.annotations.responses.ApiResponse(content = @Content(mediaType = "application/json"), description = "댓글 검색 성공", responseCode = "200")
 	@ResponseStatus(value = HttpStatus.OK)
 	@GetMapping("/comments/search") 
-	public ApiResponse<PageResponse<CommentResponse>> searchComments(CommentSearchRequest commentSearch, PaginationParam paginationParam) {		
-		return ApiResponse.handleSuccess(Code.OK.getCode(), Code.OK.getMessage(), commentService.search(commentSearch, paginationParam), new String[] {"검색어를 만족하는 댓글을 검색했습니다."});
+	public ApiResponse<PageResponse<CommentResponse>> searchComments(CommentSearchParam commentSearchParam) {		
+		return ApiResponse.handleSuccess(Code.OK.getCode(), Code.OK.getMessage(), commentService.searchAll(commentSearchParam), new String[] {"검색어를 만족하는 댓글을 검색했습니다."});
 	}
 	
 	@SecurityRequirement(name = "JWT Cookie Authentication")

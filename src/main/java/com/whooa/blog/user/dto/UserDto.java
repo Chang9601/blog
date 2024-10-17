@@ -180,39 +180,6 @@ public class UserDto {
 			return "UserPasswordUpdateRequest [newPassword=" + newPassword + ", oldPassword=" + oldPassword + "]";
 		}
 	}
-
-	public static class UserSearchRequest {			
-		@NotBlank(message = "이메일을 입력하세요.")
-		@Schema(description = "회원검색 시 필요한 사용자 이메일", example = "user1@naver.com", name = "email")
-		private String email;
-
-		@NotBlank(message = "이름을 입력하세요.")
-		@Schema(description = "회원검색 시 필요한 사용자 이름", example = "사용자1", name = "name")
-		private String name;
-		
-		public UserSearchRequest() {}
-		
-		public String getEmail() {
-			return email;
-		}
-		
-		public void setEmail(String email) {
-			this.email = email;
-		}
-		
-		public String getName() {
-			return name;
-		}
-
-		public void setName(String name) {
-			this.name = name;
-		}
-
-		@Override
-		public String toString() {
-			return "UserSearchRequest [email=" + email + ", name=" + name + "]";
-		}
-	}
 	
 	public static class UserUpdateRequest {
 		@Email(message = "형식에 맞게 이메일을 입력하세요.")

@@ -1,12 +1,14 @@
 package com.whooa.blog.post.service.impl;
 
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.whooa.blog.category.entity.CategoryEntity;
@@ -16,7 +18,6 @@ import com.whooa.blog.common.api.PageResponse;
 import com.whooa.blog.common.code.Code;
 import com.whooa.blog.common.security.UserDetailsImpl;
 import com.whooa.blog.elasticsearch.ElasticsearchOperationsUtil;
-import com.whooa.blog.elasticsearch.ElasticsearchParam;
 import com.whooa.blog.file.service.FileService;
 import com.whooa.blog.file.value.File;
 import com.whooa.blog.post.doc.PostDoc;
@@ -26,6 +27,7 @@ import com.whooa.blog.post.dto.PostDto.PostResponse;
 import com.whooa.blog.post.entity.PostEntity;
 import com.whooa.blog.post.exception.PostNotFoundException;
 import com.whooa.blog.post.mapper.PostMapper;
+import com.whooa.blog.post.param.PostSearchParam;
 import com.whooa.blog.post.repository.PostJdbcRepository;
 import com.whooa.blog.post.repository.PostQueryDslRepository;
 import com.whooa.blog.post.repository.PostRepository;
@@ -35,7 +37,6 @@ import com.whooa.blog.user.entity.UserEntity;
 import com.whooa.blog.user.exception.UserNotFoundException;
 import com.whooa.blog.user.exception.UserNotMatchedException;
 import com.whooa.blog.user.repository.UserRepository;
-import com.whooa.blog.util.StringUtil;
 import com.whooa.blog.util.PaginationParam;
 
 @Service
@@ -81,6 +82,7 @@ public class PostServiceImpl implements PostService {
 	public PostResponse create(PostCreateRequest postCreate, MultipartFile[] uploadFiles, UserDetailsImpl userDetailsImpl) {
 		List<File> files = null;
 		CategoryEntity categoryEntity;
+		PostDoc postDoc;
 		PostEntity postEntity, createdPostEntity;
 		UserEntity userEntity;
 		PostResponse post;
@@ -92,41 +94,35 @@ public class PostServiceImpl implements PostService {
 		postEntity.setCategory(categoryEntity);
 		postEntity.setUser(userEntity);
 		
-		if (uploadFiles != null && uploadFiles.length > 0) {
-			files = Arrays.stream(uploadFiles)
-					.map(uploadFile -> fileService.upload(postEntity, uploadFile))
-					.collect(Collectors.toList());			
-		}
-
 		createdPostEntity = postRepository.save(postEntity);
 		
-		if (files != null && files.size() > 0) {
+		if (uploadFiles != null && uploadFiles.length > 0) {
+			files = Arrays.stream(uploadFiles)
+					.map(uploadFile -> fileService.upload(createdPostEntity, uploadFile))
+					.collect(Collectors.toList());
+			
 			postJdbcRepository.bulkInsert(createdPostEntity.getId(), files);
 		}
-		
+				
 		post = PostMapper.INSTANCE.fromEntity(createdPostEntity);
 		post.setFiles(files);
-		
-		PostDoc postDoc = new PostDoc();
-						
-		postDoc.setId(createdPostEntity.getId());
-		postDoc.setContent(createdPostEntity.getContent());
-		postDoc.setTitle(createdPostEntity.getTitle());
+
+		postDoc = PostMapper.INSTANCE.toDoc(createdPostEntity);
 		postDoc.setCategoryName(createdPostEntity.getCategory().getName());
-		postDoc.setCategoryId(createdPostEntity.getCategory().getId());
-		postDoc.setUserId(createdPostEntity.getUser().getId());
-		
 		elasticsearchOperationsUtil.create(postDoc);
 		
 		return post;
 	}
 
+	@Transactional
 	@Override
 	public void delete(Long id, UserDetailsImpl userDetailsImpl) {
 		Long userId;
+		PostDoc postDoc;
 		PostEntity postEntity;
 		
 		postEntity = postRepository.findById(id).orElseThrow(() -> new PostNotFoundException(Code.NOT_FOUND, new String[] {"포스트가 존재하지 않습니다."}));
+		postDoc = elasticsearchOperationsUtil.find(id.toString(), PostDoc.class);
 		
 		userId = userDetailsImpl.getId();
 		
@@ -135,6 +131,7 @@ public class PostServiceImpl implements PostService {
 		}
 		
 		postRepository.delete(postEntity);
+		elasticsearchOperationsUtil.delete(postDoc);
 	}
 	
 	@Override
@@ -172,7 +169,6 @@ public class PostServiceImpl implements PostService {
 	
 	@Override
 	public PageResponse<PostResponse> findAllByCategoryId(Long categoryId, PaginationParam pagination) {
-		//categoryRepository.findById(categoryId).orElseThrow(() -> new CategoryNotFoundException(Code.NOT_FOUND, new String[] {"카테고리가 존재하지 않습니다."}));
 		Page<PostEntity> page;
 		Pageable pageable;
 		List<PostEntity> postEntities;
@@ -182,7 +178,7 @@ public class PostServiceImpl implements PostService {
 		long totalElements;
 		
 		pageable = pagination.makePageable();
-		page = postQueryDslRepository.findAllByCategoryId(categoryId, pageable); //postRepository.findByCategoryId(categoryId, pageable);
+		page = postQueryDslRepository.findAllByCategoryId(categoryId, pageable);
 		
 		postEntities = page.getContent();
 		pageSize = page.getSize();
@@ -198,24 +194,42 @@ public class PostServiceImpl implements PostService {
 	}
 	
 	@Override
-	public PageResponse<PostResponse> search(ElasticsearchParam elasticsearchParam) {
-		List<PostDoc> postDocs = postElasticsearchService.search(elasticsearchParam);
+	public PageResponse<PostResponse> findAllByDate(Date startDate, Date endDate) {
+		// TODO: 시간대 변경
+		System.out.println(startDate);
+		System.out.println(endDate);
 		
-		System.out.println(postDocs);
+		List<PostDoc> postDocs = postElasticsearchService.findAllByDate(startDate, endDate);
+		
+		return null;
+	}
+	
+	@Override
+	public PageResponse<PostResponse> searchAll(PostSearchParam postSearchParam) {
+		List<PostDoc> postDocs = postElasticsearchService.searchAll(postSearchParam);
+
+		return null;//  postDocs;
+	}
+	
+	@Override
+	public PageResponse<PostResponse> searchAllByDate(PostSearchParam postSearchParam, Date startDate, Date endDate) {
+		List<PostDoc> postDocs = postElasticsearchService.searchAllByDate(postSearchParam, startDate, endDate);
 		
 		return null;
 	}
 
+	@Transactional
 	@Override
 	public PostResponse update(Long id, PostUpdateRequest postUpdate, MultipartFile[] uploadFiles, UserDetailsImpl userDetailsImpl) {
 		CategoryEntity categoryEntity;
-		String categoryName, content, title;
 		List<File> files = null;
 		PostResponse post;
-		PostEntity postEntity;
+		PostDoc postDoc;
+		PostEntity postEntity, updatedPostEntity;
 		Long userId;
-
+	
 		postEntity = postRepository.findById(id).orElseThrow(() -> new PostNotFoundException(Code.NOT_FOUND, new String[] {"포스트가 존재하지 않습니다."}));
+		postDoc = elasticsearchOperationsUtil.find(id.toString(), PostDoc.class);
 		categoryEntity = categoryRepository.findByName(postUpdate.getCategoryName()).orElseThrow(() -> new CategoryNotFoundException(Code.NOT_FOUND, new String[] {"카테고리가 존재하지 않습니다."}));
 
 		userId = userDetailsImpl.getId();
@@ -223,41 +237,37 @@ public class PostServiceImpl implements PostService {
 		if (!postEntity.getUser().getId().equals(userId)) {
 			throw new UserNotMatchedException(Code.FORBIDDEN, new String[] {"로그인한 사용자와 포스트를 생성한 사용자가 일치하지 않습니다."});
 		}
-		
-		categoryName = postUpdate.getCategoryName();
-		content = postUpdate.getTitle();
-		title = postUpdate.getContent();
+				
+		postEntity.setCategory(categoryEntity);
+		postEntity.setContent(postUpdate.getContent());
+		postEntity.setTitle(postUpdate.getTitle());
 
-		if (StringUtil.notEmpty(categoryName)) {
-			postEntity.setCategory(categoryEntity);
-		}
-		
-		if (StringUtil.notEmpty(content)) {
-			postEntity.setContent(postUpdate.getContent());
-		}
-		
-		if (StringUtil.notEmpty(title)) {
-			postEntity.setTitle(postUpdate.getTitle());
-		}
+		updatedPostEntity = postRepository.save(postEntity);
 
 		if (uploadFiles != null && uploadFiles.length > 0) {
 			files = postEntity.getFiles();
 			
-			files.removeAll(files);
+			// TODO: 디스크 파일 삭제?
+			files.removeIf((file) -> 1 == 1);
 			
 			files = Arrays.stream(uploadFiles)
-					.map(uploadFile -> fileService.upload(postEntity, uploadFile))
-					.collect(Collectors.toList());
+							.map(uploadFile -> fileService.upload(updatedPostEntity, uploadFile))
+							.collect(Collectors.toList());
+			
+			System.out.println("파일@@@@@@@@@@@@@@@@@@@@@2");
+			System.out.println(files);
+			
+			postJdbcRepository.bulkInsert(updatedPostEntity.getId(), files);
 		}
 		
-		System.out.println(files);
+		postDoc.setCategoryName(updatedPostEntity.getCategory().getName());
+		postDoc.setContent(updatedPostEntity.getContent());
+		postDoc.setTitle(updatedPostEntity.getTitle());
 		
-		if (files != null && files.size() > 0) {
-			postJdbcRepository.bulkInsert(postEntity.getId(), files);
-		}
-		
-		post = PostMapper.INSTANCE.fromEntity(postRepository.save(postEntity));
+		post = PostMapper.INSTANCE.fromEntity(updatedPostEntity);
 		post.setFiles(files);
+		
+		elasticsearchOperationsUtil.update(postDoc);
 		
 		return post;
 	}

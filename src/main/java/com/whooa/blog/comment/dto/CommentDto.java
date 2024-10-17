@@ -47,27 +47,6 @@ public class CommentDto {
 		}
 	}
 	
-	public static class CommentSearchRequest {
-		@NotBlank(message = "내용을 입력하세요.")
-		@Schema(description = "댓글 검색 시 필요한 내용", example = "1번 댓글!", name = "content")
-		private String content;
-
-		public CommentSearchRequest() {}
-		
-		public String getContent() {
-			return content;
-		}
-
-		public void setContent(String content) {
-			this.content = content;
-		}
-
-		@Override
-		public String toString() {
-			return "CommentUpdateRequest [content=" + content + "]";
-		}
-	}
-	
 	/* 
 	 * 순환 참조 오류(즉, 무한 재귀) 해결책.
 	 * 1. PostResponse를 호출 -> PostResponse는 List<CommentDto> 소유 -> 모든 CommentDto는 다시 PostDto를 호출, 따라서 게터 제거하기.

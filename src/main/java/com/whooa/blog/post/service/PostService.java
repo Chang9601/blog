@@ -1,12 +1,14 @@
 package com.whooa.blog.post.service;
 
+import java.util.Date;
+
 import org.springframework.web.multipart.MultipartFile;
 
 import com.whooa.blog.common.api.PageResponse;
 import com.whooa.blog.common.security.UserDetailsImpl;
-import com.whooa.blog.elasticsearch.ElasticsearchParam;
 import com.whooa.blog.post.dto.PostDto.PostCreateRequest;
 import com.whooa.blog.post.dto.PostDto.PostUpdateRequest;
+import com.whooa.blog.post.param.PostSearchParam;
 import com.whooa.blog.util.PaginationParam;
 import com.whooa.blog.post.dto.PostDto.PostResponse;
 
@@ -17,6 +19,8 @@ public interface PostService {
 	public abstract PostResponse find(Long id);
 	public abstract PageResponse<PostResponse> findAll(PaginationParam paginationUtil);
 	public abstract PageResponse<PostResponse> findAllByCategoryId(Long categoryId, PaginationParam paginationUtil);
-	public abstract PageResponse<PostResponse> search(ElasticsearchParam elasticsearchParam);
+	public abstract PageResponse<PostResponse> findAllByDate(Date startDate, Date endDate);
+	public abstract PageResponse<PostResponse> searchAll(PostSearchParam postSearchParam);
+	public abstract PageResponse<PostResponse> searchAllByDate(PostSearchParam postSearchParam, Date startDate, Date endDate);
 	public abstract PostResponse update(Long id, PostUpdateRequest postUpdate, MultipartFile[] uploadFiles, UserDetailsImpl userDetailsImpl);
 }

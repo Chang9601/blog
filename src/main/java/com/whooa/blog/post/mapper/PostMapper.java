@@ -15,4 +15,5 @@ public interface PostMapper {
 	public abstract PostResponse fromEntity(PostEntity postEntity);
 	public abstract PostEntity toEntity(PostCreateRequest postCreate);
 	public abstract PostDoc toDoc(PostEntity postEntity);
+	public abstract PostResponse fromDoc(PostDoc postDoc);
 }

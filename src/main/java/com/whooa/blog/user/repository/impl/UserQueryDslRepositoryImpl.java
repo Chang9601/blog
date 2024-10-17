@@ -12,9 +12,9 @@ import com.querydsl.core.BooleanBuilder;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 
-import com.whooa.blog.user.dto.UserDto.UserSearchRequest;
 import com.whooa.blog.user.entity.QUserEntity;
 import com.whooa.blog.user.entity.UserEntity;
+import com.whooa.blog.user.param.UserSearchParam;
 import com.whooa.blog.user.repository.UserQueryDslRepository;
 import com.whooa.blog.util.StringUtil;
 
@@ -29,7 +29,7 @@ public class UserQueryDslRepositoryImpl extends QuerydslRepositorySupport implem
 	}
 
 	@Override
-	public Page<UserEntity> search(UserSearchRequest userSearch, Pageable pageable) {
+	public Page<UserEntity> searchAll(UserSearchParam userSearchParam, Pageable pageable) {
 		JPAQuery<Long> countQuery; 
 		JPAQuery<UserEntity> userEntityQuery;
 		QUserEntity userEntity;
@@ -39,21 +39,21 @@ public class UserQueryDslRepositoryImpl extends QuerydslRepositorySupport implem
 	
 		userEntityQuery = jpaQueryFactory
 							.selectFrom(userEntity)
-							.where(buildConditions(userSearch))
+							.where(buildConditions(userSearchParam))
 							.distinct();
 		
 		countQuery = jpaQueryFactory
 						.select(userEntity.countDistinct())
 						.from(userEntity)
-						.where(buildConditions(userSearch));
+						.where(buildConditions(userSearchParam));
 		
 		userEntities = getQuerydsl().applyPagination(pageable, userEntityQuery).fetch();
 
 		return PageableExecutionUtils.getPage(userEntities, pageable, countQuery::fetchOne);		
 	}
 	
-	private BooleanBuilder buildConditions(UserSearchRequest userSearch) {
-		return containsName(userSearch.getName()).or(containsEmail(userSearch.getEmail()));
+	private BooleanBuilder buildConditions(UserSearchParam userSearchParam) {
+		return containsName(userSearchParam.getName()).or(containsEmail(userSearchParam.getEmail()));
 	}
 	
 	private BooleanBuilder containsName(String name) {

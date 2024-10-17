@@ -72,7 +72,6 @@ public class FileServiceImpl<T extends CoreEntity> implements FileService<T> {
 		originalFilename = StringUtils.cleanPath(uploadFile.getOriginalFilename());
 				
 		try {
-			
 			if (originalFilename.contains("..")) {
 				throw new InvalidFilePathException(Code.INVALID_PATH_SEQUENCE, new String[] {"파일 이름 " + originalFilename + "이 유효하지 않습니다."});
 			}
@@ -97,8 +96,7 @@ public class FileServiceImpl<T extends CoreEntity> implements FileService<T> {
 			 */
 			Files.copy(uploadFile.getInputStream(), uploadPath, StandardCopyOption.REPLACE_EXISTING);
 						
-			file =  new File(fileExtension, mimeType, filename, filePath, fileSize);
-			//((PostEntity) entity).getFiles().add(file);
+			file = new File(fileExtension, mimeType, filename, filePath, fileSize);
 			
 			return file;
 		} catch (IOException exception) {
@@ -106,22 +104,6 @@ public class FileServiceImpl<T extends CoreEntity> implements FileService<T> {
 		}
 	}
 	
-	private Long getEntityId(T entity) {
-		if (entity instanceof PostEntity) {
-			return ((PostEntity) entity).getId(); 
-		}
-		
-		return 0L;
-	}
-	
-	private String getEntityName(T entity) {
-		if (entity instanceof PostEntity) {
-			return "post";
-		}
-		
-		return "";
-	}
-
 	@Override
 	public Resource downalod(String filename) {
 		try {
@@ -150,5 +132,21 @@ public class FileServiceImpl<T extends CoreEntity> implements FileService<T> {
 		 * 2. 확장자만 있는 경우 점 뒤의 문자열을 반환한다(e.g., .gitignore).
 		 */
 		return com.google.common.io.Files.getFileExtension(filename).toLowerCase();
+	}
+	
+	private Long getEntityId(T entity) {
+		if (entity instanceof PostEntity) {
+			return ((PostEntity) entity).getId(); 
+		}
+		
+		return 0L;
+	}
+	
+	private String getEntityName(T entity) {
+		if (entity instanceof PostEntity) {
+			return "post";
+		}
+		
+		return "";
 	}
 }

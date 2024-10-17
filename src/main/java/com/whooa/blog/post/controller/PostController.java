@@ -1,5 +1,8 @@
 package com.whooa.blog.post.controller;
 
+import java.util.Date;
+
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -18,10 +21,10 @@ import com.whooa.blog.common.api.PageResponse;
 import com.whooa.blog.common.code.Code;
 import com.whooa.blog.common.security.CurrentUser;
 import com.whooa.blog.common.security.UserDetailsImpl;
-import com.whooa.blog.elasticsearch.ElasticsearchParam;
 import com.whooa.blog.post.dto.PostDto.PostResponse;
 import com.whooa.blog.post.dto.PostDto.PostCreateRequest;
 import com.whooa.blog.post.dto.PostDto.PostUpdateRequest;
+import com.whooa.blog.post.param.PostSearchParam;
 import com.whooa.blog.post.service.PostService;
 import com.whooa.blog.util.PaginationParam;
 
@@ -108,12 +111,30 @@ public class PostController {
 	}
 
 	@SecurityRequirement(name = "JWT Cookie Authentication")
+	@Operation(description = "기간을 만족하는 포스트 목록", method = "GET", summary = "포스트 목록")
+	@io.swagger.v3.oas.annotations.responses.ApiResponse(content = @Content(mediaType = "application/json"), description = "포스트 검색 성공", responseCode = "200")
+	@ResponseStatus(value = HttpStatus.OK)
+	@GetMapping("/{start-date}/{end-date}")
+	public ApiResponse<PageResponse<PostResponse>> getPostsByDate(@PathVariable("start-date") @DateTimeFormat(pattern = "yyyy-MM-dd") Date startDate, @PathVariable("end-date") @DateTimeFormat(pattern = "yyyy-MM-dd") Date endDate) {		
+		return ApiResponse.handleSuccess(Code.OK.getCode(), Code.OK.getMessage(), postService.findAllByDate(startDate, endDate), new String[] {"기간을 만족하는 포스트를 검색했습니다."});
+	}
+	
+	@SecurityRequirement(name = "JWT Cookie Authentication")
 	@Operation(description = "검색어를 만족하는 포스트 목록", method = "GET", summary = "포스트 검색")
 	@io.swagger.v3.oas.annotations.responses.ApiResponse(content = @Content(mediaType = "application/json"), description = "포스트 검색 성공", responseCode = "200")
 	@ResponseStatus(value = HttpStatus.OK)
 	@GetMapping("/search")
-	public ApiResponse<PageResponse<PostResponse>> searchPosts(ElasticsearchParam elasticsearchParam) {		
-		return ApiResponse.handleSuccess(Code.OK.getCode(), Code.OK.getMessage(), postService.search(elasticsearchParam), new String[] {"검색어를 만족하는 포스트를 검색했습니다."});
+	public ApiResponse<PageResponse<PostResponse>> searchPosts(PostSearchParam postSearchParam) {		
+		return ApiResponse.handleSuccess(Code.OK.getCode(), Code.OK.getMessage(), postService.searchAll(postSearchParam), new String[] {"검색어를 만족하는 포스트를 검색했습니다."});
+	}
+	
+	@SecurityRequirement(name = "JWT Cookie Authentication")
+	@Operation(description = "검색어와 기간을 만족하는 포스트 목록", method = "GET", summary = "포스트 검색")
+	@io.swagger.v3.oas.annotations.responses.ApiResponse(content = @Content(mediaType = "application/json"), description = "포스트 검색 성공", responseCode = "200")
+	@ResponseStatus(value = HttpStatus.OK)
+	@GetMapping("/search/{start-date}/{end-date}")
+	public ApiResponse<PageResponse<PostResponse>> searchPostsByDate(PostSearchParam postSearchParam, @PathVariable("start-date") @DateTimeFormat(pattern = "yyyy-MM-dd") Date startDate, @PathVariable("end-date") @DateTimeFormat(pattern = "yyyy-MM-dd") Date endDate) {		
+		return ApiResponse.handleSuccess(Code.OK.getCode(), Code.OK.getMessage(), postService.searchAllByDate(postSearchParam, startDate, endDate), new String[] {"검색어와 기간을 만족하는 포스트를 검색했습니다."});
 	}
 	
 	@SecurityRequirement(name = "JWT Cookie Authentication")

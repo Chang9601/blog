@@ -11,41 +11,42 @@ import org.springframework.stereotype.Repository;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import com.whooa.blog.comment.dto.CommentDto.CommentSearchRequest;
+
 import com.whooa.blog.comment.entity.CommentEntity;
 import com.whooa.blog.comment.entity.QCommentEntity;
+import com.whooa.blog.comment.param.CommentSearchParam;
 import com.whooa.blog.comment.repository.CommentQueryDslRepository;
 
 @Repository
 public class CommentQueryDslRepositoryImpl extends QuerydslRepositorySupport implements CommentQueryDslRepository {
-	private JPAQueryFactory jpaQueryFactory;
+	private JPAQueryFactory commentEntityQueryFactory;
 	
-	public CommentQueryDslRepositoryImpl(JPAQueryFactory jpaQueryFactory) {
+	public CommentQueryDslRepositoryImpl(JPAQueryFactory commentEntityQueryFactory) {
 		super(CommentEntity.class);
 		
-		this.jpaQueryFactory = jpaQueryFactory;
+		this.commentEntityQueryFactory = commentEntityQueryFactory;
 	}
 
 	@Override
-	public Page<CommentEntity> search(CommentSearchRequest commentSearch, Pageable pageable) {
+	public Page<CommentEntity> searchAll(CommentSearchParam commentSearchParam, Pageable pageable) {
 		JPAQuery<Long> countQuery; 
-		JPAQuery<CommentEntity> jpaQuery;
+		JPAQuery<CommentEntity> commentEntityQuery;
 		QCommentEntity commentEntity;
 		List<CommentEntity> commentEntities;
 		
 		commentEntity = QCommentEntity.commentEntity;
 		
-		jpaQuery = jpaQueryFactory
-						.selectFrom(commentEntity)
-						.where(containsContent(commentSearch.getContent()))
-						.distinct();
+		commentEntityQuery = commentEntityQueryFactory
+								.selectFrom(commentEntity)
+								.where(containsContent(commentSearchParam.getContent()))
+								.distinct();
 		
-		countQuery = jpaQueryFactory
-						.select(commentEntity.countDistinct())
-						.from(commentEntity)
-						.where(containsContent(commentSearch.getContent()));
+		countQuery = commentEntityQueryFactory
+								.select(commentEntity.countDistinct())
+								.from(commentEntity)
+								.where(containsContent(commentSearchParam.getContent()));
 		
-		commentEntities = getQuerydsl().applyPagination(pageable, jpaQuery).fetch();
+		commentEntities = getQuerydsl().applyPagination(pageable, commentEntityQuery).fetch();
 		
 		return PageableExecutionUtils.getPage(commentEntities, pageable, countQuery::fetchOne);
 	}

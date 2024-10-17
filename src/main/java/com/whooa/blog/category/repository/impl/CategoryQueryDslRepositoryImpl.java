@@ -11,9 +11,10 @@ import org.springframework.stereotype.Repository;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import com.whooa.blog.category.dto.CategoryDto.CategorySearchRequest;
+
 import com.whooa.blog.category.entity.CategoryEntity;
 import com.whooa.blog.category.entity.QCategoryEntity;
+import com.whooa.blog.category.param.CategorySearchParam;
 import com.whooa.blog.category.repository.CategoryQueryDslRepository;
 
 @Repository
@@ -27,7 +28,7 @@ public class CategoryQueryDslRepositoryImpl extends QuerydslRepositorySupport im
 	}
 
 	@Override
-	public Page<CategoryEntity> search(CategorySearchRequest categorySearch, Pageable pageable) {
+	public Page<CategoryEntity> searchAll(CategorySearchParam categorySearchParam, Pageable pageable) {
 		JPAQuery<Long> countQuery; 
 		JPAQuery<CategoryEntity> categoryEntityQuery;
 		QCategoryEntity categoryEntity;
@@ -37,13 +38,13 @@ public class CategoryQueryDslRepositoryImpl extends QuerydslRepositorySupport im
 		
 		categoryEntityQuery = jpaQueryFactory
 								.selectFrom(categoryEntity)
-								.where(containsName(categorySearch.getName()))
+								.where(containsName(categorySearchParam.getName()))
 								.distinct();
 		
 		countQuery = jpaQueryFactory
 						.select(categoryEntity.countDistinct())
 						.from(categoryEntity)
-						.where(containsName(categorySearch.getName()));
+						.where(containsName(categorySearchParam.getName()));
 		
 		categoryEntities = getQuerydsl().applyPagination(pageable, categoryEntityQuery).fetch();
 		

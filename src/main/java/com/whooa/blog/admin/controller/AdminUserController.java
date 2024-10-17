@@ -16,7 +16,7 @@ import com.whooa.blog.common.api.PageResponse;
 import com.whooa.blog.common.code.Code;
 import com.whooa.blog.user.dto.UserDto.UserAdminUpdateRequest;
 import com.whooa.blog.user.dto.UserDto.UserResponse;
-import com.whooa.blog.user.dto.UserDto.UserSearchRequest;
+import com.whooa.blog.user.param.UserSearchParam;
 import com.whooa.blog.util.PaginationParam;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -27,7 +27,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 
-// TODO: 사용자 조회/목록/검색에서 포스트, 댓글까지 가져오는 API
+// TODO: 사용자 조회/목록/검색에서 포스트 댓글까지 가져오는 API
 @Tag(description = "사용자 조회/목록/검색/수정/삭제를 수행하는 관리자 사용자 컨트롤러", name = "관리자(사용자) API")
 @RestController
 @RequestMapping("/api/v1/admin/users")
@@ -72,8 +72,8 @@ public class AdminUserController {
 	@io.swagger.v3.oas.annotations.responses.ApiResponse(content = @Content(mediaType = "application/json"), description = "사용자 검색 성공", responseCode = "200")
 	@ResponseStatus(value = HttpStatus.OK)
 	@GetMapping("/search")
-	public ApiResponse<PageResponse<UserResponse>> searchUsers(UserSearchRequest userSearch, PaginationParam paginationParam) {
-		return ApiResponse.handleSuccess(Code.OK.getCode(), Code.OK.getMessage(), adminUserService.search(userSearch, paginationParam), new String[] {"검색어를 만족하는 사용자를 검색했습니다."});
+	public ApiResponse<PageResponse<UserResponse>> searchUsers(UserSearchParam userSearchParam) {
+		return ApiResponse.handleSuccess(Code.OK.getCode(), Code.OK.getMessage(), adminUserService.searchAll(userSearchParam), new String[] {"검색어를 만족하는 사용자를 검색했습니다."});
 	}
 	
 	@SecurityRequirement(name = "JWT Cookie Authentication")

@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.whooa.blog.admin.service.AdminPostService;
@@ -50,6 +51,7 @@ public class AdminPostServiceImpl implements AdminPostService {
 		postRepository.delete(postEntity);
 	}
 
+	@Transactional
 	@Override
 	public PostResponse update(Long id, PostUpdateRequest postUpdate, MultipartFile[] uploadFiles) {
 		CategoryEntity categoryEntity;

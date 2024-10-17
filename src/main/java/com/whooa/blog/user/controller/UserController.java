@@ -29,7 +29,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 
 import jakarta.validation.Valid;
 
-// TODO: 비밀번호 재설정 API, 회원정보에서 포스트 댓글까지 가져오는 API
+// TODO: 비밀번호 재설정 API 회원정보에서 포스트 댓글까지 가져오는 API
 @Tag(description = "회원가입/정보/수정/탈퇴 및 비밀번호 수정을 수행하는 사용자 컨트롤러", name = "관리자(사용자) API")
 @RestController
 @RequestMapping("/api/v1/users")

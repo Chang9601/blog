@@ -13,8 +13,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.whooa.blog.category.dto.CategoryDto.CategoryCreateRequest;
 import com.whooa.blog.category.dto.CategoryDto.CategoryResponse;
-import com.whooa.blog.category.dto.CategoryDto.CategorySearchRequest;
 import com.whooa.blog.category.dto.CategoryDto.CategoryUpdateRequest;
+import com.whooa.blog.category.param.CategorySearchParam;
 import com.whooa.blog.category.service.CategoryService;
 import com.whooa.blog.common.api.ApiResponse;
 import com.whooa.blog.common.api.PageResponse;
@@ -84,8 +84,8 @@ public class CategoryController {
 	@io.swagger.v3.oas.annotations.responses.ApiResponse(content = @Content(mediaType = "application/json"), description = "카테고리 검색 성공", responseCode = "200")
 	@ResponseStatus(value = HttpStatus.OK)
 	@GetMapping("/search")
-	public ApiResponse<PageResponse<CategoryResponse>> searchCategories(CategorySearchRequest categorySearch, PaginationParam paginationParam) {
-		return ApiResponse.handleSuccess(Code.OK.getCode(), Code.OK.getMessage(), categoryService.search(categorySearch, paginationParam), new String[] {"검색어를 만족하는 카테고리를 검색했습니다."});
+	public ApiResponse<PageResponse<CategoryResponse>> searchCategories(CategorySearchParam categorySearchParam) {
+		return ApiResponse.handleSuccess(Code.OK.getCode(), Code.OK.getMessage(), categoryService.searchAll(categorySearchParam), new String[] {"검색어를 만족하는 카테고리를 검색했습니다."});
 	}
 	
 	@SecurityRequirement(name = "JWT Cookie Authentication")

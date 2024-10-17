@@ -9,12 +9,12 @@ import org.springframework.stereotype.Service;
 
 import com.whooa.blog.category.dto.CategoryDto.CategoryCreateRequest;
 import com.whooa.blog.category.dto.CategoryDto.CategoryResponse;
-import com.whooa.blog.category.dto.CategoryDto.CategorySearchRequest;
 import com.whooa.blog.category.dto.CategoryDto.CategoryUpdateRequest;
 import com.whooa.blog.category.entity.CategoryEntity;
 import com.whooa.blog.category.exception.CategoryNotFoundException;
 import com.whooa.blog.category.exception.DuplicateCategoryException;
 import com.whooa.blog.category.mapper.CategoryMapper;
+import com.whooa.blog.category.param.CategorySearchParam;
 import com.whooa.blog.category.repository.CategoryQueryDslRepository;
 import com.whooa.blog.category.repository.CategoryRepository;
 import com.whooa.blog.category.service.CategoryService;
@@ -52,7 +52,7 @@ public class CategoryServiceImpl implements CategoryService {
 		CategoryEntity categoryEntity;
 		
 		categoryEntity = categoryRepository.findById(id).orElseThrow(() -> new CategoryNotFoundException(Code.NOT_FOUND, new String[] {"카테고리가 존재하지 않습니다."}));
-
+		
 		categoryRepository.delete(categoryEntity);		
 	}
 	
@@ -95,7 +95,7 @@ public class CategoryServiceImpl implements CategoryService {
 	}
 
 	@Override
-	public PageResponse<CategoryResponse> search(CategorySearchRequest categorySearch, PaginationParam paginationParam) {
+	public PageResponse<CategoryResponse> searchAll(CategorySearchParam categorySearchParam) {
 		List<CategoryEntity> categoryEntities;
 		List<CategoryResponse> categoryResponse;
 		Page<CategoryEntity> page;
@@ -104,8 +104,8 @@ public class CategoryServiceImpl implements CategoryService {
 		boolean isFirst, isLast;
 		long totalElements;
 		
-		pageable = paginationParam.makePageable();
-		page = categoryQueryDslRepository.search(categorySearch, pageable);
+		pageable = categorySearchParam.makePageable();
+		page = categoryQueryDslRepository.searchAll(categorySearchParam, pageable);
 		
 		categoryEntities = page.getContent();
 		pageSize = page.getSize();

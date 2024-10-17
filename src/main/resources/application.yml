@@ -5,7 +5,7 @@ file:
 logging:
   level:
     '[org.springframework.data.elasticsearch.core]': DEBUG
-    '[org.elasticsearch.client]': TRACE
+    '[org.elasticsearch.client]': DEBUG
     '[org.apache.http]': TRACE
 
 server:

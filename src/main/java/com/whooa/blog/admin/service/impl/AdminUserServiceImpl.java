@@ -13,12 +13,12 @@ import com.whooa.blog.common.api.PageResponse;
 import com.whooa.blog.common.code.Code;
 import com.whooa.blog.user.dto.UserDto.UserAdminUpdateRequest;
 import com.whooa.blog.user.dto.UserDto.UserResponse;
-import com.whooa.blog.user.dto.UserDto.UserSearchRequest;
 import com.whooa.blog.user.entity.UserEntity;
 import com.whooa.blog.user.exception.DuplicateUserException;
 import com.whooa.blog.user.exception.UserNotFoundException;
 import com.whooa.blog.user.mapper.UserMapper;
 import com.whooa.blog.user.mapper.UserRoleMapper;
+import com.whooa.blog.user.param.UserSearchParam;
 import com.whooa.blog.user.repository.UserQueryDslRepository;
 import com.whooa.blog.user.repository.UserRepository;
 import com.whooa.blog.util.PaginationParam;
@@ -79,7 +79,7 @@ public class AdminUserServiceImpl implements AdminUserService {
 	}
 	
 	@Override
-	public PageResponse<UserResponse> search(UserSearchRequest userSearch, PaginationParam paginationParam) {
+	public PageResponse<UserResponse> searchAll(UserSearchParam userSearchParam) {
 		Pageable pageable;
 		Page<UserEntity> page;
 		List<UserEntity> userEntities;
@@ -88,8 +88,8 @@ public class AdminUserServiceImpl implements AdminUserService {
 		long totalElements;
 		boolean isLast, isFirst;
 		
-		pageable = paginationParam.makePageable();
-		page = userQueryDslRepository.search(userSearch, pageable);
+		pageable = userSearchParam.makePageable();
+		page = userQueryDslRepository.searchAll(userSearchParam, pageable);
 		
 		userEntities = page.getContent();
 		pageSize = page.getSize();

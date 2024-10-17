@@ -8,13 +8,15 @@ import com.whooa.blog.file.value.File;
 import com.whooa.blog.post.doc.PostDoc;
 import com.whooa.blog.post.dto.PostDto;
 import com.whooa.blog.post.entity.PostEntity;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import javax.annotation.processing.Generated;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2024-10-17T00:19:47+0900",
+    date = "2024-10-17T17:49:38+0900",
     comments = "version: 1.5.5.Final, compiler: IncrementalProcessingEnvironment from gradle-language-java-8.6.jar, environment: Java 17 (Oracle Corporation)"
 )
 public class PostMapperImpl implements PostMapper {
@@ -65,6 +67,9 @@ public class PostMapperImpl implements PostMapper {
         postDoc.setId( postEntity.getId() );
         postDoc.setContent( postEntity.getContent() );
         postDoc.setTitle( postEntity.getTitle() );
+        if ( postEntity.getCreatedAt() != null ) {
+            postDoc.setCreatedAt( Date.from( postEntity.getCreatedAt().toInstant( ZoneOffset.UTC ) ) );
+        }
 
         return postDoc;
     }

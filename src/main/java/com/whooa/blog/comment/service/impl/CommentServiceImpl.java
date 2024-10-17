@@ -10,11 +10,11 @@ import org.springframework.stereotype.Service;
 import com.whooa.blog.comment.dto.CommentDto.CommentUpdateRequest;
 import com.whooa.blog.comment.dto.CommentDto.CommentCreateRequest;
 import com.whooa.blog.comment.dto.CommentDto.CommentResponse;
-import com.whooa.blog.comment.dto.CommentDto.CommentSearchRequest;
 import com.whooa.blog.comment.entity.CommentEntity;
 import com.whooa.blog.comment.exception.CommentNotBelongingToPostException;
 import com.whooa.blog.comment.exception.CommentNotFoundException;
 import com.whooa.blog.comment.mapper.CommentMapper;
+import com.whooa.blog.comment.param.CommentSearchParam;
 import com.whooa.blog.comment.repository.CommentQueryDslRepository;
 import com.whooa.blog.comment.repository.CommentRepository;
 import com.whooa.blog.comment.service.CommentService;
@@ -142,7 +142,7 @@ public class CommentServiceImpl implements CommentService {
 	}
 	
 	@Override
-	public PageResponse<CommentResponse> search(CommentSearchRequest commentSearch, PaginationParam paginationParam) {
+	public PageResponse<CommentResponse> searchAll(CommentSearchParam commentSearchParam) {
 		Pageable pageable;
 		Page<CommentEntity> page;
 		List<CommentEntity> commentEntities;
@@ -151,8 +151,8 @@ public class CommentServiceImpl implements CommentService {
 		long totalElements;
 		boolean isLast, isFirst;
 		
-		pageable = paginationParam.makePageable();
-		page = commentQueryDslRepository.search(commentSearch, pageable);
+		pageable = commentSearchParam.makePageable();
+		page = commentQueryDslRepository.searchAll(commentSearchParam, pageable);
 		
 		commentEntities = page.getContent();
 		pageSize = page.getSize();
