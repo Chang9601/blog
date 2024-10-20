@@ -39,6 +39,9 @@ public class UserEntity extends CoreEntity {
 	@Column(name = "password_reset_token_expiration")
 	private LocalDateTime passwordResetTokenExpiration;
 	
+	@Column(name = "oauth2_access_token", length = 500)
+	private String oAuth2AccessToken;
+	
 	@Enumerated(EnumType.STRING)
 	@Column(nullable = false, name = "oauth2_provider")
 	private OAuth2Provider oAuth2Provider = OAuth2Provider.LOCAL;
@@ -46,8 +49,8 @@ public class UserEntity extends CoreEntity {
 	@Column(name = "oauth2_provider_id", length = 500)
 	private String oAuth2ProviderId;
 	
-	@Column(name = "oauth2_provider_refresh_token", length = 500)
-	private String oAuth2ProviderRefreshToken;
+	@Column(name = "oauth2_refresh_token", length = 500)
+	private String oAuth2RefreshToken;
 	
 	@Column(name = "refresh_token", length = 500)
 	private String refreshToken;
@@ -114,6 +117,14 @@ public class UserEntity extends CoreEntity {
 		this.passwordResetTokenExpiration = passwordResetTokenExpiration;
 	}
 	
+	public String getOAuth2AccessToken() {
+		return oAuth2AccessToken;
+	}
+
+	public void setOAuth2AccessToken(String oAuth2AccessToken) {
+		this.oAuth2AccessToken = oAuth2AccessToken;
+	}
+
 	public OAuth2Provider getOAuth2Provider() {
 		return oAuth2Provider;
 	}
@@ -130,6 +141,14 @@ public class UserEntity extends CoreEntity {
 		this.oAuth2ProviderId = oAuth2ProviderId;
 	}
 	
+	public String getOAuth2RefreshToken() {
+		return oAuth2RefreshToken;
+	}
+
+	public void setOAuth2RefreshToken(String oAuth2RefreshToken) {
+		this.oAuth2RefreshToken = oAuth2RefreshToken;
+	}
+
 	public String getRefreshToken() {
 		return refreshToken;
 	}
@@ -166,8 +185,8 @@ public class UserEntity extends CoreEntity {
 	public String toString() {
 		return "UserEntity [id=" + super.getId() + ", active=" + active + ", email=" + email + ", name=" + name + ", password=" + password
 				+ ", passwordResetToken=" + passwordResetToken + ", passwordResetTokenExpiration="
-				+ passwordResetTokenExpiration + ", oAuth2Provider=" + oAuth2Provider + ", oAuth2ProviderId="
-				+ oAuth2ProviderId + ", refreshToken=" + refreshToken + ", userRole=" + userRole + ", comments="
-				+ comments + ", posts=" + posts + "]";
+				+ passwordResetTokenExpiration + "oAuth2AccessToken=" + oAuth2AccessToken + ", oAuth2Provider=" + oAuth2Provider + ", oAuth2ProviderId="
+				+ oAuth2ProviderId + ", oAuth2RefreshToken=" + oAuth2RefreshToken + ", refreshToken=" + refreshToken
+				+ ", userRole=" + userRole + ", comments=" + comments + ", posts=" + posts + "]";
 	}
 }

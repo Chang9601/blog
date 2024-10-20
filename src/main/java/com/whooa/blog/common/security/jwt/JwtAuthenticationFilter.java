@@ -1,12 +1,12 @@
 package com.whooa.blog.common.security.jwt;
 
 import java.io.IOException;
-
+import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
+import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContext;
@@ -17,8 +17,15 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+import com.whooa.blog.common.api.ApiResponse;
+import com.whooa.blog.common.code.Code;
 import com.whooa.blog.common.security.UserDetailsServiceImpl;
+import com.whooa.blog.user.dto.UserDto.UserResponse;
+import com.whooa.blog.user.entity.UserEntity;
+import com.whooa.blog.user.repository.UserRepository;
 import com.whooa.blog.util.CookieUtil;
+import com.whooa.blog.util.SerializeDeserializeUtil;
+import com.whooa.blog.util.StringUtil;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -36,56 +43,35 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
 	private JwtUtil jwtUtil;
 	private UserDetailsServiceImpl userDetailsServiceImpl;
-	
-	public JwtAuthenticationFilter(JwtUtil jwtUtil, UserDetailsServiceImpl userDetailsServiceImpl) {
+	private UserRepository userRepository;
+
+	public JwtAuthenticationFilter(JwtUtil jwtUtil, UserDetailsServiceImpl userDetailsServiceImpl, UserRepository userRepository) {
 		this.jwtUtil = jwtUtil;
 		this.userDetailsServiceImpl = userDetailsServiceImpl;
+		this.userRepository = userRepository;
 	}
 
 	@Override
 	protected void doFilterInternal(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse, FilterChain filterChain)
 			throws ServletException, IOException {
-		String jwtAccessToken, email, jwtRefreshToken;
 		Cookie cookie;
+		String email, jwtAccessToken, jwtRefreshToken;
 		JwtBundle jwt;
 		Optional<Cookie> optionalCookie;
 		SecurityContext securityContext;
+		ApiResponse<UserResponse> success;
 		UserDetails userDetails;
+		UserEntity userEntity;
 		UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken;
-		
-		// TODO: 재발급 과정
-//		optionalCookie = CookieUtil.get(httpServletRequest, JWTTokenType.REFRESH_TOKEN.getType());
-//		
-//		if (optionalCookie.isPresent()) {
-//			cookie = optionalCookie.get();
-//			jwtRefreshToken = cookie.getValue();
-//			
-//			if (jwtRefreshToken != null && jwtUtil.verify(jwtRefreshToken)) {
-//				try {
-//					jwt = jwtUtil.reissue(jwtRefreshToken);
-//				
-//					CookieUtil.set(httpServletResponse, JWTTokenType.ACCESS_TOKEN.getType(), jwt.getAccessToken(), true, 60 * 60, "/", "Strict", false);
-//					CookieUtil.set(httpServletResponse, JWTTokenType.REFRESH_TOKEN.getType(), jwt.getRefreshToken(), true, 60 * 60 * 24 * 30, "/", "Strict", false);
-//			
-//				} catch (InvalidJWTRefreshTokenException exception) {
-//					logger.error("[JWTAuthenticationFilter] InvalidJWTRefreshTokenException: {}", exception.getMessage());
-//
-//				} catch (UserNotFoundException exception) {
-//					logger.error("[JWTAuthenticationFilter] UserNotFoundException: {}", exception.getMessage());
-//
-//				} catch (JWTRefreshTokenNotMatched exception) {
-//					logger.error("[JWTAuthenticationFilter] JWTRefreshTokenNotMatched: {}", exception.getMessage());
-//				}
-//			}		
-//		}
-				
+		UserResponse userResponse;
+			
 		optionalCookie = CookieUtil.get(httpServletRequest, JwtType.ACCESS_TOKEN.getType());
 		
 		if (optionalCookie.isPresent()) {
 			cookie = optionalCookie.get();
 			jwtAccessToken = cookie.getValue();
 			
-			if (jwtAccessToken != null & jwtUtil.verify(jwtAccessToken)) {
+			if (StringUtil.notEmpty(jwtAccessToken) && jwtUtil.verify(jwtAccessToken)) {
 				email = jwtUtil.parseEmail(jwtAccessToken);
 				
 				/*
@@ -104,29 +90,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 					userDetails = userDetailsServiceImpl.loadUserByUsername(email);
 					// UserResponse user = userService.findByEmail(email);
 					
-					/*
-					 * SecurityContextHolder는 Spring Security가 인증된 사용자의 세부 정보를 저장한다. 즉, SecurityContext를 포함한다.
-					 * 다중 스레드 상황에서 경쟁 조건이 발생할 수 있기 때문에 새로운 SecurityContext 인스턴스를 생성해야 한다.
-					 * SecurityContextHolder.getContext().setAuthentication(usernamePasswordAuthenticationToken);
-					 * 
-					 * SecurityContext는 Authentication 객체를 포함한다.
-					 */
+					/* https://docs.spring.io/spring-security/reference/servlet/authentication/architecture.html */
 					securityContext = SecurityContextHolder.createEmptyContext();
 					
-					/*
-					 * Authentication 인터페이스의 목적.
-					 * 1. AuthenticationManager의 입력으로 사용자가 인증을 위해 제공한 자격 증명을 제공하며 isAuthenticated()는 false를 반환한다. 
-					 * 2. 현재 인증된 사용자를 표현하며 현재의 인증 정보를 SecurityContext에서 얻을 수 있다.
-					 * 
-					 * Authentication 인터페이스의 포함요소.
-					 * 1. principal은 사용자를 식별하며 사용자 이름/비밀번호로 인증할 경우 대개 UserDetails 인스턴스이다.
-					 * 2. credentials은 대개 비밀번호로 많은 경우 사용자가 인증된 후에는 비밀번호가 지워져서 유출되지 않도록 한다.
-					 * 3. authorities는 GrantedAuthority 인스턴스는 사용자가 부여받은 고수준 권한이다. 예를 들어, 역할(roles)과 범위(scopes)가 있다.
-					 * 
-					 * GrantedAuthority는 principal에게 부여된 권한으로 보통 ROLE_ADMINISTRATOR나 ROLE_HR_SUPERVISOR와 같은 역할(role)이다. 
-					 * 이러한 역할은 웹 권한 부여, 메서드 권한 부여 및 도메인 객체 권한 부여를 위해 나중에 설정된다. 사용자 이름/비밀번호 기반 인증을 사용할 때 GrantedAuthority 인스턴스는 보통 UserDetailsService에 의해 로드된다.
-					 * 대개 GrantedAuthority 객체는 애플리케이션 전역의 권한을 나타낸다. 즉, 특정 도메인 객체에 한정되지 않는다.
-					 */
+					/* https://docs.spring.io/spring-security/reference/servlet/authentication/architecture.html */
 					usernamePasswordAuthenticationToken = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
 					usernamePasswordAuthenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(httpServletRequest));
 					
@@ -139,6 +106,40 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 					logger.error("[JwtAuthenticationFilter] AuthenticationException: {}", exception.getMessage());
 				} catch (Exception exception) {
 					logger.error("[JwtAuthenticationFilter] Exception: {}", exception.getMessage());
+				}
+			} else if (StringUtil.notEmpty(jwtAccessToken) && !jwtUtil.verify(jwtAccessToken)) {
+				optionalCookie = CookieUtil.get(httpServletRequest, JwtType.REFRESH_TOKEN.getType());
+				
+				if (optionalCookie.isPresent()) {
+					cookie = optionalCookie.get();
+					jwtRefreshToken = cookie.getValue();
+					
+					if (StringUtil.notEmpty(jwtRefreshToken) && jwtUtil.verify(jwtRefreshToken)) {
+						email = jwtUtil.parseEmail(jwtRefreshToken);
+						jwt = jwtUtil.reissue(jwtRefreshToken);
+						
+						CookieUtil.setJwtCookies(httpServletResponse, jwt.getAccessToken(), jwt.getRefreshToken());
+						
+						userEntity = userRepository.findByEmailAndActiveTrue(email).get();
+						 
+						userEntity.setRefreshToken(jwt.getRefreshToken());
+						userRepository.save(userEntity);
+						
+						userResponse = new UserResponse();
+						userResponse.setId(userEntity.getId());
+						userResponse.setEmail(userEntity.getEmail());
+						userResponse.setName(userEntity.getName());
+						userResponse.setUserRole(userEntity.getUserRole());
+						
+						success = ApiResponse.handleSuccess(Code.OK.getCode(), Code.OK.getMessage(), userResponse, new String[] {"로그인 했습니다."});
+
+						httpServletResponse.setStatus(HttpServletResponse.SC_OK);
+						httpServletResponse.setContentType(MediaType.APPLICATION_JSON_VALUE);
+						httpServletResponse.setCharacterEncoding(StandardCharsets.UTF_8.name());
+						httpServletResponse.getWriter().write(SerializeDeserializeUtil.serializeToString(success));
+						
+						return;
+					}
 				}
 			}
 		}

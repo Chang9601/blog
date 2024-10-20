@@ -8,18 +8,34 @@ import com.whooa.blog.file.value.File;
 import com.whooa.blog.post.doc.PostDoc;
 import com.whooa.blog.post.dto.PostDto;
 import com.whooa.blog.post.entity.PostEntity;
-import java.time.ZoneOffset;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoField;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import javax.annotation.processing.Generated;
+import javax.xml.datatype.DatatypeConfigurationException;
+import javax.xml.datatype.DatatypeConstants;
+import javax.xml.datatype.DatatypeFactory;
+import javax.xml.datatype.XMLGregorianCalendar;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2024-10-17T17:49:38+0900",
+    date = "2024-10-20T19:39:48+0900",
     comments = "version: 1.5.5.Final, compiler: IncrementalProcessingEnvironment from gradle-language-java-8.6.jar, environment: Java 17 (Oracle Corporation)"
 )
 public class PostMapperImpl implements PostMapper {
+
+    private final DatatypeFactory datatypeFactory;
+
+    public PostMapperImpl() {
+        try {
+            datatypeFactory = DatatypeFactory.newInstance();
+        }
+        catch ( DatatypeConfigurationException ex ) {
+            throw new RuntimeException( ex );
+        }
+    }
 
     @Override
     public PostDto.PostResponse fromEntity(PostEntity postEntity) {
@@ -67,11 +83,48 @@ public class PostMapperImpl implements PostMapper {
         postDoc.setId( postEntity.getId() );
         postDoc.setContent( postEntity.getContent() );
         postDoc.setTitle( postEntity.getTitle() );
-        if ( postEntity.getCreatedAt() != null ) {
-            postDoc.setCreatedAt( Date.from( postEntity.getCreatedAt().toInstant( ZoneOffset.UTC ) ) );
-        }
+        postDoc.setCreatedAt( xmlGregorianCalendarToLocalDate( localDateTimeToXmlGregorianCalendar( postEntity.getCreatedAt() ) ) );
 
         return postDoc;
+    }
+
+    @Override
+    public PostDto.PostResponse fromDoc(PostDoc postDoc) {
+        if ( postDoc == null ) {
+            return null;
+        }
+
+        PostDto.PostResponse postResponse = new PostDto.PostResponse();
+
+        postResponse.setId( postDoc.getId() );
+        postResponse.setContent( postDoc.getContent() );
+        postResponse.setTitle( postDoc.getTitle() );
+
+        return postResponse;
+    }
+
+    private XMLGregorianCalendar localDateTimeToXmlGregorianCalendar( LocalDateTime localDateTime ) {
+        if ( localDateTime == null ) {
+            return null;
+        }
+
+        return datatypeFactory.newXMLGregorianCalendar(
+            localDateTime.getYear(),
+            localDateTime.getMonthValue(),
+            localDateTime.getDayOfMonth(),
+            localDateTime.getHour(),
+            localDateTime.getMinute(),
+            localDateTime.getSecond(),
+            localDateTime.get( ChronoField.MILLI_OF_SECOND ),
+            DatatypeConstants.FIELD_UNDEFINED );
+    }
+
+    private static LocalDate xmlGregorianCalendarToLocalDate( XMLGregorianCalendar xcal ) {
+        if ( xcal == null ) {
+            return null;
+        }
+
+        return LocalDate.of( xcal.getYear(), xcal.getMonth(), xcal.getDay() );
     }
 
     protected CategoryDto.CategoryResponse categoryEntityToCategoryResponse(CategoryEntity categoryEntity) {

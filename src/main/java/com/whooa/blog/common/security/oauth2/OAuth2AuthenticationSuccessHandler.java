@@ -13,7 +13,6 @@ import com.whooa.blog.common.api.ApiResponse;
 import com.whooa.blog.common.code.Code;
 import com.whooa.blog.common.security.UserDetailsImpl;
 import com.whooa.blog.common.security.jwt.JwtBundle;
-import com.whooa.blog.common.security.jwt.JwtType;
 import com.whooa.blog.common.security.jwt.JwtUtil;
 import com.whooa.blog.user.dto.UserDto.UserResponse;
 import com.whooa.blog.user.entity.UserEntity;
@@ -46,21 +45,17 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
 	@Override
 	public void onAuthenticationSuccess(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse,
 			Authentication authentication) throws IOException, ServletException {
-		Long id;
 		JwtBundle jwt;
 		ApiResponse<UserResponse> success;
 		UserDetailsImpl userDetailsImpl;
 		UserEntity userEntity;
 		
 		userDetailsImpl = (UserDetailsImpl) authentication.getPrincipal();
-		
-		id = userDetailsImpl.getId();
 		jwt = jwtUtil.issue(userDetailsImpl.getUsername());
 
-		CookieUtil.set(httpServletResponse, JwtType.ACCESS_TOKEN.getType(), jwt.getAccessToken(), true, 60 * 60, "/", "Strict", false);
-		CookieUtil.set(httpServletResponse, JwtType.REFRESH_TOKEN.getType(), jwt.getRefreshToken(), true, 60 * 60, "/", "Strict", false);
-		
-		userEntity = userRepository.findByIdAndActiveTrue(id).get();
+		CookieUtil.setJwtCookies(httpServletResponse, jwt.getAccessToken(), jwt.getRefreshToken());
+
+		userEntity = userRepository.findByIdAndActiveTrue(userDetailsImpl.getId()).get();
 		setRefreshToken(userEntity, jwt.getRefreshToken());
 		
 		clearAuthenticationAttributes(httpServletRequest, httpServletResponse);

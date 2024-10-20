@@ -35,8 +35,9 @@ public class OAuth2AuthenticationFailureHandler extends SimpleUrlAuthenticationF
 	public void onAuthenticationFailure(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse,
 			AuthenticationException authenticationException) throws IOException, ServletException {
 		httpCookieOAuth2AuthorizationRequestRepository.removeAuthorizationRequest(httpServletRequest, httpServletResponse);
-				
-		ApiResponse<UnauthenticatedUserException> failure = ApiResponse.handleFailure(Code.OAUTH2_SIGNUP_FAILURE.getCode(), Code.OAUTH2_SIGNUP_FAILURE.getMessage(), null, new String[] {authenticationException.getLocalizedMessage()});
+		ApiResponse<UnauthenticatedUserException> failure;
+		
+		failure = ApiResponse.handleFailure(Code.OAUTH2_SIGNUP_FAILURE.getCode(), Code.OAUTH2_SIGNUP_FAILURE.getMessage(), null, new String[] {authenticationException.getLocalizedMessage()});
 
 		httpServletResponse.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
 		httpServletResponse.setContentType(MediaType.APPLICATION_JSON_VALUE);

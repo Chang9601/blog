@@ -1,11 +1,13 @@
 package com.whooa.blog.post.service.impl;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -13,8 +15,10 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.whooa.blog.elasticsearch.ElasticsearchIndex;
 import com.whooa.blog.elasticsearch.ElasticsearchUtil;
 import com.whooa.blog.post.doc.PostDoc;
+import com.whooa.blog.post.mapper.PostObjectNodeMapper;
 import com.whooa.blog.post.param.PostSearchParam;
 import com.whooa.blog.post.service.PostElasticsearchService;
+import com.whooa.blog.util.PaginationParam;
 
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.elasticsearch.core.SearchRequest;
@@ -25,75 +29,77 @@ import co.elastic.clients.elasticsearch.core.search.TotalHits;
 
 @Service
 public class PostElasticsearchServiceImpl implements PostElasticsearchService {
-//	private PostElasticsearchRepository postElasticsearchRepository;
 	private ElasticsearchClient elasticsearchClient;
 
 	public PostElasticsearchServiceImpl(ElasticsearchClient elasticsearchClient) {
 		this.elasticsearchClient = elasticsearchClient;
 	}
 	
-	public List<PostDoc> findAllByDate(Date startDate, Date endDate) {
-		SearchRequest searchRequest = ElasticsearchUtil.buildSearchRequest(ElasticsearchIndex.POST_INDEX, "created_at", startDate, endDate);
+	public Page<PostDoc> findAllByDate(Date startDate, Date endDate, PaginationParam paginationParam) {
+		SearchRequest searchRequest;
+		Pageable pageable;
 		
-		return performSearch(searchRequest);
+		pageable = paginationParam.makePageable();
+		searchRequest = ElasticsearchUtil.buildSearchRequest(ElasticsearchIndex.POST_INDEX, "created_at", startDate, endDate, paginationParam);
+		
+		return performSearch(searchRequest, pageable);
 	}
 	
 	@Override
-	public List<PostDoc> searchAll(PostSearchParam postSearchParam) {		
-		SearchRequest searchRequest = ElasticsearchUtil.buildSearchRequest(ElasticsearchIndex.POST_INDEX, postSearchParam);
+	public Page<PostDoc> searchAll(PostSearchParam postSearchParam) {		
+		SearchRequest searchRequest;
+		Pageable pageable;
+
+		pageable = postSearchParam.makePageable();
+		searchRequest = ElasticsearchUtil.buildSearchRequest(ElasticsearchIndex.POST_INDEX, postSearchParam);
 		
-		return performSearch(searchRequest);
+		return performSearch(searchRequest, pageable);
 	}
 	
 	@Override
-	public List<PostDoc> searchAllByDate(PostSearchParam postSearchParam, Date startDate, Date endDate) {
-		SearchRequest searchRequest = ElasticsearchUtil.buildSearchRequest(ElasticsearchIndex.POST_INDEX, postSearchParam, startDate, endDate);
+	public Page<PostDoc> searchAllByDate(PostSearchParam postSearchParam, Date startDate, Date endDate) {
+		SearchRequest searchRequest;
+		Pageable pageable;
+
+		pageable = postSearchParam.makePageable();
+		searchRequest = ElasticsearchUtil.buildSearchRequest(ElasticsearchIndex.POST_INDEX, postSearchParam, startDate, endDate);
 				
-		return performSearch(searchRequest);
+		return performSearch(searchRequest, pageable);
 	}
 	
-	private List<PostDoc> performSearch(SearchRequest searchRequest) {
+	private Page<PostDoc> performSearch(SearchRequest searchRequest, Pageable pageable) {
+		HitsMetadata<ObjectNode> hitsMetadata;
+		List<Hit<ObjectNode>> objectNodeHits;
+		List<ObjectNode> objectNodes;
+		List<PostDoc> posts;
+		SearchResponse<ObjectNode> searchResponse;
+		long total;
+		TotalHits totalHits;
+		
 		if (searchRequest == null) {
-			return Collections.emptyList();
+			return new PageImpl<PostDoc>(Collections.emptyList(), pageable, 0);
 		}
 				
 		try {
 			// TODO: PostDoc.class -> co.elastic.clients.transport.TransportException: node: https://localhost:9200/, status: 200, [es/search] Failed to decode response
-			SearchResponse<ObjectNode> searchResponse = elasticsearchClient.search(searchRequest, ObjectNode.class);
+			searchResponse = elasticsearchClient.search(searchRequest, ObjectNode.class);
+									
+			hitsMetadata = searchResponse.hits();
+			
+			totalHits = hitsMetadata.total();
+			objectNodeHits = hitsMetadata.hits();
+			
+			objectNodes = objectNodeHits.stream().map(objectNodeHit -> objectNodeHit.source()).collect(Collectors.toList());
+
+			posts = objectNodes.stream().map(objectNode -> PostObjectNodeMapper.fromObjectNode(objectNode)).collect(Collectors.toList());
+			total = totalHits.value();
 						
-			HitsMetadata<ObjectNode> hitsMetadata = searchResponse.hits();
-			
-			TotalHits totalHits = hitsMetadata.total();
-			List<Hit<ObjectNode>> objectNodeHits = hitsMetadata.hits();
-			
-			System.out.println(totalHits);
-			System.out.println(objectNodeHits);
-			
-			List<ObjectNode> objectNodes = objectNodeHits.stream().map(objectNode -> objectNode.source()).collect(Collectors.toList());
-			
-			
-//			elasticsearchClient.
-//			
-//			List<Hit<PostDoc>> searchHits = searchResponse.hits().hits();
-//			
-//			System.out.println(searchHits);
-//			System.out.println(searchResponse);
-//
-			List<PostDoc> posts = new ArrayList<>();
-//			
-//			for (Hit<PostDoc> hit: searchResponse.hits().hits()) {
-//				posts.add(hit.source());
-//			}
-			
-			System.out.println(posts);
-			System.out.println("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
-			
-			return posts;
+			return new PageImpl<PostDoc>(posts, pageable, total);
 			
 		} catch (Exception exception) {
 			System.out.println(exception);
 			
-			return Collections.emptyList();
+			return new PageImpl<PostDoc>(Collections.emptyList(), pageable, 0);
 		}
 	}
 }

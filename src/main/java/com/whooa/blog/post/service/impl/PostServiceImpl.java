@@ -109,6 +109,8 @@ public class PostServiceImpl implements PostService {
 
 		postDoc = PostMapper.INSTANCE.toDoc(createdPostEntity);
 		postDoc.setCategoryName(createdPostEntity.getCategory().getName());
+		//postDoc.setCreatedAt(createdPostEntity.getCreatedAt().toLocalDate());
+		
 		elasticsearchOperationsUtil.create(postDoc);
 		
 		return post;
@@ -168,7 +170,7 @@ public class PostServiceImpl implements PostService {
 	}
 	
 	@Override
-	public PageResponse<PostResponse> findAllByCategoryId(Long categoryId, PaginationParam pagination) {
+	public PageResponse<PostResponse> findAllByCategoryId(Long categoryId, PaginationParam paginationParam) {
 		Page<PostEntity> page;
 		Pageable pageable;
 		List<PostEntity> postEntities;
@@ -177,7 +179,7 @@ public class PostServiceImpl implements PostService {
 		int pageSize, pageNo, totalPages;
 		long totalElements;
 		
-		pageable = pagination.makePageable();
+		pageable = paginationParam.makePageable();
 		page = postQueryDslRepository.findAllByCategoryId(categoryId, pageable);
 		
 		postEntities = page.getContent();
@@ -194,28 +196,75 @@ public class PostServiceImpl implements PostService {
 	}
 	
 	@Override
-	public PageResponse<PostResponse> findAllByDate(Date startDate, Date endDate) {
-		// TODO: 시간대 변경
-		System.out.println(startDate);
-		System.out.println(endDate);
+	public PageResponse<PostResponse> findAllByDate(Date startDate, Date endDate, PaginationParam paginationParam) {
+		Page<PostDoc> page;
+		List<PostDoc> postDocs;
+		List<PostResponse> postResponse;
+		boolean isLast, isFirst;
+		int pageSize, pageNo, totalPages;
+		long totalElements;
 		
-		List<PostDoc> postDocs = postElasticsearchService.findAllByDate(startDate, endDate);
+		page = postElasticsearchService.findAllByDate(startDate, endDate, paginationParam);
 		
-		return null;
+		postDocs = page.getContent();
+		pageSize = page.getSize();
+		pageNo = page.getNumber();
+		totalElements = page.getTotalElements();
+		totalPages = page.getTotalPages();
+		isLast = page.isLast();
+		isFirst = page.isFirst();
+		
+		postResponse = postDocs.stream().map((postDoc) -> PostMapper.INSTANCE.fromDoc(postDoc)).collect(Collectors.toList());
+		
+		return PageResponse.handleResponse(postResponse, pageSize, pageNo, totalElements, totalPages, isLast, isFirst);
 	}
 	
 	@Override
 	public PageResponse<PostResponse> searchAll(PostSearchParam postSearchParam) {
-		List<PostDoc> postDocs = postElasticsearchService.searchAll(postSearchParam);
+		Page<PostDoc> page;
+		List<PostDoc> postDocs;
+		List<PostResponse> postResponse;
+		boolean isLast, isFirst;
+		int pageSize, pageNo, totalPages;
+		long totalElements;
+		
+		page = postElasticsearchService.searchAll(postSearchParam);
 
-		return null;//  postDocs;
+		postDocs = page.getContent();
+		pageSize = page.getSize();
+		pageNo = page.getNumber();
+		totalElements = page.getTotalElements();
+		totalPages = page.getTotalPages();
+		isLast = page.isLast();
+		isFirst = page.isFirst();
+		
+		postResponse = postDocs.stream().map((postDoc) -> PostMapper.INSTANCE.fromDoc(postDoc)).collect(Collectors.toList());
+		
+		return PageResponse.handleResponse(postResponse, pageSize, pageNo, totalElements, totalPages, isLast, isFirst);
 	}
 	
 	@Override
 	public PageResponse<PostResponse> searchAllByDate(PostSearchParam postSearchParam, Date startDate, Date endDate) {
-		List<PostDoc> postDocs = postElasticsearchService.searchAllByDate(postSearchParam, startDate, endDate);
+		Page<PostDoc> page;
+		List<PostDoc> postDocs;
+		List<PostResponse> postResponse;
+		boolean isLast, isFirst;
+		int pageSize, pageNo, totalPages;
+		long totalElements;
 		
-		return null;
+		page = postElasticsearchService.searchAllByDate(postSearchParam, startDate, endDate);
+
+		postDocs = page.getContent();
+		pageSize = page.getSize();
+		pageNo = page.getNumber();
+		totalElements = page.getTotalElements();
+		totalPages = page.getTotalPages();
+		isLast = page.isLast();
+		isFirst = page.isFirst();
+		
+		postResponse = postDocs.stream().map((postDoc) -> PostMapper.INSTANCE.fromDoc(postDoc)).collect(Collectors.toList());
+		
+		return PageResponse.handleResponse(postResponse, pageSize, pageNo, totalElements, totalPages, isLast, isFirst);
 	}
 
 	@Transactional

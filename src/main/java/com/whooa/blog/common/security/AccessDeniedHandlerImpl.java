@@ -29,8 +29,9 @@ public class AccessDeniedHandlerImpl implements AccessDeniedHandler {
 	public void handle(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse,
 			 AccessDeniedException accessDeniedException) throws IOException, ServletException {
 		logger.error("[AccessDeniedHandlerImpl] 필요한 권한이 없는 사용자입니다.");
+		ApiResponse<UnauthorizedUserException> failure;
 		
-		ApiResponse<UnauthorizedUserException> failure = ApiResponse.handleFailure(Code.FORBIDDEN.getCode(), Code.FORBIDDEN.getMessage(), null, new String[] {"필요한 권한이 없습니다."});
+		failure = ApiResponse.handleFailure(Code.FORBIDDEN.getCode(), Code.FORBIDDEN.getMessage(), null, new String[] {"필요한 권한이 없습니다."});
 		
 		httpServletResponse.setStatus(HttpServletResponse.SC_FORBIDDEN);
 		httpServletResponse.setContentType(MediaType.APPLICATION_JSON_VALUE);

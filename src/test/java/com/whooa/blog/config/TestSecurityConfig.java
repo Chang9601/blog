@@ -21,7 +21,6 @@ import com.whooa.blog.user.type.UserRole;
 public class TestSecurityConfig {
 	@Bean
 	public SecurityFilterChain defaultSecurityFilterChain(HttpSecurity httpSecurity) throws Exception {
-		// TODO: UserRepository 의존성 해결(NoSuchBeanDefinitionException 오류).
 		JwtUtil jwtUtil = new JwtUtil(null);
 		
 		return httpSecurity
@@ -29,7 +28,7 @@ public class TestSecurityConfig {
 				.httpBasic((http) -> http.disable())
 				.formLogin((form) -> form.disable())
 				.sessionManagement((session) -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-				.logout((logout) -> logout.logoutUrl("/api/v1/auth/sign-out").addLogoutHandler(new LogoutHandlerImpl()).logoutSuccessHandler(new LogoutSuccessHandlerImpl()))
+				.logout((logout) -> logout.logoutUrl("/api/v1/auth/sign-out").addLogoutHandler(new LogoutHandlerImpl(null)).logoutSuccessHandler(new LogoutSuccessHandlerImpl()))
 				.authorizeHttpRequests((authorize) ->
 					authorize
 							 .requestMatchers("/api/v1/auth/sign-out").hasAuthority(UserRole.USER.getRole())
@@ -45,7 +44,7 @@ public class TestSecurityConfig {
 							 .anyRequest().permitAll())
 				.exceptionHandling((exception) -> exception.authenticationEntryPoint(new AuthenticationEntryPointImpl()).accessDeniedHandler(new AccessDeniedHandlerImpl()))
 				.addFilterAt(new JsonUsernamePasswordAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
-				.addFilterBefore(new JwtAuthenticationFilter(jwtUtil, null), JsonUsernamePasswordAuthenticationFilter.class)
+				.addFilterBefore(new JwtAuthenticationFilter(jwtUtil, null, null), JsonUsernamePasswordAuthenticationFilter.class)
 				.build();
 	}
 }

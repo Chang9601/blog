@@ -70,12 +70,11 @@ public class OAuth2UserServiceImpl implements OAuth2UserService<OAuth2UserReques
 	
 	private UserEntity create(OAuth2UserRequest oAuth2UserRequest, OAuth2UserInfo oAuth2UserInfo) {
 		UserEntity userEntity;
-		String password = PasswordUtil.hash(oAuth2UserInfo.getOAuth2ProviderId());
 		
 		userEntity = new UserEntity();		
 		userEntity.setEmail(oAuth2UserInfo.getEmail());
 		userEntity.setName(oAuth2UserInfo.getName());
-		userEntity.setPassword(password);
+		userEntity.setPassword(PasswordUtil.hash(oAuth2UserInfo.getOAuth2ProviderId()));
 		userEntity.setOAuth2Provider(OAuth2Provider.valueOf(oAuth2UserRequest.getClientRegistration().getRegistrationId().toUpperCase()));
 		userEntity.setOAuth2ProviderId(oAuth2UserInfo.getOAuth2ProviderId());
 		

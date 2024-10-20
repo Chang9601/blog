@@ -62,7 +62,6 @@ public class JsonUsernamePasswordAuthenticationFilter extends AbstractAuthentica
 	@Override
 	public Authentication attemptAuthentication(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse)
 			throws AuthenticationException, IOException, ServletException {
-		String password, username;
 		ServletInputStream servletInputStream;
 		SignInDto signInDto;
 		UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken;
@@ -77,11 +76,8 @@ public class JsonUsernamePasswordAuthenticationFilter extends AbstractAuthentica
 		
 		servletInputStream = httpServletRequest.getInputStream();
 		signInDto = SerializeDeserializeUtil.deserializeFromJson(StreamUtils.copyToString(servletInputStream, StandardCharsets.UTF_8), SignInDto.class);
-		
-		username = signInDto.getEmail();
-		password = signInDto.getPassword();
-		
-		usernamePasswordAuthenticationToken = UsernamePasswordAuthenticationToken.unauthenticated(username, password);
+			
+		usernamePasswordAuthenticationToken = UsernamePasswordAuthenticationToken.unauthenticated(signInDto.getEmail(), signInDto.getPassword());
 		
 		/* Allow subclasses to set the "details" property */
 		setDetails(httpServletRequest, usernamePasswordAuthenticationToken);

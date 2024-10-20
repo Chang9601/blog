@@ -39,11 +39,13 @@ public class QUserEntity extends EntityPathBase<UserEntity> {
 
     public final StringPath name = createString("name");
 
+    public final StringPath oAuth2AccessToken = createString("oAuth2AccessToken");
+
     public final EnumPath<com.whooa.blog.common.security.oauth2.OAuth2Provider> oAuth2Provider = createEnum("oAuth2Provider", com.whooa.blog.common.security.oauth2.OAuth2Provider.class);
 
     public final StringPath oAuth2ProviderId = createString("oAuth2ProviderId");
 
-    public final StringPath oAuth2ProviderRefreshToken = createString("oAuth2ProviderRefreshToken");
+    public final StringPath oAuth2RefreshToken = createString("oAuth2RefreshToken");
 
     public final StringPath password = createString("password");
 

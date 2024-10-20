@@ -1,11 +1,14 @@
 package com.whooa.blog.elasticsearch;
 
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
 import org.springframework.util.CollectionUtils;
 
 import com.whooa.blog.post.param.PostSearchParam;
+import com.whooa.blog.util.CalendarUtil;
+import com.whooa.blog.util.PaginationParam;
 
 import co.elastic.clients.elasticsearch._types.SortOptions;
 import co.elastic.clients.elasticsearch._types.SortOrder;
@@ -19,24 +22,19 @@ import co.elastic.clients.elasticsearch.core.SearchRequest;
 import co.elastic.clients.json.JsonData;
 import co.elastic.clients.elasticsearch._types.query_dsl.TextQueryType;
 
-public final class ElasticsearchUtil<T> {
-	private ElasticsearchUtil() {}
-		
+public final class ElasticsearchUtil {
+	public ElasticsearchUtil() {}
+	
 	public static SearchRequest buildSearchRequest(String index, PostSearchParam postSearchParam) {		
 		try {
-			int pageNo, pageSize, from;
 			SearchRequest.Builder searchRequestBuilder;
-			
-			pageNo = postSearchParam.getPageNo();
-			pageSize = postSearchParam.getPageSize();
-			from = pageNo <= 0 ? 0 : pageNo * pageSize;
-			
+
 			/* https://www.elastic.co/guide/en/elasticsearch/reference/current/filter-search-results.html */
 			searchRequestBuilder = new SearchRequest.Builder()
 											.index(index)
 											.postFilter(buildQuery(postSearchParam))
-											.from(from)
-											.size(pageSize);
+											.from(calculateFrom(postSearchParam.getPageNo(), postSearchParam.getPageSize()))
+											.size(postSearchParam.getPageSize());
 											//.query(buildQuery(postSearchParam));
 			
 			// TODO: 작동 X
@@ -75,14 +73,16 @@ public final class ElasticsearchUtil<T> {
 			
 			searchRequestBuilder = new SearchRequest.Builder()
 														.index(index)
-														.postFilter(boolQuery);
+														.postFilter(boolQuery)
+														.from(calculateFrom(postSearchParam.getPageNo(), postSearchParam.getPageSize()))
+														.size(postSearchParam.getPageSize());
 														//.query(boolQuery));
 			
 			if (postSearchParam.getSortBy() != null) {
 				SortOptions sortOptions = new SortOptions.Builder()
-						.field(fn -> fn.field(postSearchParam.getSortBy())
-								.order(postSearchParam.getSortOrder() != null ? SortOrder.valueOf(postSearchParam.getSortOrder()) : SortOrder.Asc))
-						.build();
+															.field(fn -> fn.field(postSearchParam.getSortBy())
+																	.order(postSearchParam.getSortOrder() != null ? SortOrder.valueOf(postSearchParam.getSortOrder()) : SortOrder.Asc))
+															.build();
 				
 				searchRequestBuilder.sort(sortOptions);
 			}
@@ -95,11 +95,13 @@ public final class ElasticsearchUtil<T> {
 		}
 	}
 	
-	public static SearchRequest buildSearchRequest(String index, String field, Date startDate, Date endDate) {
+	public static SearchRequest buildSearchRequest(String index, String field, Date startDate, Date endDate, PaginationParam paginationParam) {
 		try {
 			SearchRequest searchRequest = new SearchRequest.Builder()
 																.index(List.of(index))
 																.postFilter(buildQuery(field, startDate, endDate))
+																.from(calculateFrom(paginationParam.getPageNo(), paginationParam.getPageSize()))
+																.size(paginationParam.getPageSize())
 																.build();
 			
 			return searchRequest;
@@ -110,13 +112,12 @@ public final class ElasticsearchUtil<T> {
 		}
 	}
 	
-	// TODO: 시작/끝 날짜
-	private static Query buildQuery(String field, Date startDate, Date endDate) {
+	private static Query buildQuery(String field, Date startDate, Date endDate) {   
 		return new RangeQuery
 						.Builder()
 						.field(field)
-						.gte(JsonData.of(startDate))
-						.lte(JsonData.of(endDate))
+						.gte(JsonData.of(CalendarUtil.converToStartOfDay(startDate)))
+						.lte(JsonData.of(CalendarUtil.converToEndOfDay(endDate)))
 						.build()
 						._toQuery();
 	}
@@ -163,5 +164,9 @@ public final class ElasticsearchUtil<T> {
 				.field(field).build())
 				.orElse(null)
 				._toQuery();	
+	}
+	
+	private static int calculateFrom(int pageNo, int pageSize) {
+		return pageNo <= 0 ? 0 : pageNo * pageSize;
 	}
 }

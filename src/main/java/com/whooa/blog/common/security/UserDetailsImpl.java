@@ -31,7 +31,9 @@ public class UserDetailsImpl implements UserDetails, OAuth2User {
 	}
 	
 	public static UserDetailsImpl create(UserEntity userEntity, Map<String, Object> attributes) {
-		UserDetailsImpl userDetailsImpl = new UserDetailsImpl(userEntity);
+		UserDetailsImpl userDetailsImpl;
+		
+		userDetailsImpl = new UserDetailsImpl(userEntity);
 		userDetailsImpl.setAttributes(attributes);
 		
 		return userDetailsImpl;
@@ -58,6 +60,11 @@ public class UserDetailsImpl implements UserDetails, OAuth2User {
 	}
 
 	@Override
+	public String getName() {
+		return userEntity.getName();
+	}
+
+	@Override
 	public String getPassword() {
 		return userEntity.getPassword();
 	}
@@ -66,7 +73,7 @@ public class UserDetailsImpl implements UserDetails, OAuth2User {
 	public String getUsername() {
 		return userEntity.getEmail();
 	}
-
+	
 	@Override
 	public boolean isAccountNonExpired() {
 		return true;
@@ -96,9 +103,4 @@ public class UserDetailsImpl implements UserDetails, OAuth2User {
 		this.attributes = attributes;
 	}
 
-	@Override
-	public String getName() {
-		// TODO Auto-generated method stub
-		return null;
-	}
 }

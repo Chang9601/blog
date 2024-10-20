@@ -22,6 +22,7 @@ import com.whooa.blog.common.code.Code;
 import com.whooa.blog.common.security.CurrentUser;
 import com.whooa.blog.common.security.UserDetailsImpl;
 import com.whooa.blog.post.dto.PostDto.PostResponse;
+import com.whooa.blog.post.doc.PostDoc;
 import com.whooa.blog.post.dto.PostDto.PostCreateRequest;
 import com.whooa.blog.post.dto.PostDto.PostUpdateRequest;
 import com.whooa.blog.post.param.PostSearchParam;
@@ -115,8 +116,8 @@ public class PostController {
 	@io.swagger.v3.oas.annotations.responses.ApiResponse(content = @Content(mediaType = "application/json"), description = "포스트 검색 성공", responseCode = "200")
 	@ResponseStatus(value = HttpStatus.OK)
 	@GetMapping("/{start-date}/{end-date}")
-	public ApiResponse<PageResponse<PostResponse>> getPostsByDate(@PathVariable("start-date") @DateTimeFormat(pattern = "yyyy-MM-dd") Date startDate, @PathVariable("end-date") @DateTimeFormat(pattern = "yyyy-MM-dd") Date endDate) {		
-		return ApiResponse.handleSuccess(Code.OK.getCode(), Code.OK.getMessage(), postService.findAllByDate(startDate, endDate), new String[] {"기간을 만족하는 포스트를 검색했습니다."});
+	public ApiResponse<PageResponse<PostResponse>> getPostsByDate(@PathVariable("start-date") @DateTimeFormat(pattern = "yyyy-MM-dd") Date startDate, @PathVariable("end-date") @DateTimeFormat(pattern = "yyyy-MM-dd") Date endDate, PaginationParam paginationUtil) {		
+		return ApiResponse.handleSuccess(Code.OK.getCode(), Code.OK.getMessage(), postService.findAllByDate(startDate, endDate, paginationUtil), new String[] {"기간을 만족하는 포스트를 검색했습니다."});
 	}
 	
 	@SecurityRequirement(name = "JWT Cookie Authentication")

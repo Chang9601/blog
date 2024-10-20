@@ -15,12 +15,10 @@ import org.springframework.stereotype.Component;
 import com.whooa.blog.common.api.ApiResponse;
 import com.whooa.blog.common.code.Code;
 import com.whooa.blog.common.security.jwt.JwtBundle;
-import com.whooa.blog.common.security.jwt.JwtType;
 import com.whooa.blog.common.security.jwt.JwtUtil;
 import com.whooa.blog.user.dto.UserDto.UserResponse;
 import com.whooa.blog.user.entity.UserEntity;
 import com.whooa.blog.user.repository.UserRepository;
-import com.whooa.blog.user.type.UserRole;
 import com.whooa.blog.util.CookieUtil;
 import com.whooa.blog.util.SerializeDeserializeUtil;
 
@@ -40,42 +38,33 @@ public class AuthenticationSuccessHandlerImpl implements AuthenticationSuccessHa
 		this.jwtUtil = jwtUtil;
 		this.userRepository = userRepository;
 	}
-	
+		
 	@Override
 	public void onAuthenticationSuccess(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse,
 			 Authentication authentication) throws IOException, ServletException {
 		logger.info("[AuthenticationSuccessHandlerImpl] 인증이 성공했습니다.");
-		
-		String email, name;
-		Long id;
+
 		JwtBundle jwt;
 		ApiResponse<UserResponse> success;
 		UserDetailsImpl userDetailsImpl;
 		UserEntity userEntity;
 		UserResponse userResponse;
-		UserRole userRole;
 
 		userDetailsImpl = (UserDetailsImpl) authentication.getPrincipal();
 		
-		id = userDetailsImpl.getId();
-		email = userDetailsImpl.getUsername();
-		name = userDetailsImpl.getName();
-		userRole = userDetailsImpl.getUserRole();
-
-		jwt = jwtUtil.issue(email);
+		jwt = jwtUtil.issue(userDetailsImpl.getUsername());
 		
 		userResponse = new UserResponse();
-		userResponse.setId(id);
-		userResponse.setEmail(email);
-		userResponse.setName(name);
-		userResponse.setUserRole(userRole);
+		userResponse.setId(userDetailsImpl.getId());
+		userResponse.setEmail(userDetailsImpl.getUsername());
+		userResponse.setName(userDetailsImpl.getName());
+		userResponse.setUserRole(userDetailsImpl.getUserRole());
 		
 		success = ApiResponse.handleSuccess(Code.OK.getCode(), Code.OK.getMessage(), userResponse, new String[] {"로그인 했습니다."});
-
-		CookieUtil.set(httpServletResponse, JwtType.ACCESS_TOKEN.getType(), jwt.getAccessToken(), true, 60 * 60, "/", "Strict", false);
-		CookieUtil.set(httpServletResponse, JwtType.REFRESH_TOKEN.getType(), jwt.getRefreshToken(), true, 60 * 60 * 24 * 30, "/", "Strict", false);
 		
-		userEntity = userRepository.findByIdAndActiveTrue(id).get();
+		CookieUtil.setJwtCookies(httpServletResponse, jwt.getAccessToken(), jwt.getRefreshToken());
+
+		userEntity = userRepository.findByIdAndActiveTrue(userDetailsImpl.getId()).get();
 		setRefreshToken(userEntity, jwt.getRefreshToken());
 
 		httpServletResponse.setStatus(HttpServletResponse.SC_OK);

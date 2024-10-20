@@ -34,7 +34,7 @@ public class HttpCookieOAuth2AuthorizationRequestRepository implements Authoriza
 			HttpServletResponse httpServletResponse) {
 		
 		if (oAuth2AuthorizationRequest == null) {
-			CookieUtil.clear(httpServletRequest, httpServletResponse, STATE);
+			CookieUtil.clear(httpServletRequest, httpServletResponse, STATE, true, "/", "Lax", false);
 			
 			return;
 		}
@@ -54,6 +54,6 @@ public class HttpCookieOAuth2AuthorizationRequestRepository implements Authoriza
 	
 	public void removeAuthorizationRequestCookie(HttpServletRequest httpServletRequest,
 			HttpServletResponse httpServletResponse) {
-		CookieUtil.clear(httpServletRequest, httpServletResponse, STATE);
+		CookieUtil.clear(httpServletRequest, httpServletResponse, STATE, true, "/", "Lax", false);
 	}
 }

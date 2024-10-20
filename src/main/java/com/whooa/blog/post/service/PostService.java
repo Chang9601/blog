@@ -19,7 +19,7 @@ public interface PostService {
 	public abstract PostResponse find(Long id);
 	public abstract PageResponse<PostResponse> findAll(PaginationParam paginationUtil);
 	public abstract PageResponse<PostResponse> findAllByCategoryId(Long categoryId, PaginationParam paginationUtil);
-	public abstract PageResponse<PostResponse> findAllByDate(Date startDate, Date endDate);
+	public abstract PageResponse<PostResponse> findAllByDate(Date startDate, Date endDate, PaginationParam paginationParam);
 	public abstract PageResponse<PostResponse> searchAll(PostSearchParam postSearchParam);
 	public abstract PageResponse<PostResponse> searchAllByDate(PostSearchParam postSearchParam, Date startDate, Date endDate);
 	public abstract PostResponse update(Long id, PostUpdateRequest postUpdate, MultipartFile[] uploadFiles, UserDetailsImpl userDetailsImpl);

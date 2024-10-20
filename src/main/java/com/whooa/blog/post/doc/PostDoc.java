@@ -1,7 +1,6 @@
 package com.whooa.blog.post.doc;
 
-
-import java.util.Date;
+import java.time.LocalDate;
 
 import org.springframework.data.elasticsearch.annotations.Document;
 import org.springframework.data.elasticsearch.annotations.Field;
@@ -9,8 +8,9 @@ import org.springframework.data.elasticsearch.annotations.FieldType;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.whooa.blog.common.doc.CoreDoc;
+import com.whooa.blog.elasticsearch.ElasticsearchIndex;
 
-@Document(indexName = "posts")
+@Document(indexName = ElasticsearchIndex.POST_INDEX)
 public class PostDoc extends CoreDoc {	
 	@Field(type = FieldType.Text, name = "category_name")
 	private String categoryName;
@@ -21,10 +21,9 @@ public class PostDoc extends CoreDoc {
 	@Field(type = FieldType.Text)
 	private String title;
 	
-	// TODO: 날짜 오류
 	@JsonFormat(pattern = "yyyy-MM-dd")
 	@Field(type = FieldType.Date, name = "created_at")
-	private Date createdAt; 
+	private LocalDate createdAt; 
 	
 	public PostDoc() {}
 
@@ -60,11 +59,11 @@ public class PostDoc extends CoreDoc {
 		this.title = title;
 	}
 	
-	public Date getCreatedAt() {
+	public LocalDate getCreatedAt() {
 		return createdAt;
 	}
 
-	public void setCreatedAt(Date createdAt) {
+	public void setCreatedAt(LocalDate createdAt) {
 		this.createdAt = createdAt;
 	}
 
