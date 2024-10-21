@@ -1,27 +1,41 @@
-# BellSoft에서 OpenJDK Java LTS 17을 다운받는다.
 FROM alpine:3.16 AS base
-ENV JAVA_HOME /opt/jdk/jdk-17.0.12
+
+ENV JAVA_HOME /opt/jdk/jdk-17.0.12+7
 ENV PATH $JAVA_HOME/bin:$PATH
 
-# Alpine Linux로 설정된 릴리즈를 다운받는다.
-ADD https://download.bell-sw.com/java/17.0.12+10/bellsoft-jdk17.0.12+10-linux-x64-musl.tar.gz /opt/jdk/
-RUN tar -xzvf /opt/jdk/bellsoft-jdk17.0.12+10-linux-x64-musl.tar.gz -C /opt/jdk/
+ADD https://github.com/adoptium/temurin17-binaries/releases/download/jdk-17.0.12%2B7/OpenJDK17U-jdk_x64_alpine-linux_hotspot_17.0.12_7.tar.gz /opt/jdk/
+RUN tar -xzvf /opt/jdk/OpenJDK17U-jdk_x64_alpine-linux_hotspot_17.0.12_7.tar.gz -C /opt/jdk/
 
-WORKDIR /opt/spring_app
+
+FROM base AS source
+
+WORKDIR /opt/app
 COPY . .
-RUN ./gradlew clean build -x test
 
-# jlink 명령으로 맞춤 JDK 이미지를 생성한다(jlink를 사용해서 애플리케이션에 필요한 모듈만 선택하여 실행 이미지로 링크할 수 있다.).
+RUN ./gradlew clean build -x test
 RUN ["jlink", "--compress=2", \
-     "--module-path", "/opt/jdk/jdk-17.0.12/jmods/", \
+     "--module-path", "/opt/jdk/jdk-17.0.12+7/jmods/", \
      "--add-modules", "java.base,java.sql,java.xml,java.management,java.compiler,java.security.jgss,java.instrument,java.scripting,java.logging,java.naming,java.desktop,jdk.unsupported", \
      "--no-header-files", "--no-man-pages", \
-     "--output", "/springboot-runtime"]
+     "--output", "/runtime"]
 
-FROM alpine:3.16
-COPY --from=base /springboot-runtime /opt/jdk
+
+FROM alpine:3.16 AS prod
+
+ARG USER=spring
+RUN adduser --no-create-home -u 1000 -D $USER
+
+WORKDIR /opt/app
+RUN chown -R 1000:1000 /opt/app
+
+USER 1000
+
+COPY --from=source --chown=1000:1000 /runtime /opt/jdk
 COPY --from=ghcr.io/ufoscout/docker-compose-wait:latest /wait /wait
+
 ENV PATH=$PATH:/opt/jdk/bin
 EXPOSE 3000
-COPY --from=base /opt/spring_app/build/libs/whooa-blog-0.0.1-SNAPSHOT.jar /opt/spring_app/
-CMD ["java", "-jar", "/opt/spring_app/whooa-blog-0.0.1-SNAPSHOT.jar"]
+
+COPY --from=source --chown=1000:1000 /opt/app/build/libs/whooa-blog-0.0.1-SNAPSHOT.jar /opt/app/
+
+CMD ["java", "-jar", "/opt/app/whooa-blog-0.0.1-SNAPSHOT.jar"]

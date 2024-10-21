@@ -4,11 +4,13 @@ import java.time.Duration;
 
 import javax.net.ssl.SSLContext;
 
+import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.http.conn.ssl.TrustAllStrategy;
 import org.apache.http.ssl.SSLContextBuilder;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.elasticsearch.client.ClientConfiguration;
+import org.springframework.data.elasticsearch.client.elc.ElasticsearchClients.ElasticsearchHttpClientConfigurationCallback;
 import org.springframework.data.elasticsearch.client.elc.ElasticsearchConfiguration;
 import org.springframework.data.elasticsearch.repository.config.EnableElasticsearchRepositories;
 
@@ -34,6 +36,11 @@ public class ElasticsearchClientConfig extends ElasticsearchConfiguration {
 				.usingSsl(buildSslContext())
 				.withBasicAuth(username, password)
 				.withSocketTimeout(Duration.ofMillis(10000))
+				/* Host name 'elasticsearch' does not match the certificate subject provided by the peer (CN=63f6333f7b4a) */
+				.withClientConfigurer(ElasticsearchHttpClientConfigurationCallback.from(clientBuilder -> {
+					clientBuilder.setSSLHostnameVerifier(NoopHostnameVerifier.INSTANCE);
+					return clientBuilder;
+				}))
 				.build();
 	}
 	

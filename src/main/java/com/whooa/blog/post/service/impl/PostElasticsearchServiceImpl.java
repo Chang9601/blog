@@ -89,9 +89,14 @@ public class PostElasticsearchServiceImpl implements PostElasticsearchService {
 			totalHits = hitsMetadata.total();
 			objectNodeHits = hitsMetadata.hits();
 			
-			objectNodes = objectNodeHits.stream().map(objectNodeHit -> objectNodeHit.source()).collect(Collectors.toList());
+			objectNodes = objectNodeHits.stream()
+											.map(objectNodeHit -> objectNodeHit.source())
+											.collect(Collectors.toList());
 
-			posts = objectNodes.stream().map(objectNode -> PostObjectNodeMapper.fromObjectNode(objectNode)).collect(Collectors.toList());
+			posts = objectNodes.stream()
+									.map(objectNode -> PostObjectNodeMapper.fromObjectNode(objectNode))
+									.collect(Collectors.toList());
+			
 			total = totalHits.value();
 						
 			return new PageImpl<PostDoc>(posts, pageable, total);

@@ -31,11 +31,10 @@ public final class ElasticsearchUtil {
 
 			/* https://www.elastic.co/guide/en/elasticsearch/reference/current/filter-search-results.html */
 			searchRequestBuilder = new SearchRequest.Builder()
-											.index(index)
-											.postFilter(buildQuery(postSearchParam))
-											.from(calculateFrom(postSearchParam.getPageNo(), postSearchParam.getPageSize()))
-											.size(postSearchParam.getPageSize());
-											//.query(buildQuery(postSearchParam));
+														.index(index)
+														.postFilter(buildQuery(postSearchParam))
+														.from(calculateFrom(postSearchParam.getPageNo(), postSearchParam.getPageSize()))
+														.size(postSearchParam.getPageSize());
 			
 			// TODO: 작동 X
 			if (postSearchParam.getSortBy() != null) {
@@ -81,7 +80,7 @@ public final class ElasticsearchUtil {
 			if (postSearchParam.getSortBy() != null) {
 				SortOptions sortOptions = new SortOptions.Builder()
 															.field(fn -> fn.field(postSearchParam.getSortBy())
-																	.order(postSearchParam.getSortOrder() != null ? SortOrder.valueOf(postSearchParam.getSortOrder()) : SortOrder.Asc))
+															.order(postSearchParam.getSortOrder() != null ? SortOrder.valueOf(postSearchParam.getSortOrder()) : SortOrder.Asc))
 															.build();
 				
 				searchRequestBuilder.sort(sortOptions);
@@ -113,13 +112,12 @@ public final class ElasticsearchUtil {
 	}
 	
 	private static Query buildQuery(String field, Date startDate, Date endDate) {   
-		return new RangeQuery
-						.Builder()
-						.field(field)
-						.gte(JsonData.of(CalendarUtil.converToStartOfDay(startDate)))
-						.lte(JsonData.of(CalendarUtil.converToEndOfDay(endDate)))
-						.build()
-						._toQuery();
+		return new RangeQuery.Builder()
+								.field(field)
+								.gte(JsonData.of(CalendarUtil.converToStartOfDay(startDate)))
+								.lte(JsonData.of(CalendarUtil.converToEndOfDay(endDate)))
+								.build()
+								._toQuery();
 	}
 	
 	private static Query buildQuery(PostSearchParam postSearchParam) {
@@ -142,14 +140,13 @@ public final class ElasticsearchUtil {
 		 * https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-multi-match-query.html
 		 */
 		if (fields.size() > 1) {			
-			 return new MultiMatchQuery
-			 	.Builder()
-				.query(term) // TODO: LIKE
-				.type(TextQueryType.CrossFields)
-				.operator(Operator.And)
-				.fields(fields) 
-				.build()
-				._toQuery();
+			 return new MultiMatchQuery.Builder()
+											.query(term)
+											.type(TextQueryType.CrossFields)
+											.operator(Operator.And)
+											.fields(fields) 
+											.build()
+											._toQuery();
 		}
 
 		/*
@@ -157,13 +154,13 @@ public final class ElasticsearchUtil {
 		 * https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-match-query.html 
 		 */
 		return fields.stream()
-				.findFirst()
-				.map((field) -> new MatchQuery.Builder()
-				.query(term) // TODO: LIKE
-				.operator(Operator.And)
-				.field(field).build())
-				.orElse(null)
-				._toQuery();	
+						.findFirst()
+						.map((field) -> new MatchQuery.Builder()
+						.query(term) // TODO: LIKE
+						.operator(Operator.And)
+						.field(field).build())
+						.orElse(null)
+						._toQuery();	
 	}
 	
 	private static int calculateFrom(int pageNo, int pageSize) {

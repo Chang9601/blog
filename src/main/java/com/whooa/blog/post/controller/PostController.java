@@ -22,7 +22,6 @@ import com.whooa.blog.common.code.Code;
 import com.whooa.blog.common.security.CurrentUser;
 import com.whooa.blog.common.security.UserDetailsImpl;
 import com.whooa.blog.post.dto.PostDto.PostResponse;
-import com.whooa.blog.post.doc.PostDoc;
 import com.whooa.blog.post.dto.PostDto.PostCreateRequest;
 import com.whooa.blog.post.dto.PostDto.PostUpdateRequest;
 import com.whooa.blog.post.param.PostSearchParam;

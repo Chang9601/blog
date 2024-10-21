@@ -78,6 +78,7 @@ public class PostServiceImpl implements PostService {
 		this.elasticsearchOperationsUtil = elasticsearchOperationsUtil;
 	}
 
+	@Transactional
 	@Override
 	public PostResponse create(PostCreateRequest postCreate, MultipartFile[] uploadFiles, UserDetailsImpl userDetailsImpl) {
 		List<File> files = null;
@@ -296,7 +297,6 @@ public class PostServiceImpl implements PostService {
 		if (uploadFiles != null && uploadFiles.length > 0) {
 			files = postEntity.getFiles();
 			
-			// TODO: 디스크 파일 삭제?
 			files.removeIf((file) -> 1 == 1);
 			
 			files = Arrays.stream(uploadFiles)

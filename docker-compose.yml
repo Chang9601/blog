@@ -5,13 +5,11 @@ services:
     build:
       dockerfile: Dockerfile
       context: .
-    command: sh -c '/wait && java -jar /opt/spring_app/whooa-blog-0.0.1-SNAPSHOT.jar'
+    command: sh -c '/wait && java -jar /opt/app/whooa-blog-0.0.1-SNAPSHOT.jar'
     ports:
       - '3000:3000'
     env_file:
       - ./.env
-    #volumes:
-    #  - .:/opt/spring-app
     depends_on:
       mysql:
         condition: service_healthy
@@ -56,15 +54,15 @@ services:
       
   elasticsearch:
     container_name: blog-elasticsearch
-    image: elasticsearch:8.14.0
+    image: elasticsearch:8.15.2
     ports:
       - '9200:9200'
       - '9300:9300'
     environment:
-      - cluster.name=blog-cluster
+      - cluster.name=docker-cluster
       - discovery.type=single-node
       - bootstrap.memory_lock=true
-      - xpack.security.enabled=false
+      - ELASTIC_PASSWORD=xBks*o6ygKMk5M0_EgiM
 
 volumes:
   mysqldb:

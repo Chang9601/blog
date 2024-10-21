@@ -21,7 +21,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2024-10-20T19:39:48+0900",
+    date = "2024-10-21T00:26:40+0900",
     comments = "version: 1.5.5.Final, compiler: IncrementalProcessingEnvironment from gradle-language-java-8.6.jar, environment: Java 17 (Oracle Corporation)"
 )
 public class PostMapperImpl implements PostMapper {

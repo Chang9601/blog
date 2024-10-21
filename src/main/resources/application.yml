@@ -29,11 +29,11 @@ spring:
     password: ${MYSQL_PASSWORD}
     
   elasticsearch:
-    password: ${ELASTICSEARCH_PASSWORD}
-    url: ${ELASTICSEARCH_URL}
+    password: ${ELASTIC_PASSWORD}
+    url: ${ELASTIC_URL}
     uris:
-    - ${ELASTICSEARCH_URL}
-    username: ${ELASTICSEARCH_USERNAME}
+    - ${ELASTIC_URL}
+    username: ${ELASTIC_USERNAME}
 
   servlet:
     multipart:
